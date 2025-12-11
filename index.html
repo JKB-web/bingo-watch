@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BINGO WATCH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" href="https://www.google.com/s2/favicons?domain=airsupport.website&sz=64">
+    
+    <style>
+        :root {
+            /* COLORS */
+            --primary-blue: #1b365d; 
+            --primary-blue-dark: #122542;
+            --accent-orange: #CB6015;
+            --accent-orange-light: #e67324;
+            --alert-red: #d32f2f;
+            --success-green: #27ae60;
+            --bg-color: #f4f7f9;
+            
+            /* WINDOW STYLING */
+            --window-bg: #ffffff;
+            --window-bg-alpha: rgba(255, 255, 255, 0.95);
+            --text-main: #1b365d;
+            --text-muted: #6c7a89;
+            --border-light: rgba(27, 54, 93, 0.15);
+            --shadow: 0 8px 32px 0 rgba(27, 54, 93, 0.15);
+            
+            /* RADAR - FULLSCREEN */
+            --radar-border: transparent; 
+            --radar-bg: transparent;
+            --map-opacity: 0.6;
+            --map-filter: grayscale(100%) contrast(1.1) brightness(1.0);
+            
+            /* DIMENSIONS */
+            --sidebar-width-closed: 60px;
+            --sidebar-width-open: 240px;
+            --header-height: 50px;
+        }
+
+        [data-theme="dark"] {
+            --primary-blue: #4a90e2; 
+            --primary-blue-dark: #357abd;
+            --bg-color: #101820; 
+            --window-bg: #101820;
+            --window-bg-alpha: rgba(16, 24, 32, 0.90);
+            --text-main: #ffffff;
+            --text-muted: #a0aab5;
+            --border-light: rgba(255,255,255,0.15);
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            --radar-map-opacity: 0.3;
+            --radar-map-filter: invert(1) grayscale(100%) contrast(1.5);
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+
+        /* CUSTOM SCROLLBARS */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+        ::-webkit-scrollbar-thumb { background: var(--primary-blue); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-orange); }
+
+        body {
+            font-family: 'Titillium Web', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-main);
+            transition: background-color 0.5s, color 0.5s;
+            cursor: crosshair; 
+        }
+
+        /* POINTER OVERRIDES */
+        button, .grid-cell, .menu-trigger, .dock-btn, .close-btn, .fab-btn, .zoom-btn {
+            cursor: pointer; 
+        }
+
+        /* SCANLINE OVERLAY */
+        .scanlines {
+            position: fixed; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9000;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.02));
+            background-size: 100% 4px;
+        }
+
+        /* --- CONTENT WRAPPER --- */
+        .content-wrapper {
+            position: absolute; top: 0; left: var(--sidebar-width-closed); width: calc(100% - var(--sidebar-width-closed)); height: 100%; z-index: 1;
+            transition: left 300ms ease, width 300ms ease;
+        }
+        body.sidebar-is-open .content-wrapper {
+            left: var(--sidebar-width-open); width: calc(100% - var(--sidebar-width-open));
+        }
+
+        /* --- TOAST --- */
+        #toast { visibility: hidden; min-width: 250px; background-color: var(--primary-blue); color: #fff; text-align: center; border-radius: 4px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px; opacity: 0; transition: opacity 0.3s, bottom 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid var(--accent-orange); }
+        #toast.show { visibility: visible; opacity: 1; bottom: 100px; }
+
+        /* --- RADAR & MAP --- */
+        .radar-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; border: none; overflow: hidden; background: var(--radar-bg); }
+        .radar-map-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; opacity: var(--map-opacity); filter: var(--map-filter); pointer-events: none; transition: opacity 1s ease-in-out; z-index: 1; }
+        .radar-sweep { display: none; }
+        #plane-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+
+        .radar-plane { position: absolute; display: flex; flex-direction: column; align-items: center; width: 0; height: 0; animation: flightDrift 2500s linear forwards; }
+        .plane-rotator { position: absolute; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; }
+        .plane-icon { width: 24px; height: 24px; fill: var(--primary-blue); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); transform: rotate(90deg); transition: fill 0.2s; }
+        .plane-info-box { position: absolute; left: 15px; top: -15px; background: var(--window-bg-alpha); border: 1px solid var(--primary-blue); border-radius: 2px; padding: 2px 5px; font-family: 'Courier New', monospace; font-size: 10px; font-weight: bold; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.15); white-space: nowrap; pointer-events: none; z-index: 20; transition: all 0.2s; }
+        [data-theme="dark"] .plane-info-box { background: rgba(0, 20, 0, 0.8); border-color: #28a745; color: #28a745; }
+        [data-theme="dark"] .plane-icon { fill: #4a90e2; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8)); }
+
+        .radar-plane.alert .plane-icon { fill: var(--alert-red) !important; animation: blinkFast 0.5s infinite; }
+        .radar-plane.alert .plane-info-box { background-color: var(--alert-red) !important; color: white !important; border-color: #b71c1c !important; animation: blinkFast 0.5s infinite; z-index: 100; }
+        .tcas-tag { font-weight: 900; background: yellow; color: black; padding: 0 2px; margin-left: 4px; border-radius: 2px; }
+        
+        @keyframes blinkFast { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        @keyframes flightDrift { to { transform: translate(var(--dest-x), var(--dest-y)); } }
+
+        /* --- MISSING KEYFRAMES (ADDED FROM REPORT) --- */
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        @keyframes blurText { 0% { filter: blur(0px); } 50% { filter: blur(2px); } 100% { filter: blur(0px); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } 100% { transform: rotate(0deg); } }
+        @keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(203, 96, 21, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(203, 96, 21, 0); } 100% { box-shadow: 0 0 0 0 rgba(203, 96, 21, 0); } }
+
+        /* --- CONFETTI --- */
+        .confetti { position: fixed; width: 10px; height: 10px; background-color: #f00; animation: confetti-fall 5s linear forwards; top: -20px; z-index: 9999; border-radius: 2px; }
+        @keyframes confetti-fall { to { transform: translateY(110vh) rotate(720deg) translateX(var(--drift)); } }
+
+        /* BANKO OVERLAY */
+        #banko-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; z-index: 10000; pointer-events: none; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
+        .banko-text { font-size: 15vw; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 10px; text-shadow: 0 0 50px var(--accent-orange), 0 0 100px var(--accent-orange); animation: bankoPulse 0.5s infinite alternate; transform: scale(0); }
+        @keyframes bankoPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.1); opacity: 0.8; } }
+        body.party-mode { animation: strobe 0.5s infinite; }
+        @keyframes strobe { 0% { background-color: var(--bg-color); } 25% { background-color: #330000; } 50% { background-color: #000033; } 75% { background-color: #003300; } 100% { background-color: var(--bg-color); } }
+
+        /* --- HEADER & TOOLBAR (UPDATED STYLE) --- */
+        header { position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height); background: var(--primary-blue); display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 0; z-index: 2100; box-shadow: 0 4px 12px rgba(0,0,0,0.25); border-bottom: none; transition: background 0.3s; }
+        .progress-bar-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.1); }
+        .progress-bar { height: 100%; background: var(--accent-orange); width: 0%; transition: width 0.5s; box-shadow: 0 0 10px var(--accent-orange); }
+        
+        .header-left { display: flex; align-items: center; height: 100%; }
+        .menu-trigger { width: 60px; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition: background 0.2s; border-right: 1px solid rgba(255,255,255,0.1); }
+        .menu-trigger:hover { background: rgba(255,255,255,0.1); }
+        .menu-trigger .material-icons { font-size: 24px; }
+
+        .brand { font-size: 18px; font-weight: 700; letter-spacing: 1.5px; display: flex; align-items: center; gap: 10px; color: white; cursor: pointer; user-select: none; margin-left: 15px; text-transform: uppercase; }
+        .brand span { color: white; } 
+        
+        /* --- TOOLBAR BUTTONS RESTYLE --- */
+        .toolbar { display: flex; gap: 12px; margin-right: 20px; align-items: center; }
+        
+        /* Basis knap stil - Moderne og ren */
+        .tool-btn { 
+            position: relative;
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.15); 
+            color: rgba(255,255,255,0.8);
+            padding: 0 16px; 
+            height: 32px; /* Fast højde for ensartethed */
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 11px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            transition: all 0.2s ease; 
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Afstand mellem ikon og tekst */
+            font-family: 'Titillium Web', sans-serif;
+        }
+        
+        .tool-btn:hover { 
+            background: rgba(255,255,255,0.15); 
+            border-color: white;
+            color: white; 
+            transform: translateY(-1px);
+        }
+
+        /* NYT SPIL - Advarsels stil (Ghost button) */
+        .new-game-btn {
+            border-color: rgba(231, 76, 60, 0.5);
+            color: #ffcccc;
+            background: transparent;
+        }
+        .new-game-btn:hover {
+            background: var(--alert-red);
+            border-color: var(--alert-red);
+            color: white;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+        }
+
+        /* BANKO - Primary Action (Gradient & Glow) */
+        .banko-btn { 
+            background: linear-gradient(135deg, var(--accent-orange), #d35400); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            color: white; 
+            font-weight: 800; 
+            box-shadow: 0 4px 15px rgba(203, 96, 21, 0.3);
+            padding: 0 20px; /* Lidt bredere */
+        }
+        
+        .banko-btn:hover {
+            background: linear-gradient(135deg, #d35400, var(--accent-orange));
+            box-shadow: 0 6px 20px rgba(203, 96, 21, 0.5);
+            transform: translateY(-2px);
+            border-color: white;
+        }
+        
+        .banko-btn:active { transform: translateY(0); }
+        
+        /* --- SIDEBAR --- */
+        .sidebar-dock { position: fixed; left: 0; bottom: 0; top: var(--header-height); width: var(--sidebar-width-closed); background-color: var(--bg-color); border-right: 1px solid var(--border-light); display: flex; flex-direction: column; padding-top: 10px; z-index: 3000; box-shadow: 4px 0 15px rgba(0,0,0,0.05); overflow: hidden; transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1); }
+        body.sidebar-is-open .sidebar-dock { width: var(--sidebar-width-open); }
+        
+        .dock-items-container { flex: 1; display: flex; flex-direction: column; gap: 2px; width: 100%; overflow-y: auto; overflow-x: hidden; }
+        .dock-btn { height: 50px; width: 100%; display: flex; align-items: center; padding-left: 18px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; user-select: none; position: relative; border-left: 3px solid transparent; }
+        .dock-btn:hover { background: rgba(203, 96, 21, 0.08); color: var(--accent-orange); }
+        .dock-btn.active { color: var(--primary-blue); font-weight: 700; border-left-color: var(--primary-blue); background: rgba(27, 54, 93, 0.05); }
+        [data-theme="dark"] .dock-btn.active { color: var(--accent-orange); border-left-color: var(--accent-orange); background: rgba(255,255,255,0.05); }
+        .dock-icon { font-size: 22px; min-width: 24px; margin-right: 20px; pointer-events: none; }
+        .dock-label { opacity: 0; transition: opacity 0.2s; font-size: 13px; transform: translateX(10px); pointer-events: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        body.sidebar-is-open .dock-label { opacity: 1; transform: translateX(0); }
+
+        /* --- WINDOWS --- */
+        .window { 
+            position: absolute; 
+            background: var(--window-bg-alpha); 
+            border: 1px solid var(--border-light); 
+            border-radius: 6px; 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: var(--shadow); 
+            display: flex; flex-direction: column; overflow: visible; 
+            min-width: 200px; min-height: 100px; 
+            transition: background-color 0.3s, border-color 0.3s, opacity 0.2s; 
+        }
+        .window-resizer { width: 15px; height: 15px; position: absolute; bottom: 0; right: 0; cursor: se-resize; background: linear-gradient(135deg, transparent 50%, var(--accent-orange) 50%); border-bottom-right-radius: 6px; z-index: 10; opacity: 0.8; }
+        .window.active { z-index: 500; border-color: var(--accent-orange); box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
+        
+        .window-header { background: rgba(27, 54, 93, 0.03); height: 38px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 15px; cursor: grab; border-bottom: 1px solid var(--border-light); color: var(--text-main); border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: 600; }
+        .window-header:active { cursor: grabbing; background: var(--primary-blue); color: white; }
+        .window-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .window-actions { display: flex; align-items: center; gap: 8px; }
+        .close-btn { width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; font-weight: bold; color: var(--text-muted); transition: background 0.2s; }
+        .close-btn:hover { background: #e74c3c; color: white; }
+        .window-content { padding: 15px; flex: 1; display: flex; flex-direction: column; overflow: auto; position: relative; }
+
+        /* --- SETTINGS TABS --- */
+        .tabs { display: flex; border-bottom: 1px solid var(--border-light); margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; cursor: pointer; font-family: inherit; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; transition: all 0.2s; }
+        .tab-btn.active { color: var(--primary-blue); border-bottom-color: var(--accent-orange); background: rgba(0,0,0,0.02); }
+        .tab-content { display: none; animation: fadeIn 0.2s; }
+        .tab-content.active { display: block; }
+        
+        /* FORM ELEMENTS */
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .setting-label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        .select-input { padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-light); font-family: inherit; font-size: 12px; color: var(--text-main); background: white; font-weight: 600; }
+        .btn-action { width: 100%; padding: 10px; margin-top: 5px; background: var(--primary-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; transition: background 0.2s; }
+        .btn-action:hover { background: var(--primary-blue-dark); }
+        
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #bdc3c7; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: var(--accent-orange); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .ap-input { width: 50px; padding: 4px; border: 1px solid var(--border-light); border-radius: 4px; font-family: inherit; font-weight: bold; text-align: center; background: rgba(0,0,0,0.05); color: var(--text-main); }
+        
+        .shortcut-list { font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+        .shortcut-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 4px; }
+        .key-badge { background: var(--text-main); color: var(--bg-color); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 11px; }
+
+        /* PANELS */
+        #panel-control { top: 80px; left: 80px; width: 400px; height: 500px; }
+        .display-container { flex: 1; background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(0,0,0,0.02)); border-radius: 4px; border: 1px solid var(--border-light); display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 15px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.03); overflow: hidden; position: relative; }
+        #currentNumber { font-size: 200px; font-weight: 300; color: var(--text-main); line-height: 1; transition: font-size 0.05s linear; letter-spacing: -5px; }
+        .rolling { animation: blurText 0.1s infinite; color: var(--accent-orange) !important; }
+        .lingo-display { background: rgba(203, 96, 21, 0.08); border-left: 4px solid var(--accent-orange); padding: 15px; min-height: 50px; display: flex; align-items: center; font-style: italic; font-size: 15px; color: var(--text-main); margin-bottom: 15px; border-radius: 0 4px 4px 0; }
+        
+        .btn-draw { 
+            background: linear-gradient(145deg, var(--accent-orange), var(--accent-orange-light)); 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            font-size: 18px; 
+            font-weight: 800; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            box-shadow: 0 4px 10px rgba(203, 96, 21, 0.3), inset 0 1px 0 rgba(255,255,255,0.2); 
+            transition: all 0.1s; 
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn-draw:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(203, 96, 21, 0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
+        .btn-draw:active { transform: translateY(1px); box-shadow: 0 2px 5px rgba(203, 96, 21, 0.3); }
+        
+        #panel-grid { top: 80px; left: auto; right: 40px; width: 500px; height: 500px; }
+        #panel-log { top: 80px; left: auto; right: 40px; width: 500px; height: 400px; }
+
+        .grid-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+        .grid-cell { aspect-ratio: 1; background: rgba(255,255,255,0.5); border: 1px solid var(--border-light); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+        .grid-cell:hover { border-color: var(--accent-orange); color: var(--accent-orange); }
+        .grid-cell.active { background: var(--primary-blue); color: white; font-weight: bold; border-color: var(--primary-blue); box-shadow: 0 2px 5px rgba(27, 54, 93, 0.3); }
+        .grid-cell.latest { background: var(--accent-orange); border-color: var(--accent-orange); animation: pop 0.3s ease-out; z-index: 2; transform: scale(1.1); box-shadow: 0 4px 10px rgba(203, 96, 21, 0.4); }
+
+        /* WEATHER PANEL */
+        #panel-metar { top: 80px; left: 500px; width: 400px; height: 500px; }
+        .wx-search-bar { display: flex; gap: 5px; padding-bottom: 15px; margin-bottom: 10px; border-bottom: 1px solid var(--border-light); position: relative; }
+        .wx-input { flex: 1; padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border-light); background: rgba(255,255,255,0.8); color: var(--text-main); font-family: monospace; font-weight: bold; text-transform: uppercase; font-size: 14px; }
+        .autocomplete-items { position: absolute; border: 1px solid var(--border-light); z-index: 1000; top: 100%; left: 0; right: 0; background-color: var(--window-bg); box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 0 0 4px 4px; }
+        .autocomplete-items div { padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border-light); font-size: 12px; }
+        .autocomplete-items div:hover { background-color: rgba(203, 96, 21, 0.05); color: var(--accent-orange); }
+
+        .wx-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top:10px; }
+        .wx-card { background: rgba(255,255,255,0.5); border: 1px solid var(--border-light); border-radius: 4px; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .wx-icon { font-size: 24px; color: var(--accent-orange); margin-bottom: 5px; }
+        .wx-value { font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .wx-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+        .raw-text-box { margin-top: 15px; font-family: 'Courier New', monospace; font-size: 11px; background: rgba(0,0,0,0.03); padding: 10px; border-radius: 4px; white-space: pre-wrap; height: 80px; overflow-y: auto; color: var(--text-main); border: 1px solid rgba(0,0,0,0.05); }
+
+        /* PRIZE PANEL */
+        #panel-prizes { top: 420px; left: 500px; width: 400px; height: 400px; display: none; }
+        .prize-container { display: flex; flex-direction: column; gap: 15px; height: 100%; }
+        .prize-card { flex: 1; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2); }
+        .card-silver { background: linear-gradient(135deg, #95a5a6, #2c3e50); color: white; }
+        .card-gold { background: linear-gradient(135deg, #f39c12, #d35400); color: white; }
+        .prize-card-header { display: flex; justify-content: space-between; align-items: center; font-weight: 800; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; margin-bottom: 5px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); opacity: 0.9; }
+        .prize-content { flex: 1; display: flex; align-items: center; justify-content: center; }
+        .gift-box { font-size: 48px; margin-right: 15px; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.3)); transition: transform 0.2s; }
+        .prize-number-display { font-size: 36px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .prize-controls { display: flex; gap: 5px; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); }
+        .prize-input { width: 50px; border: none; border-radius: 3px; padding: 6px; text-align: center; font-weight: bold; color: #333; background: rgba(255,255,255,0.9); }
+        .prize-action-btn { flex: 1; border: none; background: rgba(255,255,255,0.2); color: white; font-weight: 700; cursor: pointer; border-radius: 3px; transition: background 0.2s; font-size: 11px; text-transform: uppercase; }
+        .prize-action-btn:hover { background: rgba(255,255,255,0.4); }
+
+        /* GENERATOR & VERIFY & TIE-BREAKER */
+        #panel-gen, #panel-verify, #panel-tie { display: none; top: 200px; left: 250px; }
+        .gen-label { font-size:12px; font-weight:700; margin-bottom:5px; display:block; color:var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; }
+        .gen-input { width:100%; padding:10px; border:1px solid var(--border-light); border-radius:4px; margin-bottom:15px; background:white; font-family: inherit; }
+        
+        /* VERIFY PANEL */
+        .verify-display {
+            background: rgba(0,0,0,0.03);
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .verify-card-frame {
+            background: white;
+            padding: 5px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+
+        /* The Grid itself */
+        .verify-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr); /* 9 columns */
+            grid-template-rows: repeat(3, 1fr);    /* 3 rows */
+            gap: 1px;
+            background-color: #333; /* Dark lines between cells */
+            border: 2px solid #333;
+            width: 100%;
+        }
+
+        .v-cell {
+            aspect-ratio: 1/1; /* Square cells */
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        /* Empty cells look like "blanks" */
+        .v-cell.empty {
+            background-color: #e0e0e0;
+            background-image: repeating-linear-gradient(45deg, #ccc 0, #ccc 1px, transparent 0, transparent 50%);
+            background-size: 10px 10px;
+        }
+
+        /* Hit cells are distinctive green */
+        .v-cell.hit {
+            background-color: var(--success-green);
+            color: white;
+            background-image: none;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .verify-status { font-size: 18px; font-weight: 800; text-transform: uppercase; color: var(--accent-orange); margin-top: 15px; text-align: center; letter-spacing: 1px; }
+        
+        /* SCANNING ANIMATION FOR VERIFY */
+        .scanning-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--accent-orange);
+            font-weight: 800; letter-spacing: 2px;
+            z-index: 10;
+        }
+        .scanning-bar {
+            width: 80%; height: 4px; background: rgba(255,255,255,0.2);
+            margin-top: 10px; position: relative; overflow: hidden;
+        }
+        .scanning-progress {
+            position: absolute; top:0; left:0; height:100%; width: 50%;
+            background: var(--accent-orange);
+            animation: scan 1s infinite ease-in-out;
+        }
+        @keyframes scan { 0% {left:-50%;} 100% {left:100%;} }
+
+        /* TIE BREAKER PANEL */
+        #tie-result { 
+            font-size: 32px; 
+            font-weight: 900; 
+            color: var(--primary-blue); 
+            text-align: center; 
+            margin-top: 20px; 
+            min-height: 50px; 
+        }
+
+        /* --- FLIGHT LOG TABLE STYLE (UPDATED) --- */
+        #panel-log .window-content { padding: 0 !important; display: flex; flex-direction: column; background: #f5f7fa; }
+        
+        .log-toolbar {
+            padding: 10px;
+            background: #fff;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .log-search-input {
+            flex: 1;
+            padding: 6px 10px 6px 30px; /* Space for icon */
+            border: 1px solid #dce1e6;
+            border-radius: 4px;
+            font-size: 13px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") no-repeat 8px center;
+            background-color: #fff;
+        }
+
+        .log-table-container {
+            flex: 1;
+            overflow: auto;
+            background: #fff;
+        }
+
+        .flight-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            color: #333;
+            min-width: 600px; /* Ensure scroll on small screens */
+        }
+
+        .flight-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: 700;
+            color: #444;
+            border-bottom: 2px solid #e0e0e0;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .flight-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .flight-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .col-mono { font-family: 'Roboto Mono', monospace; font-weight: 500; }
+        .status-dot { height: 8px; width: 8px; background-color: var(--success-green); border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+        .num-badge { font-weight: bold; color: var(--accent-orange); margin-right: 5px; }
+
+        #panel-settings { top: 200px; left: 500px; width: 350px; height: 450px; display: none; }
+
+        /* HUD STATS - FLOATING WINDOW STYLE */
+        #hud-stats {
+            position: fixed;
+            bottom: 0px; 
+            left: 50%;
+            transform: translateX(-50%);
+            height: auto;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            z-index: 2000;
+            pointer-events: none;
+            
+            /* Nyt look der matcher .window klassen */
+            background: var(--window-bg-alpha);
+            border: 1px solid var(--border-light);
+            border-radius: 6px 6px 0 0;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            
+            padding: 15px 40px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        /* Separator streger der matcher vinduets kanter */
+        .hud-separator {
+            width: 1px;
+            height: 30px;
+            background: var(--border-light);
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hud-val {
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--text-main); /* Bruger nu hoved-tekstfarven */
+        }
+        /* Sikrer at "Tilbage" tallet stadig er orange */
+        #remainCount.hud-val { color: var(--accent-orange) !important; }
+
+        .hud-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted); /* Bruger nu den dæmpede tekstfarve */
+            letter-spacing: 1px;
+            margin-top: 5px;
+            background: none;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+        }
+        
+        /* ZOOM & FAB */
+        .zoom-controls { position: fixed; bottom: 20px; right: 90px; display: flex; gap: 10px; z-index: 2200; }
+        .zoom-btn { width: 40px; height: 40px; background: rgba(255,255,255,0.8); color: var(--primary-blue); border: 1px solid var(--border-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(5px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .zoom-btn:hover { background: var(--primary-blue); color: white; transform: translateY(-2px); }
+        
+        .fab-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column-reverse; gap: 15px; z-index: 2200; }
+        
+        /* IMPROVED FAB STYLING */
+        .fab-btn { width: 50px; height: 50px; background: var(--primary-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(27, 54, 93, 0.4); transition: transform 0.2s, background 0.2s; border: 2px solid white; }
+        .fab-btn:hover { transform: scale(1.1); background: var(--accent-orange); }
+        #fab-undo { background: var(--alert-red); } #fab-undo:hover { background: #c0392b; }
+        
+        /* ACTIVE AUTOPILOT STATE - FIXED */
+        #fab-auto.active { 
+            background-color: var(--accent-orange) !important; 
+            box-shadow: 0 0 15px var(--accent-orange); 
+            animation: pulse-slow 2s infinite; 
+        }
+        #fab-auto.active .material-icons { 
+            animation: spin-slow 4s linear infinite; 
+        }
+        @keyframes pulse-slow { 0% { box-shadow: 0 0 0 0 rgba(203, 96, 21, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(203, 96, 21, 0); } 100% { box-shadow: 0 0 0 0 rgba(203, 96, 21, 0); } }
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .content-wrapper { left: 0 !important; width: 100% !important; transition: none; }
+            body.sidebar-is-open .content-wrapper { transform: none; width: 100%; }
+            .sidebar-dock { top: 50px; width: 0; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-right: 1px solid rgba(0,0,0,0.1); box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
+            body.sidebar-is-open .sidebar-dock { width: 240px; }
+            .window { left: 10px !important; width: calc(100% - 20px) !important; max-width: none !important; }
+            
+            /* OPDATERET HUD RESPONSIVE STYLING */
+            #hud-stats { 
+                bottom: 0; left: 50%; transform: translateX(-50%); /* Hold den centreret */
+                gap: 15px; 
+                padding: 10px 20px;
+                width: auto;
+                flex-wrap: nowrap; /* Tving på én linje */
+                border-radius: 10px 10px 0 0;
+            }
+            .hud-val { font-size: 22px; }
+            .hud-label { font-size: 8px; }
+            .hud-separator { height: 20px; }
+
+            #panel-control { top: 10px !important; height: auto !important; }
+            #currentNumber { font-size: 120px; }
+            .fab-container { bottom: 10px; right: 10px; }
+            .zoom-controls { bottom: 10px; right: 80px; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div> <div class="content-wrapper">
+        <div class="radar-container" id="radarLayer">
+            <iframe id="radarMapFrame" class="radar-map-frame" src="about:blank"></iframe>
+            <div class="radar-sweep"></div>
+            <div id="plane-layer"></div>
+        </div>
+
+        <div id="panel-control" class="window active">
+            <div class="window-header"><span class="window-title" data-lang="flightDeck">Flight Deck Control</span><div class="window-actions"><div class="close-btn" onclick="closeWindow('panel-control')">×</div></div></div>
+            <div class="window-content">
+                <div class="display-container">
+                    <div id="currentNumber">--</div>
+                </div>
+                
+                <div class="lingo-display" id="lingoText" data-lang="systemReady">System Online. Ready.</div>
+                <button type="button" class="btn-draw" onclick="drawNumber(); this.blur();" tabindex="-1" data-lang="drawBtn">TRÆK NUMMER</button>
+            </div>
+            <div class="window-resizer"></div>
+        </div>
+
+        <div id="panel-settings" class="window">
+            <div class="window-header"><span class="window-title" data-lang="settings">Indstillinger</span><div class="window-actions"><div class="close-btn" onclick="closeWindow('panel-settings')">×</div></div></div>
+            <div class="window-content">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="showTab('general')" data-lang="tabGeneral">Generelt</button>
+                    <button class="tab-btn" onclick="showTab('audio')" data-lang="tabAudio">Lyd</button>
+                    <button class="tab-btn" onclick="showTab('visual')" data-lang="tabVisual">Udseende</button>
+                    <button class="tab-btn" onclick="showTab('shortcuts')" data-lang="tabShortcuts">Genveje</button>
+                </div>
+                
+                <div id="tab-general" class="tab-content active">
+                    <div class="setting-row">
+                        <span class="setting-label" data-lang="language">Sprog / Language</span>
+                        <select class="select-input" onchange="setLanguage(this.value)">
+                            <option value="en" selected>English 🇬🇧</option>
+                            <option value="da">Dansk 🇩🇰</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label" data-lang="manualMode">Manuel Mode (Klik på tal)</span>
+                        <label class="switch"><input type="checkbox" onchange="toggleManualMode(this.checked)"><span class="slider"></span></label>
+                    </div>
+                    <div class="setting-row"><span class="setting-label" data-lang="apInterval">AP Interval (Sek)</span><input type="number" id="apSpeed" class="ap-input" value="5" min="1" max="60" onchange="updateApSpeed()"></div>
+                    <div style="margin-top: 20px;"><button class="btn-action" onclick="resetPositions()" style="background:#6c7a89;" data-lang="resetLayout">Nulstil Vindue Layout</button></div>
+                </div>
+
+                <div id="tab-audio" class="tab-content">
+                    <div class="setting-row">
+                        <span class="setting-label" data-lang="volume">Lydstyrke</span>
+                        <input type="range" min="0" max="100" value="100" onchange="setMasterVolume(this.value)">
+                    </div>
+                    <div class="setting-row"><span class="setting-label" data-lang="soundClick">Klik Lyd</span><label class="switch"><input type="checkbox" checked onchange="toggleSoundSetting('tick', this.checked)"><span class="slider"></span></label></div>
+                    <div class="setting-row"><span class="setting-label" data-lang="soundChime">Ding-Dong</span><label class="switch"><input type="checkbox" checked onchange="toggleSoundSetting('chime', this.checked)"><span class="slider"></span></label></div>
+                    <div class="setting-row"><span class="setting-label" data-lang="soundFanfare">Banko Fanfare</span><label class="switch"><input type="checkbox" checked onchange="toggleSoundSetting('fanfare', this.checked)"><span class="slider"></span></label></div>
+                    <div class="setting-row danger-setting">
+                        <span class="setting-label"><span class="material-icons" style="font-size:16px;">warning</span> <span data-lang="soundTcas">TCAS Alarm</span></span>
+                        <label class="switch"><input type="checkbox" checked onchange="toggleSoundSetting('tcas', this.checked)"><span class="slider"></span></label>
+                    </div>
+                </div>
+
+                <div id="tab-visual" class="tab-content">
+                    <div class="setting-row"><span class="setting-label" data-lang="theme">Tema Preset</span><select class="select-input" onchange="applyThemePreset(this.value)"><option value="default">Default</option><option value="dark">Night Mode</option><option value="matrix">Matrix</option></select></div>
+                    <hr style="border:0; border-top:1px solid var(--border-light); margin:10px 0;">
+                    <div class="setting-row"><span class="setting-label" data-lang="colPrimary">Primær Farve</span><input type="color" id="col-primary" onchange="setCustomColor('--primary-blue', this.value)"></div>
+                    <div class="setting-row"><span class="setting-label" data-lang="colAccent">Accent Farve</span><input type="color" id="col-accent" onchange="setCustomColor('--accent-orange', this.value)"></div>
+                    <button class="btn-action" onclick="applyThemePreset('default')" style="margin-top:15px; background:transparent; color:#666; border:1px solid #ccc;" data-lang="resetColors">Nulstil Farver</button>
+                </div>
+
+                <div id="tab-shortcuts" class="tab-content">
+                    <div class="shortcut-list">
+                        <div class="shortcut-item"><span data-lang="keyDraw">Træk Nummer</span> <span class="key-badge">Space</span></div>
+                        <div class="shortcut-item"><span>Banko</span> <span class="key-badge">B</span></div>
+                        <div class="shortcut-item"><span>Autopilot</span> <span class="key-badge">A</span></div>
+                        <div class="shortcut-item"><span data-lang="keySound">Lyd</span> <span class="key-badge">M</span></div>
+                        <div class="shortcut-item"><span>Reset</span> <span class="key-badge">R</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="window-resizer"></div>
+        </div>
+
+        <div id="panel-grid" class="window">
+            <div class="window-header"><span class="window-title" data-lang="navGrid">Navigation Grid</span><div class="window-actions"><div class="close-btn" onclick="closeWindow('panel-grid')">×</div></div></div>
+            <div class="window-content"><div class="grid-container" id="grid"></div></div>
+            <div class="window-resizer"></div>
+        </div>
+
+        <div id="panel-metar" class="window">
+            <div class="window-header">
+                <span class="window-title" data-lang="weatherTitle">Weather & NOTAMs</span>
+                <div class="window-actions"><div class="close-btn" onclick="closeWindow('panel-metar')">×</div></div>
+            </div>
+            <div class="window-content">
+                <div class="wx-search-bar">
+                    <input type="text" id="wxSearchInput" class="wx-input" placeholder="City or ICAO (e.g. Odense)" value="Odense">
+                    <button class="tool-btn" style="background:var(--primary-blue); border:none;" onclick="smartWeatherSearch()">🔍</button>
+                    <div id="autocomplete-list" class="autocomplete-items"></div>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="showWxTab('metar')">METAR</button>
+                    <button class="tab-btn" onclick="showWxTab('taf')">TAF / NOTAM</button>
+                </div>
+
+                <div id="wx-tab-metar" class="wx-tab-content active" style="display:block;">
+                    <div class="wx-dashboard">
+                        <div class="wx-card"><span class="material-icons wx-icon">air</span><span class="wx-value" id="wx-wind">--</span><span class="wx-label" data-lang="wxWind">WIND</span></div>
+                        <div class="wx-card"><span class="material-icons wx-icon">thermostat</span><span class="wx-value" id="wx-temp">--</span><span class="wx-label" data-lang="wxTemp">TEMP</span></div>
+                        <div class="wx-card"><span class="material-icons wx-icon">visibility</span><span class="wx-value" id="wx-vis">--</span><span class="wx-label" data-lang="wxVis">SIGT</span></div>
+                        <div class="wx-card"><span class="material-icons wx-icon">speed</span><span class="wx-value" id="wx-qnh">--</span><span class="wx-label">QNH</span></div>
+                    </div>
+                    <div class="raw-text-box" id="metarRawText">--</div>
+                </div>
+
+                <div id="wx-tab-taf" class="wx-tab-content" style="display:none;">
+                      <div class="raw-text-box" id="tafRawText" style="height:120px;">--</div>
+                      <button class="btn-action" style="margin-top:10px; background: #e67e22;" onclick="openOfficialNotams()" title="External Link">
+                          <span class="material-icons" style="font-size:14px; vertical-align:middle;">open_in_new</span> VIEW OFFICIAL NOTAMS
+                      </button>
+                </div>
+            </div>
+            <div class="window-resizer"></div>
+        </div>
+
+        <div id="panel-prizes" class="window">
+            <div class="window-header"><span class="window-title" data-lang="prizeTitle">Prize Distribution</span><div class="window-actions"><div class="close-btn" onclick="closeWindow('panel-prizes')">×</div></div></div>
+            <div class="window-content prize-container">
+                <div class="prize-card card-silver">
+                    <div class="prize-card-header">
+                        <span data-lang="prizeSmall">Small Prize (Row)</span>
+                        <span id="smallCount" style="background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px;">0</span>
+                    </div>
+                    <div class="prize-content">
+                        <span class="material-icons gift-box" id="box-small">card_giftcard</span>
+                        <div class="prize-number-display" id="resSmall">--</div>
+                    </div>
+                    <div class="prize-controls">
+                        <input type="number" id="totalSmall" class="prize-input" value="10" min="1">
+                        <button class="prize-action-btn" onclick="initPrizes('small')" data-lang="btnSet">SET</button>
+                        <button class="prize-action-btn" style="flex:2; background:rgba(255,255,255,0.3);" onclick="drawPrize('small')" data-lang="btnDrawSmall">DRAW</button>
+                    </div>
+                </div>
+                <div class="prize-card card-gold">
+                      <div class="prize-card-header">
+                        <span data-lang="prizeBig">Big Prize (Full)</span>
+                        <span id="bigCount" style="background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px;">0</span>
+                    </div>
+                    <div class="prize-content">
+                        <span class="material-icons gift-box" id="box-big">emoji_events</span>
+                        <div class="prize-number-display" id="resBig">--</div>
+                    </div>
+                    <div class="prize-controls">
+                        <input type="number" id="totalBig" class="prize-input" value="3" min="1">
+                        <button class="prize-action-btn" onclick="initPrizes('big')" data-lang="btnSet">SET</button>
+                        <button class="prize-action-btn" style="flex:2; background:rgba(255,255,255,0.3);" onclick="drawPrize('big')" data-lang="btnDrawBig">DRAW</button>
+                    </div>
+                </div>
+            </div>
+            <div class="window-resizer"></div>
+        </div>
+
+        <div id="panel-gen" class="window">
+            <div class="window-header"><span class="window-title" data-lang="genTitle">Card Generator</span><div class="window-actions"><div class="close-btn" onclick="closeWindow('panel-gen')">×</div></div></div>
+            <div class="window-content">
+                <span class="gen-label" data-lang="genPlayers">Players</span>
+                <input type="number" id="gen-players" class="gen-input" value="10" min="1">
+                <span class="gen-label" data-lang="genCards">Cards per Player</span>
+                <input type="number" id="gen-cards" class="gen-input" value="1" min="1">
+                <button class="btn-action" onclick="generateAndPrintCards()" data-lang="genPrint">GENERATE & PRINT PDF</button>
+            </div>
+            <div class="window-resizer"></div>
+        </div>
+
+        <div id="panel-verify" class="window">
+            <div class="window-header"><span class="window-title" data-lang="verifyTitle">Verify Win</span><div class="window-actions"><div class="close-btn" onclick="closeWindow('panel-verify')">×</div></div></div>
+            <div class="window-content" style="position:relative;">
+                <div class="verify-input-group">
+                    <input type="text" id="verify-id" class="select-input" placeholder="Card ID (e.g. 1-1)" style="flex:1; font-size:16px; padding:10px;">
+                    <button class="btn-action" style="width:auto; margin:0;" onclick="verifyWin()">CHECK</button>
+                    <button class="btn-action" style="width:auto; margin:0; background:#e74c3c;" onclick="clearVerify()">CLR</button>
+                </div>
+                <div class="verify-display" id="verify-result">
+                    <div class="verify-card-frame">
+                        <div class="verify-grid" id="verify-grid-render"></div>
+                    </div>
+                    <div class="verify-status" id="verify-status-text">--</div>
+                </div>
+            </div>
+            <div class="window-resizer"></div>
+        </div>
+
+        <div id="panel-tie" class="window">
+            <div class="window-header"><span class="window-title">Conflict Resolution</span><div class="window-actions"><div class="close-btn" onclick="closeWindow('panel-tie')">×</div></div></div>
+            <div class="window-content">
+                <div class="setting-row">
+                    <span class="setting-label">Players in Dead Heat</span>
+                    <input type="number" id="tie-count" class="ap-input" value="2" min="2" max="100">
+                </div>
+                <div id="tie-result">--</div>
+                <button class="btn-action" onclick="resolveTie()">RESOLVE</button>
+            </div>
+            <div class="window-resizer"></div>
+        </div>
+
+        <div id="panel-log" class="window">
+            <div class="window-header">
+                <span class="window-title" data-lang="flightLog">Flight Log</span>
+                <div class="window-actions">
+                    <span class="material-icons" style="cursor:pointer; font-size:16px; color:var(--text-muted); margin-right:5px;" onclick="printFlightLog()" title="Print Flight Plan">print</span>
+                    <div class="close-btn" onclick="closeWindow('panel-log')">×</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="log-toolbar">
+                    <input type="text" class="log-search-input" placeholder="Search for flights..." onkeyup="filterLog(this.value)">
+                    <button class="tool-btn" style="background: white; color: #666; border-color: #dce1e6;">
+                        <span class="material-icons" style="font-size:16px;">tune</span>
+                    </button>
+                </div>
+                <div class="log-table-container">
+                    <table class="flight-table">
+                        <thead>
+                            <tr>
+                                <th>FlightNo</th>
+                                <th>STD</th>
+                                <th>DEP</th>
+                                <th>DEST</th>
+                                <th>ETA</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="flightLogTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="window-resizer"></div>
+        </div>
+
+        <div id="hud-stats">
+            <div class="hud-item"><span class="hud-val" id="drawnCount">0</span><span class="hud-label" data-lang="statDrawn">Trukket</span></div>
+            <div class="hud-separator"></div>
+            <div class="hud-item"><span class="hud-val" style="color:var(--accent-orange);" id="remainCount">90</span><span class="hud-label" data-lang="statRemain">Tilbage</span></div>
+            <div class="hud-separator"></div>
+            <div class="hud-item"><span class="hud-val" id="flightTime">00:00</span><span class="hud-label" data-lang="statTime">Flight Time</span></div>
+        </div>
+
+        <div class="zoom-controls">
+            <div class="zoom-btn" onclick="zoomMap('out')">-</div>
+            <div class="zoom-btn" onclick="zoomMap('in')">+</div>
+        </div>
+
+        <div class="fab-container">
+            <div class="fab-btn" id="fab-fullscreen" onclick="toggleFullscreen()" title="Fullscreen">
+                <span class="material-icons">fullscreen</span>
+            </div>
+            <div class="fab-btn" id="fab-mute" onclick="toggleMute()" title="Mute/Unmute">
+                <span class="material-icons" id="masterMuteIcon">volume_up</span>
+            </div>
+            <div class="fab-btn" id="fab-undo" onclick="undoLastNumber()" title="Fortryd (Undo)">
+                <span class="material-icons">undo</span>
+            </div>
+            <div class="fab-btn" id="fab-auto" onclick="toggleAutopilot()" title="Autopilot">
+                <span class="material-icons">hdr_weak</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="banko-overlay"><div class="banko-text">BANKO!</div></div>
+
+    <div id="toast">Audio Updated</div>
+
+    <header>
+        <div class="header-left">
+            <div class="menu-trigger" onclick="toggleDock()">
+                <span class="material-icons">menu</span>
+            </div>
+            <div class="brand" id="brandLogo">
+                <svg style="width:24px;height:24px;fill:white;" viewBox="0 0 24 24"><path d="M21,16V14L13,9V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V9L2,14V16L10,13.5V19L8,20.5V22L11.5,21L15,22V20.5L13,19V13.5L21,16Z" /></svg>
+                <span>BINGO WATCH</span>
+            </div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar" id="flightProgress"></div></div>
+        <div class="toolbar">
+            <button class="tool-btn banko-btn" onclick="triggerConfetti()">
+                <span class="material-icons" style="font-size:16px;">celebration</span>
+                BANKO!
+            </button>
+            <button class="tool-btn new-game-btn" onclick="resetGame()">
+                <span class="material-icons" style="font-size:16px;">refresh</span>
+                <span data-lang="newGame">Nyt Spil</span>
+            </button>
+        </div>
+    </header>
+
+    <aside class="sidebar-dock" id="sidebar">
+        <div class="dock-items-container" id="dockContainer"></div>
+    </aside>
+
+    <script>
+        const maxNumber = 90;
+        let drawnNumbers = [];
+        let isSpinning = false;
+        let autopilotInterval = null;
+        let isMuted = false;
+        let masterVolume = 1.0;
+        let manualMode = false;
+        let currentLang = 'en'; // Changed to EN default
+        let currentICAO = 'EKOD';
+        // Map State
+        let currentLat = 55.47;
+        let currentLon = 10.33;
+        let currentZoomDelta = 0.1; // Smaller = more zoom
+
+        // Store generated cards for verification (RAM only)
+        let generatedCards = {};
+
+        let soundConfig = { tick: true, chime: true, fanfare: true, tcas: true };
+        let startTime = null;
+        let statsInterval = null;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // --- AIRPORT DATABASE (Mini) ---
+        const AIRPORT_DB = [
+            {code:"EKOD", name:"Odense Hans Christian Andersen", lat:55.47, lon:10.33},
+            {code:"EKCH", name:"København Kastrup Copenhagen", lat:55.61, lon:12.65},
+            {code:"EKBI", name:"Billund", lat:55.74, lon:9.15},
+            {code:"EKAH", name:"Aarhus", lat:56.30, lon:10.61},
+            {code:"EKYT", name:"Aalborg", lat:57.09, lon:9.84},
+            {code:"EKKA", name:"Karup", lat:56.30, lon:9.12},
+            {code:"EKEB", name:"Esbjerg", lat:55.52, lon:8.55},
+            {code:"EKRN", name:"Bornholm Rønne", lat:55.06, lon:14.75},
+            {code:"EKSB", name:"Sønderborg", lat:54.96, lon:9.79},
+            {code:"EGLL", name:"London Heathrow", lat:51.47, lon:-0.46},
+            {code:"EGKK", name:"London Gatwick", lat:51.15, lon:-0.17},
+            {code:"EGSS", name:"London Stansted", lat:51.88, lon:0.23},
+            {code:"KJFK", name:"New York JFK", lat:40.64, lon:-73.77},
+            {code:"KEWR", name:"Newark Liberty", lat:40.69, lon:-74.16},
+            {code:"KLAX", name:"Los Angeles", lat:33.94, lon:-118.40},
+            {code:"EDDF", name:"Frankfurt", lat:50.03, lon:8.57},
+            {code:"EDDM", name:"Munich", lat:48.35, lon:11.78},
+            {code:"EHAM", name:"Amsterdam Schiphol", lat:52.31, lon:4.76},
+            {code:"LFPG", name:"Paris Charles de Gaulle", lat:49.00, lon:2.55},
+            {code:"LEMD", name:"Madrid Barajas", lat:40.47, lon:-3.56},
+            {code:"LEBL", name:"Barcelona", lat:41.29, lon:2.07},
+            {code:"OMDB", name:"Dubai International", lat:25.25, lon:55.36},
+            {code:"RJTT", name:"Tokyo Haneda", lat:35.54, lon:139.77},
+            {code:"WSSS", name:"Singapore Changi", lat:1.36, lon:103.99}
+        ];
+
+        // --- TRANSLATION DATA ---
+        const translations = {
+            da: {
+                flightDeck: "Flight Deck Kontrol", systemReady: "System Online. Klar.", drawBtn: "TRÆK NUMMER", settings: "Indstillinger",
+                tabGeneral: "Generelt", tabAudio: "Lyd", tabVisual: "Udseende", tabShortcuts: "Genveje",
+                language: "Sprog", manualMode: "Manuel Mode (Klik på tal)", apInterval: "AP Interval (Sek)", resetLayout: "Nulstil Vindue Layout",
+                volume: "Lydstyrke", soundClick: "Klik Lyd", soundChime: "Ding-Dong", soundFanfare: "Banko Fanfare", soundTcas: "TCAS Alarm",
+                theme: "Tema Preset", colPrimary: "Primær Farve", colAccent: "Accent Farve", resetColors: "Nulstil Farver",
+                keyDraw: "Træk Nummer", keySound: "Lyd", navGrid: "Navigation Grid",
+                weatherTitle: "Vejr & NOTAMs", wxWind: "VIND", wxTemp: "TEMP", wxVis: "SIGT",
+                flightLog: "Fly Log", statsTitle: "Mission Stats", statDrawn: "Trukket", statRemain: "Tilbage", statTime: "Flight Time", statPrev: "Forrige",
+                newGame: "Nyt Spil", bankoMsg: "BANKO!",
+                prizeTitle: "Gave Fordeling", prizeSmall: "Små Gaver", prizeBig: "Store Gaver", btnSet: "SÆT", btnDrawSmall: "TRÆK", btnDrawBig: "TRÆK",
+                lingoDefault: "Waypoint bekræftet",
+                genTitle: "Bankoplader", genPlayers: "Antal Spillere", genCards: "Plader pr. spiller", genPrint: "GENERER & PRINT PDF",
+                verifyTitle: "Tjek Plade", verifyBtn: "Check"
+            },
+            en: {
+                flightDeck: "Flight Deck Control", systemReady: "System Online. Ready.", drawBtn: "DRAW NUMBER", settings: "Settings",
+                tabGeneral: "General", tabAudio: "Audio", tabVisual: "Visuals", tabShortcuts: "Shortcuts",
+                language: "Language", manualMode: "Manual Mode (Click #)", apInterval: "AP Interval (Sec)", resetLayout: "Reset Window Layout",
+                volume: "Volume", soundClick: "Click Sound", soundChime: "Ding-Dong", soundFanfare: "Bingo Fanfare", soundTcas: "TCAS Alert",
+                theme: "Theme Preset", colPrimary: "Primary Color", colAccent: "Accent Color", resetColors: "Reset Colors",
+                keyDraw: "Draw Number", keySound: "Sound", navGrid: "Navigation Grid",
+                weatherTitle: "Weather & NOTAMs", wxWind: "WIND", wxTemp: "TEMP", wxVis: "VISIBILITY",
+                flightLog: "Flight Log", statsTitle: "Mission Stats", statDrawn: "Drawn", statRemain: "Remain", statTime: "Flight Time", statPrev: "Previous",
+                newGame: "New Game", bankoMsg: "BINGO!",
+                prizeTitle: "Prize Distribution", prizeSmall: "Small Prizes", prizeBig: "Big Prizes", btnSet: "SET", btnDrawSmall: "DRAW", btnDrawBig: "DRAW",
+                lingoDefault: "Waypoint confirmed",
+                genTitle: "Card Generator", genPlayers: "Number of Players", genCards: "Cards per Player", genPrint: "GENERATE & PRINT PDF",
+                verifyTitle: "Verify Win", verifyBtn: "Check"
+            }
+        };
+
+        const bingoLingoData = {
+            da: {
+                1: "Den ensomme", 2: "Næstkommanderende", 3: "Røvballerne", 8: "Den tykke dame",
+                11: "To tynde drenge", 13: "Det uheldige tal", 18: "Et umage par", 19: "Nimmer Nutten",
+                22: "Vilde svaner", 24: "Juleaften", 25: "Engelsk Jul", 27: "Dronning Ingrid",
+                40: "Smør", 66: "De lange tasker", 68: "Hippie-tallet", 69: "Det frækkeste tal",
+                77: "To drenge med brækket hals", 88: "To tykke damer", 90: "Gamle Ole"
+            },
+            en: {
+                1: "Kelly's Eye", 2: "One Little Duck", 3: "Cup of Tea", 8: "Garden Gate",
+                11: "Legs Eleven", 13: "Unlucky for Some", 18: "Coming of Age", 19: "Goodbye Teens",
+                22: "Two Little Ducks", 24: "Two Dozen", 25: "Duck and Dive", 27: "Gateway to Heaven",
+                40: "Life Begins", 66: "Clickety Click", 68: "Saving Grace", 69: "Meal for Two",
+                77: "Sunset Strip", 88: "Two Fat Ladies", 90: "Top of the Shop"
+            }
+        };
+
+        const defaultDockItems = [
+            { id: 'panel-control', icon: 'flight_takeoff', label: 'Flight Deck' },
+            { id: 'panel-grid', icon: 'grid_on', label: 'Navigation' },
+            { id: 'panel-prizes', icon: 'redeem', label: 'Prizes' },
+            { id: 'panel-gen', icon: 'grid_view', label: 'Card Gen' },
+            { id: 'panel-verify', icon: 'verified', label: 'Verify Win' },
+            { id: 'panel-tie', icon: 'gavel', label: 'Conflict Res' }, // NEW
+            { id: 'panel-metar', icon: 'radar', label: 'Weather' },
+            { id: 'panel-log', icon: 'list_alt', label: 'Flight Log' },
+            { id: 'panel-settings', icon: 'settings', label: 'Settings' }
+        ];
+
+        window.onload = () => { 
+            // Unlock audio context on user gesture
+            document.body.addEventListener('click', function() {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            }, { once: true });
+
+            // Create dock first
+            renderDock();
+
+            // Then set states and positions
+            ensureInitialPositions();
+
+            // Set initial language to English (default)
+            setLanguage('en'); 
+            
+            createGrid(); 
+            initResizeObserver();
+            updateBackgroundMap(); 
+            smartWeatherSearch();
+            initPrizes('small'); initPrizes('big');
+            setupAutocomplete();
+            
+            // SPAWN INITIAL TRAFFIC (Safe method)
+            setTimeout(() => {
+                addRadarPlane(Math.floor(Math.random()*89)+1);
+                addRadarPlane(Math.floor(Math.random()*89)+1);
+            }, 1000);
+        };
+
+        // --- NEW: Force Initial Positions Logic ---
+        function ensureInitialPositions() {
+            // This function runs once on load to ensure windows are not at 0,0
+            const defaults = {
+                'panel-control': { top: '80px', left: '80px', display: 'flex' },
+                'panel-metar': { top: '80px', left: '500px', display: 'flex' },
+                'panel-prizes': { top: '420px', left: '500px', display: 'none' },
+                'panel-grid': { top: '80px', left: 'auto', right: '40px', display: 'flex' },
+                'panel-log': { top: '600px', left: 'auto', display: 'flex' },
+                'panel-gen': { top: '200px', left: '200px', display: 'none' },
+                'panel-verify': { top: '200px', left: '250px', display: 'none' },
+                'panel-tie': { top: '200px', left: '250px', display: 'none' },
+                'panel-settings': { top: '200px', left: '500px', display: 'none' }
+            };
+
+            for (const [id, pos] of Object.entries(defaults)) {
+                const el = document.getElementById(id);
+                const btn = document.querySelector(`.dock-btn[data-item-id="${id}"]`);
+                
+                if (el) {
+                    if (pos.top) el.style.top = pos.top;
+                    if (pos.left) el.style.left = pos.left;
+                    if (pos.right) el.style.right = pos.right;
+                    
+                    el.style.display = pos.display; // Force visibility state
+                    
+                    // Sync button active state
+                    if (btn) {
+                        if (pos.display === 'flex') btn.classList.add('active');
+                        else btn.classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        // --- TIE BREAKER LOGIC ---
+        function resolveTie() {
+            const countInput = document.getElementById('tie-count');
+            const resultDisplay = document.getElementById('tie-result');
+            const count = parseInt(countInput.value);
+
+            if (count < 2) {
+                resultDisplay.innerText = "Need 2+ Players";
+                return;
+            }
+
+            let spinCount = 0;
+            const spinner = setInterval(() => {
+                const randomPlayer = Math.floor(Math.random() * count) + 1;
+                resultDisplay.innerText = "PLAYER #" + randomPlayer;
+                spinCount++;
+                if (spinCount > 20) {
+                    clearInterval(spinner);
+                    playSound('fanfare');
+                    resultDisplay.style.color = "var(--accent-orange)";
+                } else {
+                    resultDisplay.style.color = "var(--primary-blue)";
+                }
+            }, 100);
+        }
+
+        // --- LANGUAGE ---
+        function setLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (t[key]) el.innerText = t[key];
+            });
+            document.querySelector('.banko-text').innerText = t.bankoMsg;
+            const currentNum = document.getElementById('currentNumber').innerText;
+            if (currentNum !== '--') {
+                const num = parseInt(currentNum);
+                const lingoText = bingoLingoData[lang][num] || `${t.lingoDefault} ${num}`;
+                document.getElementById('lingoText').innerHTML = `<span style="color:var(--accent-orange); font-weight:bold;">${lingoText}</span>`;
+            } else {
+                document.getElementById('lingoText').innerText = t.systemReady;
+            }
+        }
+
+        // --- PRIZES LOGIC ---
+        let prizePools = { small: [], big: [] };
+        function initPrizes(type) {
+            const countInput = document.getElementById(type === 'small' ? 'totalSmall' : 'totalBig');
+            const count = parseInt(countInput.value) || 0;
+            prizePools[type] = Array.from({length: count}, (_, i) => i + 1);
+            document.getElementById(type === 'small' ? 'smallCount' : 'bigCount').innerText = `${count}`;
+            document.getElementById(type === 'small' ? 'resSmall' : 'resBig').innerText = "--";
+            showToast(currentLang === 'da' ? "Gavepulje nulstillet" : "Prize pool reset");
+        }
+        function drawPrize(type) {
+            const pool = prizePools[type];
+            const resEl = document.getElementById(type === 'small' ? 'resSmall' : 'resBig');
+            const boxEl = document.getElementById(type === 'small' ? 'box-small' : 'box-big');
+            
+            if (pool.length === 0) { resEl.innerText = "EMPTY"; return; }
+            
+            // Animation
+            boxEl.classList.add('shake');
+            let spinCount = 0;
+            const spinner = setInterval(() => {
+                resEl.innerText = Math.floor(Math.random() * (parseInt(document.getElementById(type==='small'?'totalSmall':'totalBig').value))) + 1;
+                spinCount++;
+                if (spinCount > 15) {
+                    clearInterval(spinner);
+                    boxEl.classList.remove('shake');
+                    const idx = Math.floor(Math.random() * pool.length);
+                    const winner = pool[idx];
+                    pool.splice(idx, 1);
+                    
+                    resEl.innerText = "#" + winner;
+                    document.getElementById(type === 'small' ? 'smallCount' : 'bigCount').innerText = `${pool.length}`;
+                    playSound('chime');
+                }
+            }, 50);
+        }
+
+        // --- BINGO CARD GENERATOR & VERIFY ---
+        function generateAndPrintCards() {
+            const players = parseInt(document.getElementById('gen-players').value) || 1;
+            const cardsPerPlayer = parseInt(document.getElementById('gen-cards').value) || 1;
+            
+            // Reset generated cards for new batch
+            generatedCards = {};
+
+            let html = `<html><head><title>Bingo Cards</title><style>
+                body{font-family:sans-serif; text-align:center;}
+                .page{page-break-after:always; padding:20px;}
+                .card{border:2px solid #333; display:inline-block; margin:10px; padding:5px; width:450px;}
+                .card-header{background:#333; color:#fff; padding:5px; font-weight:bold; display:flex; justify-content:space-between;}
+                table{width:100%; border-collapse:collapse; margin-top:5px;}
+                td{border:1px solid #ccc; width:11%; height:50px; text-align:center; font-size:24px; font-weight:bold;}
+                .filled{background:#f4f4f4;}
+            </style></head><body>`;
+
+            for(let p=1; p<=players; p++) {
+                html += `<div class="page"><h1>Player ${p}</h1>`;
+                for(let c=1; c<=cardsPerPlayer; c++) {
+                    const grid = generate90Card();
+                    const cardId = `${p}-${c}`;
+                    generatedCards[cardId] = grid; // Store for verification
+
+                    html += `<div class="card"><div class="card-header"><span>BINGO</span><span>#${cardId}</span></div><table>`;
+                    for(let r=0; r<3; r++) {
+                        html += "<tr>";
+                        for(let col=0; col<9; col++) {
+                            const val = grid[col][r];
+                            html += `<td class="${val?'filled':''}">${val || ''}</td>`;
+                        }
+                        html += "</tr>";
+                    }
+                    html += `</table></div>`;
+                }
+                html += `</div>`;
+            }
+            html += `</body></html>`;
+            
+            const w = window.open('', '', 'width=800,height=600');
+            if(!w) {
+                showToast("Popup blocked! Please allow popups.");
+            } else {
+                w.document.write(html);
+                w.document.close();
+                w.print();
+            }
+        }
+
+        function verifyWin() {
+            const id = document.getElementById('verify-id').value.trim();
+            const gridContainer = document.getElementById('verify-grid-render');
+            const statusEl = document.getElementById('verify-status-text');
+            const panelContent = document.querySelector('#panel-verify .window-content');
+            
+            if (!generatedCards[id]) {
+                statusEl.innerText = "Card ID not found";
+                gridContainer.innerHTML = '';
+                return;
+            }
+
+            // --- SCANNING ANIMATION START ---
+            // Create Overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'scanning-overlay';
+            overlay.innerHTML = `<div>ACCESSING DATABASE...</div><div class="scanning-bar"><div class="scanning-progress"></div></div>`;
+            panelContent.appendChild(overlay);
+
+            // Delay showing result
+            setTimeout(() => {
+                overlay.remove(); // Remove overlay
+                
+                const grid = generatedCards[id];
+                gridContainer.innerHTML = '';
+                
+                let rowWins = 0;
+
+                // Render and Check Rows
+                for(let r=0; r<3; r++) {
+                    let rowCount = 0;
+                    let rowHits = 0;
+                    
+                    // First Loop: count numbers in row
+                    for(let c=0; c<9; c++) {
+                        if(grid[c][r]) rowCount++;
+                    }
+
+                    // Second Loop: render
+                    for(let c=0; c<9; c++) {
+                        const val = grid[c][r];
+                        const div = document.createElement('div');
+                        
+                        if (val) {
+                            div.className = 'v-cell';
+                            div.innerText = val;
+                            if(drawnNumbers.includes(val)) {
+                                div.classList.add('hit');
+                                rowHits++;
+                            }
+                        } else {
+                            div.className = 'v-cell empty';
+                        }
+                        gridContainer.appendChild(div);
+                    }
+                    
+                    if(rowCount > 0 && rowHits === rowCount) rowWins++;
+                }
+
+                // Result
+                if(rowWins === 3) statusEl.innerText = "BANKO (FULL HOUSE)!";
+                else if(rowWins > 0) statusEl.innerText = `${rowWins} ROW${rowWins>1?'S':''} COMPLETE`;
+                else statusEl.innerText = "NO WIN";
+                
+                playSound('tick'); // Little sound effect
+            }, 1500); // 1.5 second delay
+            // --- SCANNING ANIMATION END ---
+        }
+        
+        function clearVerify() {
+            document.getElementById('verify-id').value = '';
+            document.getElementById('verify-grid-render').innerHTML = '';
+            document.getElementById('verify-status-text').innerText = '--';
+        }
+
+        function generate90Card() {
+            let columns = [];
+            for(let i=0; i<9; i++) {
+                let start = i*10 + (i===0?1:0);
+                let end = (i===8?90:(i*10+9));
+                let pool = []; for(let k=start; k<=end; k++) pool.push(k);
+                pool.sort(() => Math.random()-0.5);
+                columns.push(pool.slice(0, 3).sort((a,b)=>a-b)); 
+            }
+            
+            let grid = Array(9).fill().map(() => Array(3).fill(null)); 
+            
+            let success = false;
+            let safetyCounter = 0; // Prevent infinite loop
+            while(!success && safetyCounter < 5000) {
+                safetyCounter++;
+                grid = Array(9).fill().map(() => Array(3).fill(null));
+                let rowIndices = [];
+                for(let r=0; r<3; r++) {
+                    let indices = [0,1,2,3,4,5,6,7,8].sort(()=>Math.random()-0.5).slice(0,5);
+                    rowIndices.push(indices);
+                }
+                
+                for(let r=0; r<3; r++) {
+                    rowIndices[r].forEach(c => {
+                        grid[c][r] = 1; 
+                    });
+                }
+                
+                let emptyCol = false;
+                for(let c=0; c<9; c++) {
+                    if(!grid[c][0] && !grid[c][1] && !grid[c][2]) emptyCol = true;
+                }
+                if(!emptyCol) success = true;
+            }
+            
+            if(safetyCounter >= 5000) {
+                console.error("Failed to generate valid card");
+                return grid; // Fallback
+            }
+            
+            for(let c=0; c<9; c++) {
+                let start = c*10 + (c===0?1:0);
+                let end = (c===8?90:(c*10+9));
+                let pool = []; for(let k=start; k<=end; k++) pool.push(k);
+                pool.sort(() => Math.random()-0.5);
+                
+                let count = (grid[c][0]?1:0) + (grid[c][1]?1:0) + (grid[c][2]?1:0);
+                let values = pool.slice(0, count).sort((a,b)=>a-b);
+                
+                let vIdx = 0;
+                for(let r=0; r<3; r++) {
+                    if(grid[c][r]) {
+                        grid[c][r] = values[vIdx++];
+                    }
+                }
+            }
+            return grid;
+        }
+
+        // --- AUTOCOMPLETE & SMART WEATHER ---
+        function setupAutocomplete() {
+            const inp = document.getElementById("wxSearchInput");
+            inp.addEventListener("input", function(e) {
+                const val = this.value;
+                closeAutocomplete();
+                if (!val) return false;
+                
+                const list = document.createElement("DIV");
+                list.setAttribute("id", "autocomplete-list");
+                list.setAttribute("class", "autocomplete-items");
+                this.parentNode.appendChild(list);
+
+                AIRPORT_DB.forEach(airport => {
+                    if (airport.name.toLowerCase().includes(val.toLowerCase()) || airport.code.toLowerCase().includes(val.toLowerCase())) {
+                        const item = document.createElement("DIV");
+                        item.innerHTML = `<strong>${airport.code}</strong> - ${airport.name}`;
+                        item.innerHTML += `<input type='hidden' value='${airport.code}'>`;
+                        item.addEventListener("click", function(e) {
+                            inp.value = this.getElementsByTagName("input")[0].value;
+                            closeAutocomplete();
+                            smartWeatherSearch();
+                        });
+                        list.appendChild(item);
+                    }
+                });
+            });
+            document.addEventListener("click", function (e) {
+                if(e.target.id !== "wxSearchInput") closeAutocomplete();
+            });
+        }
+        function closeAutocomplete() {
+            const list = document.getElementById("autocomplete-list");
+            if(list) list.remove();
+        }
+
+        function smartWeatherSearch() {
+            let input = document.getElementById('wxSearchInput').value.trim();
+            if(!input) return;
+            
+            let found = AIRPORT_DB.find(a => a.code.toLowerCase() === input.toLowerCase() || a.name.toLowerCase().includes(input.toLowerCase()));
+            
+            if(found) {
+                currentICAO = found.code;
+                document.getElementById('wxSearchInput').value = found.code; // set to ICAO
+                currentLat = found.lat; currentLon = found.lon;
+                updateBackgroundMap();
+                fetchWeatherData(found.code);
+            } else {
+                if(input.length === 4) {
+                   currentICAO = input.toUpperCase();
+                   fetchWeatherData(currentICAO);
+                } else {
+                    alert("Airport not found in DB. Try 4-letter ICAO code.");
+                }
+            }
+        }
+
+        function zoomMap(dir) {
+            if(dir === 'in') currentZoomDelta = Math.max(0.01, currentZoomDelta * 0.6);
+            if(dir === 'out') currentZoomDelta = Math.min(2.0, currentZoomDelta * 1.5);
+            updateBackgroundMap();
+        }
+
+        function updateBackgroundMap() {
+             const iframe = document.getElementById('radarMapFrame');
+             const delta = currentZoomDelta; 
+             const url = `https://www.openstreetmap.org/export/embed.html?bbox=${currentLon-delta},${currentLat-delta},${currentLon+delta},${currentLat+delta}&layer=mapnik`;
+             iframe.src = url;
+        }
+
+        async function fetchWeatherData(icao) {
+            const rawEl = document.getElementById('metarRawText');
+            const tafEl = document.getElementById('tafRawText');
+            rawEl.innerText = `Fetching ${icao}...`;
+            tafEl.innerText = `Fetching ${icao}...`;
+
+            try {
+                // 1. Fetch METAR
+                const resMetar = await fetch('https://corsproxy.io/?' + encodeURIComponent(`https://tgftp.nws.noaa.gov/data/observations/metar/stations/${icao}.TXT`));
+                if(resMetar.ok) {
+                    const text = await resMetar.text();
+                    const lines = text.trim().split('\n');
+                    const metar = lines.length > 1 ? lines[1] : lines[0];
+                    rawEl.innerText = metar;
+                    
+                    // Simple Parse
+                    const windMatch = metar.match(/(\d{3}|VRB)(\d{2,3})(G\d{2,3})?KT/);
+                    const tempMatch = metar.match(/(M?\d{2})\/(M?\d{2})/);
+                    const qnhMatch = metar.match(/Q(\d{4})/);
+                    const visMatch = metar.match(/\s(\d{4})\s/);
+                    const cavok = metar.includes("CAVOK");
+
+                    document.getElementById('wx-wind').innerText = windMatch ? `${windMatch[1]}°/${windMatch[2]}kt` : "N/A";
+                    document.getElementById('wx-temp').innerText = tempMatch ? `${tempMatch[1].replace('M','-')}°C` : "N/A";
+                    document.getElementById('wx-qnh').innerText = qnhMatch ? `${qnhMatch[1]}` : "N/A";
+                    
+                    if(cavok) document.getElementById('wx-vis').innerText = "10km+";
+                    else if(visMatch) {
+                        const vis = parseInt(visMatch[1]);
+                        document.getElementById('wx-vis').innerText = vis === 9999 ? "10km+" : (vis < 1000 ? vis + "m" : (vis/1000) + "km");
+                    } else document.getElementById('wx-vis').innerText = "N/A";
+                } else {
+                    rawEl.innerText = "METAR Offline";
+                }
+
+                // 2. Fetch TAF
+                const resTaf = await fetch('https://corsproxy.io/?' + encodeURIComponent(`https://tgftp.nws.noaa.gov/data/forecasts/taf/stations/${icao}.TXT`));
+                if(resTaf.ok) {
+                      const text = await resTaf.text();
+                      tafEl.innerText = text;
+                } else {
+                    tafEl.innerText = "TAF/NOTAM data unavailable via proxy.";
+                }
+
+            } catch(e) {
+                console.error(e);
+                rawEl.innerText = "Network Error";
+            }
+        }
+        
+        function openOfficialNotams() {
+            window.open(`https://www.notams.faa.gov/dinsQueryWeb/queryRetrievalMapAction.do?reportType=Raw&retrievalId=${currentICAO}&actionType=notamRetrievalByICAOs`, '_blank');
+        }
+
+        function showWxTab(tab) {
+             document.getElementById('wx-tab-metar').style.display = tab === 'metar' ? 'block' : 'none';
+             document.getElementById('wx-tab-taf').style.display = tab === 'taf' ? 'block' : 'none';
+             const btns = document.querySelectorAll('#panel-metar .tab-btn');
+             btns[0].classList.toggle('active', tab === 'metar');
+             btns[1].classList.toggle('active', tab === 'taf');
+        }
+
+        // --- CORE FUNCTIONS ---
+        function initResizeObserver() {
+            const ro = new ResizeObserver(entries => {
+                for(let entry of entries) {
+                    const h = entry.contentRect.height;
+                    const w = entry.contentRect.width;
+                    const fontSize = Math.min(w * 0.6, h * 0.6);
+                    const numEl = document.getElementById('currentNumber');
+                    if(numEl) numEl.style.fontSize = fontSize + 'px';
+                }
+            });
+            const displayContainer = document.querySelector('#panel-control .display-container');
+            if(displayContainer) ro.observe(displayContainer);
+        }
+
+        function toggleManualMode(checked) {
+            manualMode = checked;
+            showToast(manualMode ? (currentLang=='da'?"Manuel Mode Aktiveret":"Manual Mode ON") : (currentLang=='da'?"Manuel Mode Deaktiveret":"Manual Mode OFF"));
+        }
+
+        function printFlightLog() {
+            const printWindow = window.open('', '', 'width=600,height=800');
+            printWindow.document.write('<html><head><title>Flight Plan Export</title>');
+            printWindow.document.write('<style>body{font-family:sans-serif;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:8px;text-align:left;}</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h1>BINGO WATCH - FLIGHT LOG</h1>');
+            printWindow.document.write('<p>Time: ' + new Date().toLocaleString() + '</p>');
+            printWindow.document.write('<table><tr><th>#</th><th>Code/Lingo</th></tr>');
+            drawnNumbers.forEach(num => {
+               const lingo = bingoLingoData[currentLang][num] || '-';
+               printWindow.document.write(`<tr><td>${num}</td><td>${lingo}</td></tr>`);
+            });
+            printWindow.document.write('</table></body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.innerText = msg; t.className = "show";
+            setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+        }
+
+        function toggleMute() { 
+            isMuted = !isMuted; 
+            const icon = document.getElementById('masterMuteIcon'); 
+            icon.innerText = isMuted ? 'volume_off' : 'volume_up';
+            showToast(isMuted ? "Mute" : "Sound On");
+        }
+        
+        function setMasterVolume(val) { masterVolume = val / 100; }
+
+        function showTab(tabName) {
+            document.querySelectorAll('#panel-settings .tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('#panel-settings .tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            const btns = document.querySelectorAll('#panel-settings .tab-btn');
+            if(tabName === 'general') btns[0].classList.add('active');
+            if(tabName === 'audio') btns[1].classList.add('active');
+            if(tabName === 'visual') btns[2].classList.add('active');
+            if(tabName === 'shortcuts') btns[3].classList.add('active');
+        }
+        function setCustomColor(varName, value) { document.documentElement.style.setProperty(varName, value); }
+        function applyThemePreset(preset) {
+            const root = document.documentElement.style;
+            if (preset === 'default') {
+                root.setProperty('--primary-blue', '#1b365d'); root.setProperty('--accent-orange', '#CB6015'); root.setProperty('--bg-color', '#f4f7f9'); root.setProperty('--window-bg', '#ffffff'); root.setProperty('--window-bg-alpha', 'rgba(255, 255, 255, 0.95)'); root.setProperty('--text-main', '#1b365d'); root.setProperty('--text-muted', '#6c7a89'); root.setProperty('--border-light', '#dce1e6'); root.setProperty('--radar-border', 'transparent'); root.setProperty('--radar-sweep', 'conic-gradient(from 0deg, transparent 0deg, transparent 300deg, rgba(0, 255, 0, 0.2) 360deg)'); root.setProperty('--map-filter', 'grayscale(100%) contrast(1.1) brightness(1.1)');
+            } else if (preset === 'dark') {
+                root.setProperty('--primary-blue', '#4a90e2'); root.setProperty('--accent-orange', '#CB6015'); root.setProperty('--bg-color', '#101820'); root.setProperty('--window-bg', '#101820'); root.setProperty('--window-bg-alpha', 'rgba(16, 24, 32, 0.9)'); root.setProperty('--text-main', '#ffffff'); root.setProperty('--text-muted', '#a0aab5'); root.setProperty('--border-light', 'rgba(255,255,255,0.15)'); root.setProperty('--radar-border', 'transparent'); root.setProperty('--radar-sweep', 'conic-gradient(from 0deg, transparent 0deg, transparent 300deg, rgba(0, 255, 0, 0.3) 360deg)'); root.setProperty('--map-filter', 'invert(1) grayscale(100%) contrast(1.2)');
+            } else if (preset === 'matrix') {
+                root.setProperty('--primary-blue', '#00ff00'); root.setProperty('--accent-orange', '#00ff00'); root.setProperty('--bg-color', '#000000'); root.setProperty('--window-bg', '#000000'); root.setProperty('--window-bg-alpha', 'rgba(0, 20, 0, 0.9)'); root.setProperty('--text-main', '#00ff00'); root.setProperty('--text-muted', '#008800'); root.setProperty('--border-light', '#004400'); root.setProperty('--radar-border', 'transparent'); root.setProperty('--radar-sweep', 'conic-gradient(from 0deg, transparent 0deg, transparent 300deg, rgba(0, 255, 0, 0.6) 360deg)'); root.setProperty('--map-filter', 'sepia(100%) hue-rotate(90deg) saturate(300%) contrast(1.5)');
+            }
+            document.getElementById('col-primary').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-blue').trim();
+            document.getElementById('col-accent').value = getComputedStyle(document.documentElement).getPropertyValue('--accent-orange').trim();
+        }
+
+        function renderDock() {
+            const container = document.getElementById('dockContainer');
+            // Force reset to default (ignoring local storage)
+            let items = defaultDockItems;
+            
+            // --- FIX: Read from local storage ---
+            const savedOrder = JSON.parse(localStorage.getItem('bingoDockOrder'));
+            if(savedOrder && Array.isArray(savedOrder)) {
+                // Sort items based on saved order
+                const orderedItems = [];
+                savedOrder.forEach(id => {
+                    const found = items.find(i => i.id === id);
+                    if(found) orderedItems.push(found);
+                });
+                // Add any new items not in saved order
+                items.forEach(i => {
+                    if(!orderedItems.find(o => o.id === i.id)) orderedItems.push(i);
+                });
+                items = orderedItems;
+            }
+            // ------------------------------------
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const btn = document.createElement('div');
+                btn.className = 'dock-btn'; // Removed 'active'
+                btn.setAttribute('onclick', `toggleWindow('${item.id}')`);
+                btn.setAttribute('draggable', 'true');
+                btn.dataset.itemId = item.id; btn.dataset.itemIcon = item.icon; btn.dataset.itemLabel = item.label;
+                btn.id = 'dock-btn-' + item.id;
+                
+                // Translation for labels
+                let label = item.label;
+                if(item.id === 'panel-control') label = translations[currentLang].flightDeck;
+                if(item.id === 'panel-grid') label = translations[currentLang].navGrid;
+                if(item.id === 'panel-prizes') label = translations[currentLang].prizeTitle;
+                if(item.id === 'panel-metar') label = translations[currentLang].weatherTitle;
+                if(item.id === 'panel-log') label = translations[currentLang].flightLog;
+                if(item.id === 'panel-settings') label = translations[currentLang].settings;
+                if(item.id === 'panel-gen') label = translations[currentLang].genTitle;
+                if(item.id === 'panel-verify') label = translations[currentLang].verifyTitle;
+
+                btn.innerHTML = `<span class="material-icons dock-icon">${item.icon}</span><span class="dock-label">${label}</span>`;
+                btn.addEventListener('dragstart', handleDragStart); btn.addEventListener('dragover', handleDragOver); btn.addEventListener('drop', handleDrop); btn.addEventListener('dragenter', handleDragEnter); btn.addEventListener('dragleave', handleDragLeave); btn.addEventListener('dragend', handleDragEnd);
+                container.appendChild(btn);
+            });
+        }
+        let dragSrcEl = null;
+        function handleDragStart(e) { this.style.opacity = '0.4'; dragSrcEl = this; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/html', this.innerHTML); }
+        function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
+        function handleDragEnter(e) { this.classList.add('over'); }
+        function handleDragLeave(e) { this.classList.remove('over'); }
+        function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            if (dragSrcEl !== this) {
+                const container = document.getElementById('dockContainer');
+                const allItems = [...container.querySelectorAll('.dock-btn')];
+                const srcIndex = allItems.indexOf(dragSrcEl);
+                const targetIndex = allItems.indexOf(this);
+                if(srcIndex < targetIndex) { this.after(dragSrcEl); } else { this.before(dragSrcEl); }
+                saveDockOrder();
+            }
+            return false;
+        }
+        function handleDragEnd(e) { this.style.opacity = '1'; document.querySelectorAll('.dock-btn').forEach(item => item.classList.remove('over')); }
+        
+        // --- FIX: Implement saveDockOrder ---
+        function saveDockOrder() { 
+            const container = document.getElementById('dockContainer');
+            const items = Array.from(container.children).map(btn => btn.dataset.itemId);
+            localStorage.setItem('bingoDockOrder', JSON.stringify(items));
+        }
+
+        // --- WINDOW DRAG & RESIZE (SNAP TO GRID) ---
+        const GRID_SIZE = 20;
+        const windows = document.querySelectorAll('.window');
+        let activeWindow = null;
+        let isResizing = false;
+        let startX, startY, startW, startH, startL, startT;
+
+        windows.forEach(win => {
+            // Drag Header
+            const header = win.querySelector('.window-header');
+            header.addEventListener('mousedown', (e) => {
+                if(e.target.classList.contains('close-btn')) return;
+                activeWindow = win; 
+                isResizing = false;
+                windows.forEach(w => w.style.zIndex = 100); win.style.zIndex = 500;
+                startX = e.clientX; startY = e.clientY;
+                startL = win.offsetLeft; startT = win.offsetTop;
+                document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+            });
+            win.addEventListener('mousedown', () => { windows.forEach(w => w.style.zIndex = 100); win.style.zIndex = 500; });
+
+            // Resize Handle
+            const resizer = win.querySelector('.window-resizer');
+            if(resizer) {
+                resizer.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    activeWindow = win;
+                    isResizing = true;
+                    windows.forEach(w => w.style.zIndex = 100); win.style.zIndex = 500;
+                    startX = e.clientX; startY = e.clientY;
+                    startW = win.offsetWidth; startH = win.offsetHeight;
+                    document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+                });
+            }
+        });
+
+        function onMove(e) {
+            if(!activeWindow) return;
+            e.preventDefault();
+            if(isResizing) {
+                let newW = startW + (e.clientX - startX);
+                let newH = startH + (e.clientY - startY);
+                // Snap
+                newW = Math.round(newW / GRID_SIZE) * GRID_SIZE;
+                newH = Math.round(newH / GRID_SIZE) * GRID_SIZE;
+                activeWindow.style.width = Math.max(200, newW) + 'px';
+                activeWindow.style.height = Math.max(100, newH) + 'px';
+            } else {
+                let newL = startL + (e.clientX - startX);
+                let newT = startT + (e.clientY - startY);
+                // Snap
+                newL = Math.round(newL / GRID_SIZE) * GRID_SIZE;
+                newT = Math.round(newT / GRID_SIZE) * GRID_SIZE;
+                activeWindow.style.left = newL + 'px';
+                activeWindow.style.top = newT + 'px';
+            }
+        }
+        function onUp() {
+            activeWindow = null;
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        }
+
+        function toggleDock() {
+            document.body.classList.toggle('sidebar-is-open');
+        }
+        function toggleWindow(id) {
+            const win = document.getElementById(id); const btn = document.querySelector(`.dock-btn[data-item-id="${id}"]`);
+            if (win.style.display === 'none') { win.style.display = 'flex'; windows.forEach(w => w.style.zIndex = 100); win.style.zIndex = 500; if(btn) btn.classList.add('active'); } 
+            else { win.style.display = 'none'; if(btn) btn.classList.remove('active'); }
+        }
+        function closeWindow(id) {
+            const win = document.getElementById(id); const btn = document.querySelector(`.dock-btn[data-item-id="${id}"]`);
+            win.style.display = 'none'; if(btn) btn.classList.remove('active');
+        }
+        function resetPositions() {
+            const defaults = {
+                'panel-control': { top: '80px', left: '80px', display: 'flex' },
+                'panel-metar': { top: '80px', left: '500px', display: 'flex' },
+                'panel-prizes': { top: '420px', left: '500px', display: 'flex' },
+                'panel-grid': { top: '80px', left: 'auto', right: '40px', display: 'flex' },
+                'panel-log': { top: '80px', left: 'auto', right: '40px', display: 'flex' },
+                // Reset should HIDE these by default:
+                'panel-gen': { top: '200px', left: '200px', display: 'none' },
+                'panel-verify': { top: '200px', left: '250px', display: 'none' },
+                'panel-tie': { top: '200px', left: '250px', display: 'none' },
+                'panel-settings': { top: '200px', left: '500px', display: 'none' }
+            };
+
+            for (const [id, pos] of Object.entries(defaults)) {
+                const el = document.getElementById(id);
+                const btn = document.querySelector(`.dock-btn[data-item-id="${id}"]`);
+                if (el) {
+                    if (pos.top) el.style.top = pos.top;
+                    if (pos.left) el.style.left = pos.left;
+                    if (pos.right) el.style.right = pos.right;
+                    el.style.display = pos.display;
+                    
+                    if (btn) {
+                        if (pos.display === 'flex') btn.classList.add('active');
+                        else btn.classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        function toggleFullscreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } } }
+        function toggleSoundSetting(type, isEnabled) { soundConfig[type] = isEnabled; }
+        function updateApSpeed() { if(autopilotInterval) { toggleAutopilot(); toggleAutopilot(); } }
+        function toggleAutopilot() {
+            const btn = document.getElementById('fab-auto'); 
+            const speedInput = document.getElementById('apSpeed');
+            let speed = parseInt(speedInput.value); if(speed < 1) speed = 1;
+            if(autopilotInterval) { 
+                clearInterval(autopilotInterval); autopilotInterval = null; 
+                btn.classList.remove('active'); 
+            } else { 
+                drawNumber(); autopilotInterval = setInterval(drawNumber, speed * 1000); 
+                btn.classList.add('active'); 
+            }
+        }
+
+        function updateStats() {
+            if(!startTime) return;
+            const now = new Date(); const diff = Math.floor((now - startTime) / 1000);
+            const m = Math.floor(diff / 60).toString().padStart(2,'0'); const s = (diff % 60).toString().padStart(2,'0');
+            document.getElementById('flightTime').innerText = `${m}:${s}`;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            // FIX: Ignore shortcuts if typing in input
+            if(e.target.tagName === 'INPUT') return;
+            // FIX: Prevent double-firing if button is focused
+            if(e.key === ' ' && e.target.tagName === 'BUTTON') return; 
+
+            switch(e.key.toLowerCase()) {
+                case ' ': e.preventDefault(); drawNumber(); break;
+                case 'b': triggerConfetti(); break;
+                case 'a': toggleAutopilot(); break;
+                case 'm': toggleMute(); break;
+                case 'r': resetGame(); break;
+                case 'l': resetPositions(); break;
+                case 'f': toggleFullscreen(); break;
+            }
+        });
+
+        // TCAS Collision Check Loop
+        setInterval(() => {
+            const planes = Array.from(document.querySelectorAll('.radar-plane'));
+            planes.forEach(p => p.classList.remove('alert'));
+            for(let i=0; i<planes.length; i++) {
+                for(let j=i+1; j<planes.length; j++) {
+                    const r1 = planes[i].getBoundingClientRect();
+                    const r2 = planes[j].getBoundingClientRect();
+                    const dx = (r1.left + r1.width/2) - (r2.left + r2.width/2);
+                    const dy = (r1.top + r1.height/2) - (r2.top + r2.height/2);
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 60) {
+                        planes[i].classList.add('alert'); planes[j].classList.add('alert');
+                        if(!planes[i].querySelector('.tcas-tag')) planes[i].querySelector('.plane-info-box').innerHTML += '<span class="tcas-tag">TCAS</span>';
+                        if(!isMuted && soundConfig.tcas) playSound('tcas');
+                    }
+                }
+            }
+        }, 800);
+
+        function playSound(type) {
+            if(isMuted) return;
+            if(!soundConfig[type] && type !== 'tcas') return;
+            
+            // SAFE MODE AUDIO
+            try {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                const masterGain = audioCtx.createGain();
+                masterGain.gain.value = masterVolume;
+                masterGain.connect(audioCtx.destination);
+
+                if (type === 'tick') {
+                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(masterGain);
+                    osc.type = 'square'; osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now); osc.stop(now + 0.05);
+                } else if (type === 'tcas') {
+                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(masterGain);
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.linearRampToValueAtTime(1200, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc.start(now); osc.stop(now + 0.2);
+                } else if (type === 'chime') {
+                    const o1 = audioCtx.createOscillator(); const g1 = audioCtx.createGain();
+                    o1.connect(g1); g1.connect(masterGain);
+                    o1.type = 'sine'; o1.frequency.setValueAtTime(600, now);
+                    g1.gain.setValueAtTime(0, now); g1.gain.linearRampToValueAtTime(0.3, now+0.05); g1.gain.exponentialRampToValueAtTime(0.001, now+1.2);
+                    o1.start(now); o1.stop(now+1.2);
+                    const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
+                    o2.connect(g2); g2.connect(masterGain);
+                    o2.type = 'sine'; o2.frequency.setValueAtTime(450, now+0.6);
+                    g2.gain.setValueAtTime(0, now+0.6); g2.gain.linearRampToValueAtTime(0.3, now+0.65); g2.gain.exponentialRampToValueAtTime(0.001, now+2.0);
+                    o2.start(now+0.6); o2.stop(now+2.0);
+                } else if (type === 'fanfare') {
+                    const freqs = [523.25, 659.25, 783.99, 1046.50, 523.25, 659.25, 783.99, 1046.50];
+                    let delay = 0;
+                    freqs.forEach(f => {
+                        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                        o.connect(g); g.connect(masterGain);
+                        o.type = 'triangle'; o.frequency.value = f;
+                        g.gain.setValueAtTime(0, now + delay);
+                        g.gain.linearRampToValueAtTime(0.3, now + delay + 0.1);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.6);
+                        o.start(now + delay); o.stop(now + delay + 0.6);
+                        delay += 0.08;
+                    });
+                }
+            } catch(e) {
+                console.warn("Audio failed", e);
+            }
+        }
+
+        function createGrid() {
+            const grid = document.getElementById('grid'); grid.innerHTML = '';
+            for (let i = 1; i <= maxNumber; i++) {
+                const cell = document.createElement('div'); cell.className = 'grid-cell'; cell.id = 'cell-' + i; cell.textContent = i; 
+                cell.onclick = function() {
+                    if(manualMode) {
+                        if(!drawnNumbers.includes(i)) finalize(i);
+                    }
+                };
+                grid.appendChild(cell);
+            }
+        }
+
+        function triggerConfetti() {
+            if(autopilotInterval) {
+                clearInterval(autopilotInterval); autopilotInterval = null; document.getElementById('fab-auto').classList.remove('active');
+            }
+            playSound('fanfare');
+            
+            document.body.classList.add('party-mode');
+            const overlay = document.getElementById('banko-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => { document.body.classList.remove('party-mode'); overlay.style.display = 'none'; }, 4000);
+
+            const colors = ['#CB6015', '#1b365d', '#e74c3c', '#f1c40f', '#ffffff'];
+            for(let i=0; i<1000; i++) {
+                const conf = document.createElement('div'); conf.className = 'confetti';
+                conf.style.left = (Math.random() * 100) + 'vw'; conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 3 + 2) + 's'; conf.style.transform = `rotate(${Math.random()*360}deg)`;
+                conf.style.setProperty('--drift', (Math.random() * 300 - 150) + 'px');
+                document.body.appendChild(conf); setTimeout(() => conf.remove(), 5000);
+            }
+        }
+
+        function addRadarPlane(num) {
+            const container = document.getElementById('plane-layer');
+            if(!container) return;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'radar-plane'; wrapper.id = 'plane-obj-' + num; 
+            
+            const angle = Math.random() * 360; const dist = Math.random() * 35; 
+            const startX = `calc(50% + ${Math.cos(angle)*dist}%)`; const startY = `calc(50% + ${Math.sin(angle)*dist}%)`;
+            
+            wrapper.style.left = startX; wrapper.style.top = startY;
+            const moveAngle = Math.random() * 360; const moveDist = 200; 
+            wrapper.style.setProperty('--dest-x', `${Math.cos(moveAngle * Math.PI/180) * moveDist}vmax`);
+            wrapper.style.setProperty('--dest-y', `${Math.sin(moveAngle * Math.PI/180) * moveDist}vmax`);
+            const fl = Math.floor(Math.random() * 300) + 100; const spd = Math.floor(Math.random() * 200) + 200;
+
+            wrapper.innerHTML = `
+                <div class="plane-rotator" style="transform: rotate(${moveAngle}deg)">
+                    <svg class="plane-icon" viewBox="0 0 24 24"><path d="M21,16V14L13,9V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V9L2,14V16L10,13.5V19L8,20.5V22L11.5,21L15,22V20.5L13,19V13.5L21,16Z" /></svg>
+                </div>
+                <div class="plane-info-box">BNGO${num} FL${fl} ${spd}</div>
+            `;
+            container.appendChild(wrapper);
+        }
+
+        function drawNumber() {
+            if (isSpinning) return;
+            if (drawnNumbers.length >= maxNumber) { 
+                alert("Flight Complete!"); if(autopilotInterval) toggleAutopilot(); return; 
+            }
+            if(!startTime) { startTime = new Date(); statsInterval = setInterval(updateStats, 1000); }
+
+            isSpinning = true;
+            const display = document.getElementById('currentNumber');
+            display.classList.add('rolling');
+            
+            let count = 0;
+            const interval = setInterval(() => {
+                display.innerText = Math.floor(Math.random() * 90) + 1;
+                playSound('tick'); count++;
+                if (count > 15) { 
+                    clearInterval(interval); 
+                    // SAFE MODE: Ensure finalize runs
+                    try { finalize(); } 
+                    catch(e) { console.error(e); isSpinning = false; }
+                }
+            }, 50);
+            
+            // FAILSAFE UNLOCK
+            setTimeout(() => {
+                if(isSpinning) { console.warn("Forcing Unlock"); isSpinning = false; display.classList.remove('rolling'); }
+            }, 2000);
+        }
+
+        function finalize(presetNum) {
+            try {
+                let num;
+                if (presetNum) { num = presetNum; } 
+                else { do { num = Math.floor(Math.random() * maxNumber) + 1; } while (drawnNumbers.includes(num)); }
+                
+                drawnNumbers.push(num);
+                
+                const display = document.getElementById('currentNumber');
+                display.classList.remove('rolling'); display.innerText = num;
+                
+                const lingoEl = document.getElementById('lingoText');
+                const t = translations[currentLang];
+                const lingo = bingoLingoData[currentLang][num] || `${t.lingoDefault} ${num}`;
+                lingoEl.innerHTML = `<span style="color:var(--accent-orange); font-weight:bold;">${lingo}</span>`;
+
+                document.querySelectorAll('.grid-cell.latest').forEach(el => el.classList.remove('latest'));
+                const cell = document.getElementById('cell-' + num);
+                if(cell) cell.classList.add('active', 'latest');
+
+                updateCommonUI();
+                updateLog(num); 
+                //updateLastFive(); // Removed call
+                addRadarPlane(num); 
+                playSound('chime');
+            } finally {
+                // ALWAYS UNLOCK
+                isSpinning = false;
+            }
+        }
+
+        function undoLastNumber() {
+            if(isSpinning || drawnNumbers.length === 0) return;
+            const removedNum = drawnNumbers.pop();
+            const cell = document.getElementById('cell-' + removedNum); if(cell) cell.classList.remove('active', 'latest');
+            const plane = document.getElementById('plane-obj-' + removedNum); if(plane) plane.remove();
+            const logEntry = document.getElementById('log-entry-' + removedNum); if(logEntry) logEntry.remove();
+            
+            const newCurrent = drawnNumbers.length > 0 ? drawnNumbers[drawnNumbers.length - 1] : '--';
+            document.getElementById('currentNumber').innerText = newCurrent;
+            
+            const t = translations[currentLang];
+            if(drawnNumbers.length > 0) {
+                const newLast = drawnNumbers[drawnNumbers.length - 1];
+                const newCell = document.getElementById('cell-' + newLast);
+                if(newCell) newCell.classList.add('latest');
+                const lingoEl = document.getElementById('lingoText');
+                const lingo = bingoLingoData[currentLang][newLast] || `${t.lingoDefault} ${newLast}`;
+                lingoEl.innerHTML = `<span style="color:var(--accent-orange); font-weight:bold;">${lingo}</span>`;
+            } else {
+                document.getElementById('lingoText').innerText = t.systemReady;
+            }
+            updateCommonUI(); 
+            //updateLastFive(); // Removed call
+        }
+
+        function updateCommonUI() {
+            const percent = (drawnNumbers.length / maxNumber) * 100;
+            document.getElementById('flightProgress').style.width = percent + '%';
+            // document.getElementById('progressVal').innerText = Math.round(percent) + '%';
+            document.getElementById('drawnCount').innerText = drawnNumbers.length;
+            document.getElementById('remainCount').innerText = maxNumber - drawnNumbers.length;
+            
+            // FIXED: Safety check for empty array and missing element
+            // let prevNum = '--'; 
+            // if(drawnNumbers.length > 1) prevNum = drawnNumbers[drawnNumbers.length - 2];
+            
+            // const lastCallEl = document.getElementById('lastCall');
+            // if(lastCallEl) lastCallEl.innerText = prevNum;
+        }
+
+        // --- UPDATED LOGIC FOR FLIGHT LOG ---
+        function updateLog(num) {
+            const tbody = document.getElementById('flightLogTableBody');
+            if(!tbody) return;
+
+            const now = new Date();
+            // Helpers for formatting time
+            const formatTime = (date) => date.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+            
+            // STD er nu lig med trækketidspunktet
+            const std = formatTime(now);
+            
+            // Flight Data
+            const flightNo = `BNGO${num}`;
+            const dep = currentICAO; // Uses the airport from weather search
+            const dest = getFakeDestination(num); 
+            
+            // Beregn ETA (Nuværende tid + tilfældig flyvetid mellem 45 og 180 min)
+            const etaDate = new Date(now.getTime() + (Math.floor(Math.random() * 135) + 45)*60000);
+            const eta = formatTime(etaDate);
+
+            const row = document.createElement('tr');
+            // Bygger rækken med kun de ønskede kolonner
+            row.innerHTML = `
+                <td class="col-mono" style="font-weight:bold; color:var(--primary-blue);">${flightNo}</td>
+                <td style="font-weight:bold;">${std}</td>
+                <td>${dep}</td>
+                <td>${dest}</td>
+                <td>${eta}</td>
+                <td style="text-align:center; cursor:pointer; color:#999;">•••</td>
+            `;
+            
+            // Animation
+            row.style.animation = "fadeIn 0.5s";
+            
+            // Indsæt øverst
+            tbody.insertBefore(row, tbody.firstChild);
+        }
+
+        function getFakeDestination(seed) {
+            // Simple mapping to get a destination from your existing DB or a random string
+            const dests = AIRPORT_DB.map(a => a.code);
+            // Use the number to pick a consistent destination for that number
+            return dests[seed % dests.length];
+        }
+
+        function filterLog(query) {
+            const filter = query.toUpperCase();
+            const trs = document.getElementById('flightLogTableBody').getElementsByTagName('tr');
+            for (let i = 0; i < trs.length; i++) {
+                const txtValue = trs[i].textContent || trs[i].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    trs[i].style.display = "";
+                } else {
+                    trs[i].style.display = "none";
+                }
+            }
+        }
+
+        function resetGame() {
+            const t = translations[currentLang];
+            const msg = currentLang === 'da' ? 'Er du sikker på at du vil starte forfra? (Beholder indstillinger og præmier)' : 'Are you sure you want to restart? (Keeps settings and prizes)';
+            if(confirm(msg)) {
+                // --- FIX: Stop autopilot on reset ---
+                if(autopilotInterval) {
+                    clearInterval(autopilotInterval);
+                    autopilotInterval = null;
+                    document.getElementById('fab-auto').classList.remove('active');
+                }
+                
+                // Reset logic
+                drawnNumbers = [];
+                startTime = null;
+                clearInterval(statsInterval);
+                isSpinning = false;
+
+                // Reset UI
+                document.getElementById('currentNumber').innerText = "--";
+                document.getElementById('lingoText').innerText = t.systemReady;
+
+                // Reset HUD
+                // const lastCallEl = document.getElementById('lastCall');
+                // if(lastCallEl) lastCallEl.innerText = "--";
+
+                updateCommonUI(); // Resets progress bars
+
+                document.getElementById('flightTime').innerText = "00:00";
+                // document.getElementById('progressVal').innerText = "0%";
+                document.getElementById('flightProgress').style.width = "0%";
+
+                // Reset Grid
+                document.querySelectorAll('.grid-cell').forEach(c => c.className = 'grid-cell');
+
+                // Reset Log
+                document.getElementById('flightLogTableBody').innerHTML = '';
+                //document.getElementById('lastFiveDisplay').innerHTML = ''; // Removed
+
+                // Reset Planes
+                document.querySelectorAll('.radar-plane').forEach(p => p.remove());
+                setTimeout(() => {
+                    addRadarPlane(Math.floor(Math.random()*89)+1);
+                    addRadarPlane(Math.floor(Math.random()*89)+1);
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
