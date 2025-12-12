@@ -73,7 +73,7 @@
         }
 
         /* POINTER OVERRIDES */
-        button, .grid-cell, .menu-trigger, .dock-btn, .close-btn, .fab-btn, .zoom-btn {
+        button, .grid-cell, .menu-trigger, .dock-btn, .close-btn, .fab-btn, .zoom-btn, .start-btn {
             cursor: pointer; 
         }
 
@@ -83,6 +83,55 @@
             background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.02));
             background-size: 100% 4px;
         }
+
+        /* --- START SCREEN (MISSION BRIEFING) --- */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(18, 37, 66, 0.10);
+            z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+        
+        .briefing-card {
+            width: 650px; max-width: 90%;
+            background: #fff;
+            border-top: 4px solid var(--accent-orange);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 4px;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .briefing-header {
+            background: #f0f2f5;
+            padding: 20px 30px;
+            border-bottom: 1px solid #dce1e6;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .briefing-title { font-size: 24px; font-weight: 900; color: var(--primary-blue); letter-spacing: 1px; text-transform: uppercase; }
+        .briefing-badge { background: var(--primary-blue); color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; }
+
+        .briefing-content { padding: 30px; color: #333; }
+        .briefing-section { margin-bottom: 25px; }
+        .briefing-h3 { font-size: 14px; font-weight: 700; color: var(--accent-orange); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .briefing-p { font-size: 14px; line-height: 1.5; color: #555; margin-bottom: 10px; }
+        
+        .keys-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .key-row { display: flex; align-items: center; font-size: 13px; color: #444; }
+        .key-box { background: #eee; border: 1px solid #ccc; border-radius: 4px; padding: 2px 6px; font-family: monospace; font-weight: bold; margin-right: 10px; min-width: 30px; text-align: center; color: #333; }
+
+        .briefing-footer {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dce1e6;
+            text-align: right;
+        }
+        
+        .start-btn {
+            background: var(--accent-orange); color: white; border: none; padding: 12px 30px; font-size: 14px; font-weight: 800; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; transition: background 0.2s; box-shadow: 0 4px 10px rgba(203, 96, 21, 0.3);
+        }
+        .start-btn:hover { background: #d35400; transform: translateY(-1px); }
 
         /* --- CONTENT WRAPPER --- */
         .content-wrapper {
@@ -613,6 +662,74 @@
     </style>
 </head>
 <body>
+<div id="start-overlay">
+        <div class="briefing-card">
+            <div class="briefing-header">
+                <span class="briefing-title">FLIGHT DECK ORIENTATION</span>
+                <span class="briefing-badge">SECURITY LEVEL: TOP SECRET</span>
+            </div>
+            <div class="briefing-content">
+                
+                <div class="briefing-section">
+                    <div class="briefing-h3">Welcome Controller</div>
+                    <div class="briefing-p">
+                        You are now in command of <strong>BINGO WATCH</strong>. Your mission is to guide passengers safely through the airspace (numbers 1-90) until landing (BINGO).
+                    </div>
+                    <div class="briefing-p">
+                        The system monitors all flights in real-time via radar. Each drawn number represents an aircraft on your screen.
+                    </div>
+                </div>
+
+                <div class="briefing-section">
+                    <div class="briefing-h3">Instrument Overview</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom:10px;">
+                        <div>
+                            <strong style="color:var(--primary-blue); font-size:12px;">NAV GRID & LOG</strong>
+                            <p style="font-size:11px; margin:2px 0 0 0; color:#666;">Visual tracking of all drawn numbers and historical flight log.</p>
+                        </div>
+                        <div>
+                            <strong style="color:var(--primary-blue); font-size:12px;">CARD GENERATOR</strong>
+                            <p style="font-size:11px; margin:2px 0 0 0; color:#666;">Print new flight plans (bingo cards) for the entire crew.</p>
+                        </div>
+                        <div>
+                            <strong style="color:var(--primary-blue); font-size:12px;">VERIFY WIN (SCANNER)</strong>
+                            <p style="font-size:11px; margin:2px 0 0 0; color:#666;">Enter Card ID to automatically validate a claimed Bingo.</p>
+                        </div>
+                        <div>
+                            <strong style="color:var(--primary-blue); font-size:12px;">PRIZE DISTRIBUTION</strong>
+                            <p style="font-size:11px; margin:2px 0 0 0; color:#666;">Manage inventory and randomly draw winners for side prizes.</p>
+                        </div>
+                        <div>
+                            <strong style="color:var(--primary-blue); font-size:12px;">WEATHER & NOTAM</strong>
+                            <p style="font-size:11px; margin:2px 0 0 0; color:#666;">Live METAR weather data from selected airport for atmosphere.</p>
+                        </div>
+                        <div>
+                            <strong style="color:var(--primary-blue); font-size:12px;">CONFLICT RES.</strong>
+                            <p style="font-size:11px; margin:2px 0 0 0; color:#666;">Resolve "dead heat" tie-breaker situations between players.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="briefing-section" style="margin-bottom:0;">
+                    <div class="briefing-h3">Cockpit Controls (Shortcuts)</div>
+                    <div class="keys-grid">
+                        <div class="key-row"><span class="key-box">Space</span> Draw Next Number</div>
+                        <div class="key-row"><span class="key-box">B</span> BINGO! (Celebration)</div>
+                        <div class="key-row"><span class="key-box">A</span> Autopilot (Auto-draw)</div>
+                        <div class="key-row"><span class="key-box">M</span> Mute / Unmute</div>
+                        <div class="key-row"><span class="key-box">R</span> Reset System</div>
+                        <div class="key-row"><span class="key-box">F</span> Fullscreen</div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="briefing-footer" style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:10px; color:#999; text-transform:uppercase;">System Status: <span style="color:#27ae60;">ONLINE</span></span>
+                <button class="start-btn" onclick="startMission()">CONFIRM & LAUNCH</button>
+            </div>
+        </div>
+    </div>
+
     <div class="scanlines"></div> <div class="content-wrapper">
         <div class="radar-container" id="radarLayer">
             <iframe id="radarMapFrame" class="radar-map-frame" src="about:blank"></iframe>
@@ -1027,13 +1144,6 @@
         ];
 
         window.onload = () => { 
-            // Unlock audio context on user gesture
-            document.body.addEventListener('click', function() {
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-            }, { once: true });
-
             // Create dock first
             renderDock();
 
@@ -1056,6 +1166,17 @@
                 addRadarPlane(Math.floor(Math.random()*89)+1);
             }, 1000);
         };
+
+        function startMission() {
+            // UNLOCK AUDIO ON BUTTON CLICK
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            // HIDE OVERLAY
+            document.getElementById('start-overlay').style.display = 'none';
+            // PLAY START SOUND
+            playSound('chime');
+        }
 
         // --- NEW: Force Initial Positions Logic ---
         function ensureInitialPositions() {
