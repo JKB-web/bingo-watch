@@ -1835,10 +1835,33 @@
         body.xmas .brand-logo-circle::before { content: ''; position: absolute; width: 22px; height: 16px; left: 7px; top: -11px; transform: rotate(18deg); pointer-events: none;
             background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 32'%3E%3Cpath d='M4 26 C 8 10, 22 2, 36 8 L 30 26 z' fill='%23c8102e'/%3E%3Crect x='1' y='23' width='32' height='8' rx='4' fill='%23fff'/%3E%3Ccircle cx='38' cy='9' r='5' fill='%23fff'/%3E%3C/svg%3E") no-repeat center / contain; }
         /* Santa on the map */
-        .santa-marker { cursor: pointer; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(244,197,66,0.55)); }
-        .santa-flip { transition: transform 0.4s; animation: santaBob 2.4s ease-in-out infinite; }
-        .santa-marker.east .santa-flip svg { transform: scaleX(-1); }
-        @keyframes santaBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .santa-marker { cursor: pointer; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+        .santa-rot { position: relative; width: 46px; height: 80px; will-change: transform; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.32)); }
+        .santa-rot svg { position: relative; z-index: 1; display: block; animation: santaFloat 2.6s ease-in-out infinite; }
+        @keyframes santaFloat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .sd-body { fill: #8a5630; } .sd-tail { fill: #f3e3cf; } .sd-head { fill: #a0663b; } .sd-snout { fill: #2b1a10; }
+        .sd-legs { stroke: #5b3418; stroke-width: 1.5; fill: none; stroke-linecap: round; }
+        .sd-antler { stroke: #d9b98a; stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .sd-rein { stroke: #f4c542; stroke-width: 0.9; fill: none; opacity: 0.9; }
+        .sd-runner { stroke: #f4c542; stroke-width: 2; fill: none; stroke-linecap: round; }
+        .sd-bells circle { fill: #ffe08a; animation: bellGlint 0.9s ease-in-out infinite alternate; }
+        .sd-nose { fill: #ff2a3d; }
+        .sd-glow { animation: noseGlow 1.4s ease-in-out infinite; transform-origin: 32px 9px; }
+        @keyframes noseGlow { 0%, 100% { opacity: 0.55; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.25); } }
+        @keyframes bellGlint { from { opacity: 0.55; } to { opacity: 1; } }
+        /* galloping: each reindeer bobs on its own rhythm, legs stretch */
+        .sd { transform-box: fill-box; transform-origin: center; animation: deerGallop 0.55s ease-in-out infinite; }
+        @keyframes deerGallop { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-1.6px) scaleY(1.06); } }
+        .santa-marker.delivering .sd { animation-duration: 1.6s; }
+        /* magic dust behind the sleigh (inside the rotated box, so it always trails) */
+        .santa-dust { position: absolute; left: 50%; bottom: -4px; width: 0; height: 0; z-index: 0; }
+        .santa-dust i { position: absolute; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: #ffe28a; box-shadow: 0 0 6px 2px rgba(255,214,102,0.8);
+                        animation: dustFall 1.2s linear infinite; opacity: 0; }
+        .santa-dust i:nth-child(2) { animation-delay: 0.2s; left: -6px; } .santa-dust i:nth-child(3) { animation-delay: 0.4s; left: 5px; }
+        .santa-dust i:nth-child(4) { animation-delay: 0.6s; left: -3px; width: 3px; height: 3px; } .santa-dust i:nth-child(5) { animation-delay: 0.8s; left: 7px; width: 3px; height: 3px; }
+        .santa-dust i:nth-child(6) { animation-delay: 1s; left: -8px; background: #fff; }
+        @keyframes dustFall { 0% { transform: translateY(0) scale(1); opacity: 0.95; } 100% { transform: translateY(30px) scale(0.2); opacity: 0; } }
+        .santa-marker:hover .santa-rot { filter: drop-shadow(0 4px 5px rgba(0,0,0,0.32)) drop-shadow(0 0 8px rgba(244,197,66,0.9)); }
         #santa-pill { position: fixed; z-index: 2300; left: 50%; bottom: 84px; transform: translate(-50%, 12px); display: flex; align-items: center; gap: 10px;
             padding: 6px 6px 6px 12px; border-radius: var(--r-md); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
             background: var(--glass-fill); border: 1px solid var(--glass-border); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-edge), var(--glass-shadow); }
@@ -1861,7 +1884,7 @@
             .sp-text { white-space: normal; }
             body.m-sheet-open #santa-pill { opacity: 0; pointer-events: none; }
         }
-        @media (prefers-reduced-motion: reduce) { .santa-flip, body.xmas header::after { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .santa-rot svg, .sd, .sd-glow, .sd-bells circle, .santa-dust i, body.xmas header::after { animation: none; } .santa-dust { display: none; } }
         [data-theme="dark"] body.xmas .btn-draw, [data-theme="dark"] body.xmas .start-btn, [data-theme="dark"] body.xmas .banko-btn { background: linear-gradient(180deg, #d63a4f, #9c1427); color: #fff; }
     </style>
 </head>
@@ -6125,8 +6148,10 @@
             let doneM = SANTA_STOPS.slice(0, Math.max(0, i)).reduce((s, x) => s + x[4], 0);
             if (i > 0 && i <= SANTA_STOPS.length) doneM -= pts[i][4] * (1 - Math.min(1, raw / Math.max(0.01, stay)));
             const delivering = i > 0 && raw < stay;
+            const ahead = gInterp(a[1], a[2], b[1], b[2], Math.min(1, ease + 0.004));
+            const aheadOk = ease < 0.996;
             return { lat, lon, from: a, to: b, i, delivering, live: c.live, nextXmas: c.nextXmas, presents: Math.max(0, doneM) * 1e6 * 3, total: totalM * 1e6 * 3,
-                     brg: gBearing(a[1], a[2], b[1], b[2]) };
+                     brg: gBearing(a[1], a[2], b[1], b[2]), ahead: aheadOk ? [ahead[1], ahead[0]] : null };
         }
         function startSanta() {
             if (!map || santa.raf) return;
@@ -6134,20 +6159,42 @@
                 const el = document.createElement('div');
                 el.className = 'santa-marker';
                 el.title = currentLang === 'da' ? 'Julemanden – klik for at følge' : 'Santa – click to follow';
-                el.innerHTML = `<div class="santa-flip"><svg viewBox="0 0 120 48" width="96" height="38" aria-hidden="true">
-                    <path d="M4 34 C 20 30, 34 30, 44 33" stroke="#f4c542" stroke-width="1.4" fill="none" opacity="0.8"/>
-                    <g fill="#7a4a24"><ellipse cx="14" cy="22" rx="8" ry="4.2"/><rect x="9" y="24" width="1.6" height="8" rx="0.8"/><rect x="17" y="24" width="1.6" height="8" rx="0.8"/>
-                       <circle cx="22.5" cy="18" r="3.2"/><path d="M21 15 l-2 -5 M23.5 15 l1.5 -5" stroke="#7a4a24" stroke-width="1.2"/></g>
-                    <circle cx="25.6" cy="18.4" r="1.5" fill="#ff3348"/>
-                    <g fill="#8a5630"><ellipse cx="34" cy="25" rx="8" ry="4.2"/><rect x="29" y="27" width="1.6" height="7" rx="0.8"/><rect x="37" y="27" width="1.6" height="7" rx="0.8"/>
-                       <circle cx="42.5" cy="21" r="3.2"/><path d="M41 18 l-2 -5 M43.5 18 l1.5 -5" stroke="#8a5630" stroke-width="1.2"/></g>
-                    <path d="M44 30 L 60 30" stroke="#d9b45c" stroke-width="1.2"/>
-                    <path d="M58 22 h40 q8 0 10 8 l-2 6 h-46 q-4 0 -4 -4 z" fill="#c8102e"/>
-                    <path d="M56 40 h52 q6 0 8 -6" stroke="#f4c542" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                    <rect x="88" y="14" width="10" height="9" rx="1.5" fill="#0b7a3e"/><rect x="92" y="14" width="2" height="9" fill="#f4c542"/>
-                    <circle cx="78" cy="15" r="5" fill="#f2c9a0"/><path d="M72 13 q6 -10 12 0 z" fill="#c8102e"/><circle cx="84" cy="9" r="2" fill="#fff"/>
-                    <path d="M73 17 q5 6 10 0" fill="#fff"/><rect x="72" y="20" width="12" height="7" rx="2" fill="#c8102e"/>
-                </svg></div>`;
+                const deer = (x, y, d, lead) => `
+                    <g class="sd${lead ? ' lead' : ''}" style="animation-delay:${d}s">
+                      <path d="M${x - 4.2} ${y + 10} q-1.6 3.4 -0.6 6.2 M${x + 4.2} ${y + 10} q1.6 3.4 0.6 6.2 M${x - 3.6} ${y + 1.5} q-2.2 -2.6 -1.4 -5.4 M${x + 3.6} ${y + 1.5} q2.2 -2.6 1.4 -5.4" class="sd-legs"/>
+                      <ellipse cx="${x}" cy="${y + 6}" rx="4.6" ry="7.4" class="sd-body"/>
+                      <ellipse cx="${x}" cy="${y + 9.5}" rx="2.6" ry="2.8" class="sd-tail"/>
+                      <circle cx="${x}" cy="${y - 2.6}" r="3.1" class="sd-head"/>
+                      <path d="M${x - 1.8} ${y - 4.6} l-3.6 -3.4 l-1.8 1.2 M${x - 4.4} ${y - 7.2} l-0.4 -2.6 M${x + 1.8} ${y - 4.6} l3.6 -3.4 l1.8 1.2 M${x + 4.4} ${y - 7.2} l0.4 -2.6" class="sd-antler"/>
+                      ${lead ? `<circle cx="${x}" cy="${y - 5.4}" r="1.9" class="sd-nose"/>` : `<circle cx="${x}" cy="${y - 5.2}" r="1.1" class="sd-snout"/>`}
+                    </g>`;
+                el.innerHTML = `<div class="santa-rot"><div class="santa-dust"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                  <svg viewBox="0 0 64 112" width="46" height="80" aria-hidden="true">
+                    <defs>
+                      <radialGradient id="snNose"><stop offset="0" stop-color="#fff2f2"/><stop offset="0.35" stop-color="#ff2a3d"/><stop offset="1" stop-color="#ff2a3d" stop-opacity="0"/></radialGradient>
+                      <linearGradient id="snSled" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e0303f"/><stop offset="1" stop-color="#9c0f20"/></linearGradient>
+                    </defs>
+                    <circle cx="32" cy="9" r="7" fill="url(#snNose)" class="sd-glow"/>
+                    <path d="M32 18 L32 60 M22 38 L27 64 M42 38 L37 64 M22 56 L28 66 M42 56 L36 66" class="sd-rein"/>
+                    ${deer(32, 14, 0, true)}
+                    ${deer(22, 32, 0.18)}${deer(42, 32, 0.05)}
+                    ${deer(22, 50, 0.3)}${deer(42, 50, 0.12)}
+                    <g class="sd-bells"><circle cx="27" cy="44" r="1.2"/><circle cx="37" cy="44" r="1.2"/><circle cx="27" cy="62" r="1.2"/><circle cx="37" cy="62" r="1.2"/></g>
+                    <path d="M18 74 q0 -8 6 -9 h16 q6 1 6 9" class="sd-runner"/>
+                    <path d="M15 76 q0 -6 5 -6 h24 q5 0 5 6 v22 q0 9 -9 9 h-16 q-9 0 -9 -9 z" fill="url(#snSled)" stroke="#f4c542" stroke-width="1.6"/>
+                    <path d="M14 77 v22 q0 10 10 10 M50 77 v22 q0 10 -10 10" class="sd-runner"/>
+                    <ellipse cx="32" cy="98" rx="11" ry="7" fill="#6d3b1f"/><ellipse cx="32" cy="96.5" rx="8.5" ry="5" fill="#8b5030"/>
+                    <rect x="23.5" y="92" width="6" height="6" rx="1" fill="#0b7a3e" transform="rotate(-14 26.5 95)"/><rect x="34" y="91" width="6" height="6" rx="1" fill="#3f7ae0" transform="rotate(12 37 94)"/>
+                    <path d="M26.5 92 v6 M24 95 h6" stroke="#f4c542" stroke-width="0.9" transform="rotate(-14 26.5 95)"/>
+                    <ellipse cx="32" cy="83" rx="9" ry="8" fill="#c8102e"/>
+                    <path d="M24 80.5 q8 -4 16 0" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                    <circle cx="32" cy="79" r="5.2" fill="#f2c9a0"/>
+                    <path d="M27.6 77.6 q4.4 -9 8.8 0 z" fill="#c8102e"/><path d="M27 78.2 q5 -2 10 0" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <circle cx="32" cy="71.4" r="1.9" fill="#fff"/>
+                    <path d="M28.6 81.2 q3.4 3.2 6.8 0" fill="#fff"/>
+                    <path d="M23 86 q-4 -4 -7 -10 M41 86 q4 -4 7 -10" stroke="#c8102e" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+                    <circle cx="16" cy="75.5" r="1.8" fill="#fff"/><circle cx="48" cy="75.5" r="1.8" fill="#fff"/>
+                  </svg></div>`;
                 el.addEventListener('mousedown', e => e.stopPropagation());
                 el.addEventListener('click', e => { e.stopPropagation(); toggleSantaFollow(); });
                 santa.el = el;
@@ -6159,10 +6206,17 @@
             const loop = (now) => {
                 const st = santaState();
                 santa.marker.setLngLat([st.lon, st.lat]);
-                if (santa.lastPos && map) {    // face the direction of travel on screen
-                    const a = map.project(santa.lastPos), b = map.project([st.lon, st.lat]);
-                    if (Math.abs(b.x - a.x) > 0.05) santa.el.classList.toggle('east', b.x > a.x);
+                if (map && st.ahead) {          // same logic as the aircraft: nose along the track on screen
+                    const a = map.project([st.lon, st.lat]), b = map.project(st.ahead);
+                    const dx = b.x - a.x, dy = b.y - a.y;
+                    if (Math.abs(dx) + Math.abs(dy) > 0.01) {
+                        const target = ((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360;
+                        santa.hdg = santa.hdg == null ? target : (santa.hdg + angDiff(target, santa.hdg) * 0.12 + 360) % 360;   // smooth turns
+                        if (!santa.rot) santa.rot = santa.el.querySelector('.santa-rot');
+                        santa.rot.style.transform = `rotate(${santa.hdg.toFixed(1)}deg)`;
+                    }
                 }
+                santa.el.classList.toggle('delivering', !!st.delivering);
                 santa.lastPos = [st.lon, st.lat];
                 if (santa.follow && !map.isMoving()) map.jumpTo({ center: [st.lon, st.lat] });
                 if (now - santa.lastUi > 400) { santa.lastUi = now; updateSantaUi(st); }
