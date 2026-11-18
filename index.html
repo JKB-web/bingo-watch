@@ -1886,6 +1886,16 @@
         }
         @media (prefers-reduced-motion: reduce) { .santa-rot svg, .sd, .sd-glow, .sd-bells circle, .santa-dust i, body.xmas header::after { animation: none; } .santa-dust { display: none; } }
         [data-theme="dark"] body.xmas .btn-draw, [data-theme="dark"] body.xmas .start-btn, [data-theme="dark"] body.xmas .banko-btn { background: linear-gradient(180deg, #d63a4f, #9c1427); color: #fff; }
+
+        /* Santa at the same size as the aircraft markers (28px footprint) */
+        .santa-marker { width: 28px; height: 28px; }
+        .santa-rot { width: 16px; height: 28px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+        .santa-marker:hover .santa-rot { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)) drop-shadow(0 0 4px rgba(244,197,66,0.9)); }
+        .santa-dust { bottom: 0; }
+        .santa-dust i { width: 2px; height: 2px; margin: -1px; box-shadow: 0 0 3px 1px rgba(255,214,102,0.8); }
+        .santa-dust i:nth-child(2) { left: -2px; } .santa-dust i:nth-child(3) { left: 2px; } .santa-dust i:nth-child(4) { left: -1px; width: 1.5px; height: 1.5px; }
+        .santa-dust i:nth-child(5) { left: 3px; width: 1.5px; height: 1.5px; } .santa-dust i:nth-child(6) { left: -3px; }
+        @keyframes dustFall { 0% { transform: translateY(0) scale(1); opacity: 0.95; } 100% { transform: translateY(12px) scale(0.3); opacity: 0; } }
     </style>
 </head>
 <body>
@@ -6169,7 +6179,7 @@
                       ${lead ? `<circle cx="${x}" cy="${y - 5.4}" r="1.9" class="sd-nose"/>` : `<circle cx="${x}" cy="${y - 5.2}" r="1.1" class="sd-snout"/>`}
                     </g>`;
                 el.innerHTML = `<div class="santa-rot"><div class="santa-dust"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                  <svg viewBox="0 0 64 112" width="46" height="80" aria-hidden="true">
+                  <svg viewBox="0 0 64 112" width="16" height="28" aria-hidden="true">
                     <defs>
                       <radialGradient id="snNose"><stop offset="0" stop-color="#fff2f2"/><stop offset="0.35" stop-color="#ff2a3d"/><stop offset="1" stop-color="#ff2a3d" stop-opacity="0"/></radialGradient>
                       <linearGradient id="snSled" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e0303f"/><stop offset="1" stop-color="#9c0f20"/></linearGradient>
