@@ -1896,6 +1896,109 @@
         .santa-dust i:nth-child(2) { left: -2px; } .santa-dust i:nth-child(3) { left: 2px; } .santa-dust i:nth-child(4) { left: -1px; width: 1.5px; height: 1.5px; }
         .santa-dust i:nth-child(5) { left: 3px; width: 1.5px; height: 1.5px; } .santa-dust i:nth-child(6) { left: -3px; }
         @keyframes dustFall { 0% { transform: translateY(0) scale(1); opacity: 0.95; } 100% { transform: translateY(12px) scale(0.3); opacity: 0; } }
+
+        /* =====================================================================
+           SEASONS (shared) + ATTRACT MODE
+           ===================================================================== */
+        #season-menu { position: fixed; top: calc(var(--header-height) + 8px); right: 70px; width: 250px; z-index: 3600; padding: 8px; display: none; border-radius: var(--r-lg);
+            background: var(--solid-surface); border: 1px solid var(--glass-border); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-shadow); color: var(--text-main); }
+        #season-menu.open { display: block; animation: fadeIn 0.18s; }
+        .sm-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: none; background: transparent; color: var(--text-main); font-family: inherit; font-size: 13px; font-weight: 500; text-align: left; }
+        .sm-item:hover { background: var(--card-hover); }
+        .sm-item.on { background: rgba(var(--accent-rgb), 0.12); color: var(--accent-orange); font-weight: 600; }
+        .sm-item .material-icons-outlined { font-size: 19px; width: 22px; overflow: hidden; }
+        .sm-item em { color: var(--text-muted); font-style: normal; font-weight: 500; }
+        #season-pill { position: fixed; z-index: 2300; left: 50%; bottom: 84px; transform: translate(-50%, 12px); display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 12px;
+            border-radius: var(--r-md); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+            background: var(--glass-fill); border: 1px solid var(--glass-border); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-edge), var(--glass-shadow); }
+        #season-pill.show { opacity: 1; transform: translate(-50%, 0); }
+        body.flight-focus-open #season-pill { opacity: 0; }
+        #partyBanner { display: none; font-weight: 700; font-size: 13px; padding: 4px 12px; border-radius: var(--r-sm); color: var(--accent-orange); background: rgba(var(--accent-rgb), 0.1); white-space: nowrap; max-width: 30vw; overflow: hidden; text-overflow: ellipsis; }
+        #partyBanner.show { display: inline-block; animation: fadeIn 0.3s; }
+        /* season accents */
+        body.season-newyear { --accent-orange: #a07a10; --accent-rgb: 160, 122, 16; }
+        [data-theme="dark"] body.season-newyear { --accent-orange: #f4c542; --accent-rgb: 244, 197, 66; }
+        body.season-easter { --accent-orange: #2f8a4c; --accent-rgb: 47, 138, 76; }
+        [data-theme="dark"] body.season-easter { --accent-orange: #8fdc9a; --accent-rgb: 143, 220, 154; }
+        body.season-halloween { --accent-orange: #d45a00; --accent-rgb: 212, 90, 0; }
+        [data-theme="dark"] body.season-halloween { --accent-orange: #ff8a2a; --accent-rgb: 255, 138, 42; }
+        body.season-party { --accent-orange: #c2187a; --accent-rgb: 194, 24, 122; }
+        [data-theme="dark"] body.season-party { --accent-orange: #ff6fb5; --accent-rgb: 255, 111, 181; }
+        body.season-newyear .btn-draw, body.season-newyear .start-btn { background: linear-gradient(180deg, #2b2350, #15112e) !important; color: #f4e3a1 !important; }
+        body.season-easter .btn-draw, body.season-easter .start-btn { background: linear-gradient(180deg, #3a9a5a, #24703e) !important; color: #fff !important; }
+        body.season-halloween .btn-draw, body.season-halloween .start-btn { background: linear-gradient(180deg, #e8690f, #a43f00) !important; color: #fff !important; }
+        body.season-party .btn-draw, body.season-party .start-btn { background: linear-gradient(90deg, #ff5d73, #b388ff, #4cc9f0) !important; color: #fff !important; }
+        /* header decorations */
+        body.season-on header::after { content: ''; position: absolute; left: 0; right: 0; bottom: -7px; height: 10px; pointer-events: none; animation: xmasTwinkle 1.6s steps(2) infinite; }
+        body.season-newyear header::after { background-image: radial-gradient(circle at 12px 5px, #f4c542 0 2.5px, transparent 3.5px), radial-gradient(circle at 40px 5px, #ffffff 0 2px, transparent 3px), radial-gradient(circle at 68px 5px, #c9b6ff 0 2.5px, transparent 3.5px);
+            background-size: 84px 10px; filter: drop-shadow(0 0 4px rgba(244,197,66,0.9)); }
+        body.season-easter header::after, body.season-party header::after { bottom: -12px; height: 12px; animation: none;
+            background: linear-gradient(135deg, var(--f1) 25%, transparent 25%) 0 0 / 28px 12px, linear-gradient(225deg, var(--f1) 25%, transparent 25%) 0 0 / 28px 12px; }
+        body.season-easter header::after { --f1: #ffd6e5; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1)); background: repeating-linear-gradient(90deg, transparent 0 2px, transparent 2px 30px),
+            conic-gradient(from 135deg at 50% 0, #ffc8dd 0 90deg, transparent 90deg) 0 0 / 30px 12px repeat-x, conic-gradient(from 135deg at 50% 0, #ffe57a 0 90deg, transparent 90deg) 15px 0 / 30px 12px repeat-x; }
+        body.season-party header::after { background: conic-gradient(from 135deg at 50% 0, #ff5d73 0 90deg, transparent 90deg) 0 0 / 36px 12px repeat-x,
+            conic-gradient(from 135deg at 50% 0, #4cc9f0 0 90deg, transparent 90deg) 12px 0 / 36px 12px repeat-x, conic-gradient(from 135deg at 50% 0, #ffcd3c 0 90deg, transparent 90deg) 24px 0 / 36px 12px repeat-x; }
+        body.season-halloween header::after { background-image: radial-gradient(circle at 10px 5px, #ff7a1a 0 3px, transparent 4px), radial-gradient(circle at 34px 5px, #8b5cf6 0 3px, transparent 4px), radial-gradient(circle at 58px 5px, #3fbf3f 0 3px, transparent 4px);
+            background-size: 72px 10px; filter: drop-shadow(0 0 4px rgba(255,122,26,0.8)); }
+        /* logo hats */
+        body.season-on:not(.xmas) .brand-logo-circle::before { content: ''; position: absolute; pointer-events: none; background-repeat: no-repeat; background-position: center; background-size: contain; }
+        body.season-newyear .brand-logo-circle::before, body.season-party .brand-logo-circle::before { width: 14px; height: 18px; left: 9px; top: -14px; transform: rotate(14deg);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 26'%3E%3Cpath d='M10 2 L18 24 H2 z' fill='%23b388ff'/%3E%3Cpath d='M6 13 L14 13 M4.5 18 L15.5 18' stroke='%23ffcd3c' stroke-width='2'/%3E%3Ccircle cx='10' cy='3' r='3' fill='%23ff5d73'/%3E%3C/svg%3E"); }
+        body.season-easter .brand-logo-circle::before { width: 22px; height: 16px; left: 1px; top: -13px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 22'%3E%3Cellipse cx='9' cy='11' rx='4' ry='10' fill='%23fff' stroke='%23ccc'/%3E%3Cellipse cx='9' cy='12' rx='2' ry='7' fill='%23ffc8dd'/%3E%3Cellipse cx='21' cy='11' rx='4' ry='10' fill='%23fff' stroke='%23ccc'/%3E%3Cellipse cx='21' cy='12' rx='2' ry='7' fill='%23ffc8dd'/%3E%3C/svg%3E"); }
+        body.season-halloween .brand-logo-circle::before { width: 26px; height: 18px; left: -1px; top: -13px; transform: rotate(-8deg);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 24'%3E%3Cpath d='M20 1 L26 18 H10 z' fill='%232b1838'/%3E%3Crect x='1' y='17' width='32' height='5' rx='2.5' fill='%232b1838'/%3E%3Crect x='11' y='14' width='14' height='3' fill='%23ff7a1a'/%3E%3C/svg%3E"); }
+        /* map extras */
+        .firework { position: relative; width: 0; height: 0; pointer-events: none; }
+        .firework i { position: absolute; left: 0; top: 0; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: var(--fw); box-shadow: 0 0 6px 2px var(--fw2);
+            transform: rotate(var(--a)) translateY(0); animation: fwBurst 1.6s cubic-bezier(0.1, 0.7, 0.3, 1) forwards; }
+        .firework.big i { width: 5px; height: 5px; animation-name: fwBurstBig; }
+        @keyframes fwBurst { 0% { transform: rotate(var(--a)) translateY(0); opacity: 1; } 70% { opacity: 1; } 100% { transform: rotate(var(--a)) translateY(-34px) translateX(0) scale(0.4); opacity: 0; } }
+        @keyframes fwBurstBig { 0% { transform: rotate(var(--a)) translateY(0); opacity: 1; } 70% { opacity: 1; } 100% { transform: rotate(var(--a)) translateY(-58px) scale(0.4); opacity: 0; } }
+        .egg-marker { cursor: pointer; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); animation: eggWobble 2.6s ease-in-out infinite; transform-origin: bottom center; }
+        .egg-marker:hover { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)) drop-shadow(0 0 6px rgba(255,220,120,0.9)); }
+        .egg-marker.found { animation: eggFound 0.6s forwards; pointer-events: none; }
+        @keyframes eggWobble { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+        @keyframes eggFound { 0% { transform: scale(1); } 40% { transform: scale(1.6) translateY(-6px); opacity: 1; } 100% { transform: scale(0.2) translateY(-20px); opacity: 0; } }
+        .ghost-marker { cursor: pointer; animation: ghostFloat 3.4s ease-in-out infinite, ghostIn 1.2s ease-out; filter: drop-shadow(0 4px 6px rgba(43,24,56,0.35)); }
+        .ghost-marker.boo { animation: ghostBoo 0.8s forwards; pointer-events: none; }
+        @keyframes ghostFloat { 0%, 100% { translate: 0 0; opacity: 0.9; } 50% { translate: 6px -8px; opacity: 0.6; } }
+        @keyframes ghostIn { from { opacity: 0; } to { opacity: 0.9; } }
+        @keyframes ghostBoo { 0% { transform: scale(1); } 40% { transform: scale(1.8); opacity: 1; } 100% { transform: scale(0.4) translateY(-30px); opacity: 0; } }
+        /* big-screen backgrounds */
+        body.season-newyear #stage { background: radial-gradient(1200px 700px at 25% 30%, #2b2350 0%, #120f26 55%, #07060f 100%); }
+        body.season-easter #stage { background: radial-gradient(1200px 700px at 25% 30%, #2f6b45 0%, #173a24 55%, #0b1d12 100%); }
+        body.season-halloween #stage { background: radial-gradient(1200px 700px at 25% 30%, #5a2a08 0%, #24101e 55%, #0d0610 100%); }
+        body.season-party #stage { background: radial-gradient(1200px 700px at 25% 30%, #5a1a4c 0%, #23123c 55%, #0d0818 100%); }
+        body.season-newyear .sg.last, body.season-easter .sg.last, body.season-halloween .sg.last, body.season-party .sg.last { background: var(--accent-orange); }
+        .stage-party { display: none; text-align: center; font-size: clamp(18px, 2.6vw, 40px); font-weight: 700; color: #ffd6ef; }
+        body.season-party .stage-party.show { display: block; }
+
+        /* attract mode: the OCC map alone, with a caption */
+        body.attract .content-wrapper > .window, body.attract .sidebar-dock, body.attract .ops-right-toolbar, body.attract .fab-container, body.attract .coord-pill,
+        body.attract #hud-stats, body.attract #track-pill, body.attract #santa-pill, body.attract #season-pill, body.attract .carto-osm-badge { opacity: 0 !important; pointer-events: none !important; transition: opacity 0.8s; }
+        .content-wrapper > .window, .sidebar-dock, .ops-right-toolbar, .fab-container, #hud-stats { transition: opacity 0.5s; }
+        body.attract .content-wrapper, body.attract.sidebar-is-open .content-wrapper { left: 0 !important; width: 100% !important; }
+        #attract-caption { position: fixed; left: 28px; bottom: 28px; z-index: 2400; display: none; flex-direction: column; gap: 10px; padding: 16px 22px 18px; max-width: min(620px, calc(100vw - 56px));
+            border-radius: var(--r-lg); background: var(--glass-fill); border: 1px solid var(--glass-border); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-edge), var(--glass-shadow); }
+        body.attract #attract-caption { display: flex; animation: fadeIn 0.6s; }
+        #attract-caption.swap .ac-main > div { animation: fadeIn 0.6s; }
+        .ac-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: 0.06em; font-size: 13px; color: var(--text-muted); }
+        .ac-brand .material-icons-outlined { font-size: 18px; transform: rotate(90deg); overflow: hidden; width: 18px; }
+        .ac-main { display: flex; align-items: center; gap: 18px; }
+        .ac-num { font-size: 64px; font-weight: 300; line-height: 1; letter-spacing: -0.04em; color: var(--accent-orange); font-variant-numeric: tabular-nums; min-width: 1.4em; text-align: center; }
+        .ac-main b { display: block; font-size: 18px; font-weight: 600; color: var(--text-main); }
+        .ac-main > div span { display: block; font-size: 13px; color: var(--text-muted); }
+        .attract-now { color: var(--text-main) !important; height: 30px; }
+        @media (max-width: 768px) { #season-pill { bottom: calc(var(--m-nav-h) + 72px); max-width: calc(100% - 16px); } body.m-sheet-open #season-pill { opacity: 0; } #season-menu { right: 8px; } #partyBanner { display: none !important; } }
+        @media (prefers-reduced-motion: reduce) { .egg-marker, .ghost-marker, body.season-on header::after { animation: none; } }
+
+        #caller-reconnect { position: fixed; top: calc(var(--header-height) + 10px); left: 50%; transform: translateX(-50%); z-index: 3400; display: none; gap: 4px; padding: 4px;
+            border-radius: var(--r-md); background: var(--solid-surface); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+        #caller-reconnect.show { display: flex; animation: fadeIn 0.3s; }
+        #caller-reconnect button { display: flex; align-items: center; gap: 8px; border: none; background: rgba(var(--accent-rgb), 0.12); color: var(--accent-orange); font-family: inherit; font-weight: 600; font-size: 12.5px; padding: 7px 12px; }
+        #caller-reconnect button.x { background: transparent; color: var(--text-muted); padding: 7px 9px; }
+        #caller-reconnect .material-icons-outlined { font-size: 17px; width: 18px; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -1976,6 +2079,7 @@
                         <button type="button" data-round="2" onclick="setRound(2)" data-lang="round2">2 rows</button>
                         <button type="button" data-round="3" onclick="setRound(3)" data-lang="round3">Full card</button>
                     </div>
+                    <button type="button" class="stage-open-btn" onclick="openCallerWindow()" data-lang-title="ttCaller" title="Caller screen (O)"><span class="material-icons-outlined">dvr</span></button>
                     <button type="button" class="stage-open-btn" onclick="toggleStage(true)" data-lang-title="ttStage" title="Big screen (P)"><span class="material-icons-outlined">tv</span></button>
                 </div>
                 <div class="display-container">
@@ -1999,6 +2103,14 @@
                 </div>
                 
                 <div id="tab-general" class="tab-content active">
+                    <div class="setting-row"><span class="setting-label" data-lang="attractLabel">Attract mode</span>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <select class="select-input" id="attractSelect" onchange="setAttractDelay(+this.value)">
+                                <option value="0" data-lang="attractOff">Off</option><option value="2" data-lang="attract2">After 2 min</option>
+                                <option value="5" data-lang="attract5">After 5 min</option><option value="10" data-lang="attract10">After 10 min</option>
+                            </select>
+                            <button type="button" class="tool-btn attract-now" onclick="startAttract(); closeWindow('panel-settings');" data-lang="attractNow">Start</button>
+                        </div></div>
                     <div class="setting-row">
                         <span class="setting-label" data-lang="language">Sprog / Language</span>
                         <select class="select-input" onchange="setLanguage(this.value)">
@@ -2025,7 +2137,14 @@
                 </div>
 
                 <div id="tab-visual" class="tab-content">
-                    <div class="setting-row"><span class="setting-label" data-lang="xmasMode">Christmas mode</span><label class="switch"><input type="checkbox" id="xmasToggle" onchange="toggleXmas(this.checked)"><span class="slider"></span></label></div>
+                    <div class="setting-row"><span class="setting-label" data-lang="seasonMode">Season</span>
+                        <select class="select-input" id="seasonSelect" onchange="setSeasonChoice(this.value)">
+                            <option value="none" data-lang="seasonNone">Off</option><option value="auto" data-lang="seasonAuto">Automatic (by date)</option>
+                            <option value="xmas" data-lang="seasonXmas">Christmas</option><option value="newyear" data-lang="seasonNewyear">New Year</option>
+                            <option value="easter" data-lang="seasonEaster">Easter</option><option value="halloween" data-lang="seasonHalloween">Halloween</option>
+                            <option value="party" data-lang="seasonParty">Party / birthday</option>
+                        </select></div>
+                    <div class="setting-row" id="partyRow"><span class="setting-label" data-lang="partyText">Banner text</span><input type="text" id="partyText" class="gen-input" style="margin:0; max-width:190px;" maxlength="60" oninput="setPartyText(this.value)"></div>
                     <div class="setting-row"><span class="setting-label" data-lang="theme">Tema Preset</span><select class="select-input" id="themeSelectDropdown" onchange="applyThemePreset(this.value)"><option value="default" data-lang="thLight">OCC Tactical Light</option><option value="dark" data-lang="thNight">OCC Tactical Night</option><option value="matrix" data-lang="thMatrix">OCC Matrix Radar</option></select></div>
                     <hr style="border:0; border-top:1px solid var(--border-light); margin:10px 0;">
                     <div class="setting-row"><span class="setting-label" data-lang="colPrimary">Primær Farve</span><input type="color" id="col-primary" value="#1b365d" onchange="setCustomColor('--primary-blue', this.value)"></div>
@@ -2279,6 +2398,13 @@
     </div>
 
     <div id="banko-overlay"><div class="banko-text">BANKO!</div></div>
+    <div id="season-menu" role="menu"></div>
+    <div id="caller-reconnect"><button type="button" onclick="openCallerWindow()"><span class="material-icons-outlined">dvr</span><span>Reconnect caller screen</span></button><button type="button" class="x" onclick="this.parentNode.classList.remove('show'); try { localStorage.removeItem('bingoCallerOpen'); } catch (e) {}">✕</button></div>
+    <div id="attract-caption" aria-live="polite">
+        <div class="ac-brand"><span class="material-icons-outlined">flight</span> BINGO WATCH</div>
+        <div class="ac-main"><span class="ac-num" id="acNum">--</span><div><b id="acTitle"></b><span id="acSub"></span></div></div>
+    </div>
+    <div id="season-pill" aria-live="polite"><span class="sp-icon" id="ssIcon"></span><div class="sp-text"><b id="ssWhere"></b><span id="ssSub"></span></div></div>
     <div id="santa-pill" aria-live="polite">
         <span class="sp-icon">🎅</span>
         <div class="sp-text"><b id="spWhere">–</b><span id="spSub">–</span></div>
@@ -2294,6 +2420,7 @@
         </div>
         <div class="stage-main">
             <div class="stage-left">
+                <div class="stage-party" id="stageParty"></div>
                 <div class="stage-number" id="stageNumber">--</div>
                 <div class="stage-lingo" id="stageLingo"></div>
                 <div class="stage-recent" id="stageRecent"></div>
@@ -2327,7 +2454,9 @@
                 <span data-lang="newGame">Nyt Spil</span>
             </button>
             <span class="utc-clock" id="utcClock">12:47 UTC</span>
-            <button class="header-icon-btn" id="xmasBtn" onclick="toggleXmas()" title="Christmas mode" data-lang-title="ttXmas"><span class="material-icons-outlined" style="font-size:19px;">ac_unit</span></button>
+            <span id="partyBanner"></span>
+            <button class="header-icon-btn" onclick="openCallerWindow()" title="Caller screen" data-lang-title="ttCaller"><span class="material-icons-outlined" style="font-size:19px;">dvr</span></button>
+            <button class="header-icon-btn" id="xmasBtn" onclick="toggleSeasonMenu(event)" title="Season" data-lang-title="ttSeason"><span class="material-icons-outlined" id="seasonIcon" style="font-size:19px;">ac_unit</span></button>
             <button class="header-icon-btn" onclick="toggleLightDarkQuick()" title="Switch Light / Dark Mode" data-lang-title="ttTheme">
                 <span class="material-icons-outlined" id="quickThemeIcon">dark_mode</span>
             </button>
@@ -2447,7 +2576,7 @@
             console.warn('Could not load saved cards from localStorage', e);
         }
 
-        let soundConfig = { tick: true, chime: true, fanfare: true, jingle: true };
+        let soundConfig = { tick: true, chime: true, fanfare: true, jingle: true, pop: true, chirp: true, spooky: true, 'spooky-fanfare': true, 'newyear-fanfare': true, 'jingle-fanfare': true, 'fanfare-xmas': true };
         let startTime = null;
         let statsInterval = null;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2634,7 +2763,7 @@
                 brKeysH: "Cockpit-kontroller (genveje)",
                 brK1: "Træk næste nummer", brK2: "BANKO! (fejring)", brK3: "Autopilot (auto-træk)", brK4: "Lyd til / fra", brK5: "Nulstil system", brK6: "Fuldskærm",
                 brStatus: "Lokal tilstand og live-vejr:", brLaunch: "BEKRÆFT & START",
-                thFlight: "Fly", thDep: "AFG", thDest: "DEST", tieShort: "Konfliktløsning", mMute: "Lyd fra/til", keyBanko: "Banko", keyReset: "Nulstil", ttAutoUpd: "Opdateres automatisk hvert 10. min", ttWxRefresh: "Opdatér vejrdata nu", ttSearch: "Søg", ttPrint: "Print flyvelog", ttRelease: "Slip kameraet", ttFull: "Fuldskærm (F)", ttMute: "Lyd fra/til (M)", ttUndo: "Fortryd", ttAuto: "Autopilot (A)", ttTheme: "Skift lys / mørk tilstand", ttSettings: "Indstillinger", thLight: "OCC Taktisk lys", thNight: "OCC Taktisk nat", thMatrix: "OCC Matrix-radar", roundLabel: "Der spilles om", round1: "1 række", round2: "2 rækker", round3: "Fuld plade", ttStage: "Storskærm (P)", ttStageClose: "Luk (Esc)", xmasMode: "Juletilstand", ttXmas: "Juletilstand (julemand, sne og julelyde)", mMap: "Kort", mDraw: "Træk", mGrid: "Tal", mFlights: "Fly", mMore: "Mere", flightLog: "Aktive fly", statsTitle: "Missionsstatistik", statDrawn: "Trukket", statRemain: "Tilbage", statTime: "Flyvetid", statPrev: "Forrige",
+                thFlight: "Fly", thDep: "AFG", thDest: "DEST", tieShort: "Konfliktløsning", mMute: "Lyd fra/til", keyBanko: "Banko", keyReset: "Nulstil", ttAutoUpd: "Opdateres automatisk hvert 10. min", ttWxRefresh: "Opdatér vejrdata nu", ttSearch: "Søg", ttPrint: "Print flyvelog", ttRelease: "Slip kameraet", ttFull: "Fuldskærm (F)", ttMute: "Lyd fra/til (M)", ttUndo: "Fortryd", ttAuto: "Autopilot (A)", ttTheme: "Skift lys / mørk tilstand", ttSettings: "Indstillinger", thLight: "OCC Taktisk lys", thNight: "OCC Taktisk nat", thMatrix: "OCC Matrix-radar", roundLabel: "Der spilles om", round1: "1 række", round2: "2 rækker", round3: "Fuld plade", ttStage: "Storskærm (P)", ttStageClose: "Luk (Esc)", xmasMode: "Juletilstand", ttXmas: "Juletilstand (julemand, sne og julelyde)", seasonMode: "Sæson", seasonNone: "Fra", seasonAuto: "Automatisk (efter dato)", seasonXmas: "Jul", seasonNewyear: "Nytår", seasonEaster: "Påske", seasonHalloween: "Halloween", seasonParty: "Fest / fødselsdag", partyText: "Bannertekst", ttSeason: "Sæsontilstand", attractLabel: "Attract mode", attractOff: "Fra", attract2: "Efter 2 min", attract5: "Efter 5 min", attract10: "Efter 10 min", attractNow: "Start nu", ttCaller: "Opråber-skærm (O)", mMap: "Kort", mDraw: "Træk", mGrid: "Tal", mFlights: "Fly", mMore: "Mere", flightLog: "Aktive fly", statsTitle: "Missionsstatistik", statDrawn: "Trukket", statRemain: "Tilbage", statTime: "Flyvetid", statPrev: "Forrige",
                 newGame: "Nyt spil", bankoMsg: "BANKO!",
                 prizeTitle: "Gavefordeling", prizeSmall: "Små gaver", prizeBig: "Store gaver", btnSet: "SÆT", btnDrawSmall: "TRÆK", btnDrawBig: "TRÆK",
                 lingoDefault: "Waypoint bekræftet",
@@ -2669,7 +2798,7 @@
                 brKeysH: "Cockpit Controls (Shortcuts)",
                 brK1: "Draw Next Number", brK2: "BINGO! (Celebration)", brK3: "Autopilot (Auto-draw)", brK4: "Mute / Unmute", brK5: "Reset System", brK6: "Fullscreen",
                 brStatus: "Local Mode & Live Weather:", brLaunch: "CONFIRM & LAUNCH",
-                thFlight: "Flight", thDep: "DEP", thDest: "DEST", tieShort: "Conflict Res.", mMute: "Mute", keyBanko: "Banko", keyReset: "Reset", ttAutoUpd: "Auto-updates every 10 min", ttWxRefresh: "Refresh weather data now", ttSearch: "Search", ttPrint: "Print flight log", ttRelease: "Release camera", ttFull: "Fullscreen (F)", ttMute: "Mute / unmute (M)", ttUndo: "Undo", ttAuto: "Autopilot (A)", ttTheme: "Switch light / dark mode", ttSettings: "Settings", thLight: "OCC Tactical Light", thNight: "OCC Tactical Night", thMatrix: "OCC Matrix Radar", roundLabel: "Playing for", round1: "1 row", round2: "2 rows", round3: "Full card", ttStage: "Big screen (P)", ttStageClose: "Close (Esc)", xmasMode: "Christmas mode", ttXmas: "Christmas mode (Santa, snow and sleigh bells)", mMap: "Map", mDraw: "Draw", mGrid: "Numbers", mFlights: "Flights", mMore: "More", flightLog: "Active Flights", statsTitle: "Mission Stats", statDrawn: "Drawn", statRemain: "Remain", statTime: "Flight Time", statPrev: "Previous",
+                thFlight: "Flight", thDep: "DEP", thDest: "DEST", tieShort: "Conflict Res.", mMute: "Mute", keyBanko: "Banko", keyReset: "Reset", ttAutoUpd: "Auto-updates every 10 min", ttWxRefresh: "Refresh weather data now", ttSearch: "Search", ttPrint: "Print flight log", ttRelease: "Release camera", ttFull: "Fullscreen (F)", ttMute: "Mute / unmute (M)", ttUndo: "Undo", ttAuto: "Autopilot (A)", ttTheme: "Switch light / dark mode", ttSettings: "Settings", thLight: "OCC Tactical Light", thNight: "OCC Tactical Night", thMatrix: "OCC Matrix Radar", roundLabel: "Playing for", round1: "1 row", round2: "2 rows", round3: "Full card", ttStage: "Big screen (P)", ttStageClose: "Close (Esc)", xmasMode: "Christmas mode", ttXmas: "Christmas mode (Santa, snow and sleigh bells)", seasonMode: "Season", seasonNone: "Off", seasonAuto: "Automatic (by date)", seasonXmas: "Christmas", seasonNewyear: "New Year", seasonEaster: "Easter", seasonHalloween: "Halloween", seasonParty: "Party / birthday", partyText: "Banner text", ttSeason: "Season mode", attractLabel: "Attract mode", attractOff: "Off", attract2: "After 2 min", attract5: "After 5 min", attract10: "After 10 min", attractNow: "Start now", ttCaller: "Caller screen (O)", mMap: "Map", mDraw: "Draw", mGrid: "Numbers", mFlights: "Flights", mMore: "More", flightLog: "Active Flights", statsTitle: "Mission Stats", statDrawn: "Drawn", statRemain: "Remain", statTime: "Flight Time", statPrev: "Previous",
                 newGame: "New Game", bankoMsg: "BINGO!",
                 prizeTitle: "Prize Distribution", prizeSmall: "Small Prizes", prizeBig: "Big Prizes", btnSet: "SET", btnDrawSmall: "DRAW", btnDrawBig: "DRAW",
                 lingoDefault: "Waypoint confirmed",
@@ -5067,6 +5196,7 @@
                 case 'm': toggleMute(); break;
                 case 'r': confirmNewGame(); break;
                 case 'p': toggleStage(); break;
+                case 'o': openCallerWindow(); break;
                 case 'escape': if (document.body.classList.contains('stage-open')) toggleStage(false); break;
                 case 'l': resetPositions(); break;
                 case 'f': toggleFullscreen(); break;
@@ -5112,7 +5242,35 @@
                     [[1318.5, 0.55], [1046.5, 0.8]].forEach(([f, d]) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'sine';
                         o.frequency.setValueAtTime(f, now + d); o.connect(g); g.connect(masterGain); g.gain.setValueAtTime(0, now + d);
                         g.gain.linearRampToValueAtTime(0.22, now + d + 0.02); g.gain.exponentialRampToValueAtTime(0.001, now + d + 1.2); o.start(now + d); o.stop(now + d + 1.25); });
-                } else if (type === 'fanfare' && xmasOn) {
+                } else if (type === 'pop') {
+                    // firework / balloon pop: filtered noise burst + a little crackle
+                    const len = 0.35, buf = audioCtx.createBuffer(1, audioCtx.sampleRate * len, audioCtx.sampleRate), d = buf.getChannelData(0);
+                    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+                    const src = audioCtx.createBufferSource(), f = audioCtx.createBiquadFilter(), g = audioCtx.createGain();
+                    f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 0.8; src.buffer = buf; src.connect(f); f.connect(g); g.connect(masterGain); g.gain.value = 0.9; src.start(now);
+                    [0.18, 0.24, 0.31, 0.36].forEach(t => { const o = audioCtx.createOscillator(), gg = audioCtx.createGain(); o.type = 'square'; o.frequency.value = 3000 + Math.random() * 2500;
+                        o.connect(gg); gg.connect(masterGain); gg.gain.setValueAtTime(0.04, now + t); gg.gain.exponentialRampToValueAtTime(0.0005, now + t + 0.03); o.start(now + t); o.stop(now + t + 0.04); });
+                } else if (type === 'chirp') {
+                    [0, 0.14].forEach((t, k) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'sine';
+                        o.frequency.setValueAtTime(1800 + k * 300, now + t); o.frequency.exponentialRampToValueAtTime(3200 + k * 400, now + t + 0.09);
+                        o.connect(g); g.connect(masterGain); g.gain.setValueAtTime(0, now + t); g.gain.linearRampToValueAtTime(0.18, now + t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, now + t + 0.12); o.start(now + t); o.stop(now + t + 0.13); });
+                } else if (type === 'spooky' || type === 'spooky-fanfare') {
+                    const notes = type === 'spooky' ? [[220, 0, 0.9]] : [[220, 0, 0.5], [261.6, 0.45, 0.5], [311.1, 0.9, 0.5], [369.9, 1.35, 1.4]];
+                    notes.forEach(([f, t, len]) => { const o = audioCtx.createOscillator(), o2 = audioCtx.createOscillator(), lfo = audioCtx.createOscillator(), lg = audioCtx.createGain(), g = audioCtx.createGain();
+                        o.type = 'sawtooth'; o2.type = 'sine'; o.frequency.value = f; o2.frequency.value = f * 1.5; lfo.frequency.value = 6; lg.gain.value = 6;
+                        lfo.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+                        const flt = audioCtx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 900;
+                        o.connect(flt); o2.connect(flt); flt.connect(g); g.connect(masterGain);
+                        g.gain.setValueAtTime(0, now + t); g.gain.linearRampToValueAtTime(0.12, now + t + 0.08); g.gain.exponentialRampToValueAtTime(0.001, now + t + len);
+                        [o, o2, lfo].forEach(x => { x.start(now + t); x.stop(now + t + len + 0.05); }); });
+                } else if (type === 'newyear-fanfare') {
+                    const notes = [[523.25, 0], [659.25, 0.15], [783.99, 0.3], [1046.5, 0.45], [783.99, 0.75], [1046.5, 0.9]];
+                    notes.forEach(([f, t]) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'triangle'; o.frequency.value = f; o.connect(g); g.connect(masterGain);
+                        g.gain.setValueAtTime(0, now + t); g.gain.linearRampToValueAtTime(0.25, now + t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, now + t + 0.6); o.start(now + t); o.stop(now + t + 0.65); });
+                    setTimeout(() => playSound('pop'), 1150); setTimeout(() => playSound('pop'), 1450);
+                } else if (type === 'jingle-fanfare') {
+                    playSound('fanfare-xmas');
+                } else if (type === 'fanfare-xmas') {
                     // "Jingle Bells" opening phrase (public-domain melody, 1857)
                     const E = 659.25, G = 783.99, C = 523.25, D = 587.33, q = 0.22;
                     const notes = [[E, 1], [E, 1], [E, 2], [E, 1], [E, 1], [E, 2], [E, 1], [G, 1], [C, 1.5], [D, 0.5], [E, 4]];
@@ -5158,19 +5316,22 @@
             if(autopilotInterval) {
                 clearInterval(autopilotInterval); autopilotInterval = null; document.getElementById('fab-auto').classList.remove('active');
             }
-            playSound('fanfare');
+            playSound(season !== 'none' ? SEASONS[season].fanfare : 'fanfare');
             
             const overlay = document.getElementById('banko-overlay');
             overlay.style.display = 'flex';
             setTimeout(() => { overlay.style.display = 'none'; }, 4000);
 
-            const colors = xmasOn ? ['#c8102e', '#0b7a3e', '#f4c542', '#ffffff', '#e8f1ff'] : ['#1e3a6e', '#15171a', '#e74c3c', '#f1c40f', '#ffffff'];
+            const colors = ({ xmas: ['#c8102e', '#0b7a3e', '#f4c542', '#ffffff', '#e8f1ff'], newyear: ['#f4c542', '#fff1b8', '#c9b6ff', '#ffffff', '#ff9ad5'],
+                              easter: ['#ffc8dd', '#ffe57a', '#bde0a6', '#cdb4ff', '#ffffff'], halloween: ['#ff7a1a', '#2b1838', '#8b5cf6', '#ffd23f', '#3fbf3f'],
+                              party: ['#ff5d73', '#ffcd3c', '#4cc9f0', '#7bd389', '#b388ff'] })[season] || ['#1e3a6e', '#15171a', '#e74c3c', '#f1c40f', '#ffffff'];
             for(let i=0; i<350; i++) {
                 const conf = document.createElement('div'); conf.className = 'confetti';
                 conf.style.left = (Math.random() * 100) + 'vw'; conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                 conf.style.animationDuration = (Math.random() * 3 + 2) + 's'; conf.style.transform = `rotate(${Math.random()*360}deg)`;
                 conf.style.setProperty('--drift', (Math.random() * 300 - 150) + 'px');
-                if (xmasOn && i % 3 === 0) { conf.classList.add('flake'); conf.textContent = ['❄', '✦', '★'][i % 3 === 0 ? (i % 9 === 0 ? 2 : i % 2) : 0]; conf.style.color = conf.style.backgroundColor; conf.style.backgroundColor = 'transparent'; }
+                const sym = { xmas: ['❄', '✦', '★'], newyear: ['✦', '★', '✧'], easter: ['🌼', '✿', '🥚'], halloween: ['🦇', '🎃', '✦'], party: ['🎈', '★', '✦'] }[season];
+                if (sym && i % 3 === 0) { conf.classList.add('flake'); conf.textContent = sym[i % 9 === 0 ? 2 : (i % 2)]; conf.style.color = conf.style.backgroundColor; conf.style.backgroundColor = 'transparent'; }
                 document.body.appendChild(conf); setTimeout(() => conf.remove(), 5000);
             }
         }
@@ -5788,7 +5949,8 @@
                 updateCommonUI();
                 addRadarPlane(flight);
                 updateLog(flight);
-                playSound(xmasOn ? 'jingle' : 'chime');
+                playSound(drawSoundName());
+                noteActivity(true);
                 saveGame();
             } finally {
                 isSpinning = false;
@@ -6048,6 +6210,7 @@
             document.getElementById('stageRecent').innerHTML = drawnNumbers.slice(-6, -1).reverse().map(n => `<span>${n}</span>`).join('');
             document.getElementById('stageRound').textContent = `${t.roundLabel}: ${roundName()}`;
             document.getElementById('stageCount').textContent = `${drawnNumbers.length} / ${maxNumber}`;
+            const sp = document.getElementById('stageParty'); if (sp) { sp.textContent = (typeof partyText !== 'undefined' && partyText.trim()) ? '🎉 ' + partyText.trim() + ' 🎉' : ''; sp.classList.toggle('show', !!sp.textContent); }
         }
 
         // =====================================================================
@@ -6065,24 +6228,239 @@
             if (xmasOn && XMAS_LINGO[currentLang][n]) return '🎄 ' + XMAS_LINGO[currentLang][n];
             return bingoLingoData[currentLang][n] || `${t.lingoDefault} ${n}`;
         }
-        function toggleXmas(on, silent) {
-            xmasOn = on === undefined ? !xmasOn : !!on;
+        // ===================== SEASONS =====================
+        const SEASONS = {
+            xmas:      { icon: 'ac_unit',      particles: 'snow',     emoji: '🎄', draw: 'jingle', fanfare: 'jingle-fanfare' },
+            newyear:   { icon: 'celebration',  particles: 'glitter',  emoji: '🎆', draw: 'pop',    fanfare: 'newyear-fanfare' },
+            easter:    { icon: 'egg',          particles: 'petals',   emoji: '🐣', draw: 'chirp',  fanfare: 'fanfare' },
+            halloween: { icon: 'nights_stay',  particles: 'bats',     emoji: '🎃', draw: 'spooky', fanfare: 'spooky-fanfare' },
+            party:     { icon: 'cake',         particles: 'balloons', emoji: '🎉', draw: 'pop',    fanfare: 'fanfare' }
+        };
+        const SEASON_LINGO = {
+            newyear: { da: { 1: 'Nytårsdag', 10: 'Nedtællingen begynder', 12: 'Klokken slår tolv', 31: 'Nytårsaften', 50: 'Kransekage', 60: 'Kongens nytårstale' },
+                       en: { 1: "New Year's Day", 10: 'The countdown begins', 12: 'The clock strikes twelve', 31: "New Year's Eve", 50: 'Champagne corks', 60: 'Fireworks finale' } },
+            easter: { da: { 3: 'Påskelilje', 5: 'Påskefrokost', 7: 'Påskeugen', 13: 'Påskeharen', 20: 'Gækkebrev', 40: 'Fastelavn er forbi', 88: 'To påskeæg' },
+                      en: { 3: 'Daffodil', 5: 'Easter lunch', 7: 'Holy week', 13: 'The Easter bunny', 20: 'Snowdrop letter', 40: 'Lent is over', 88: 'Two Easter eggs' } },
+            halloween: { da: { 13: 'Uheldige fredag', 31: 'Halloween-aften', 66: 'Spøgelsestimen', 13: 'Sort kat over vejen', 99: 'Græskarlygten' , 9: 'Ni liv', 69: 'Hekseskoven' },
+                         en: { 13: 'Black cat crossing', 31: 'Halloween night', 66: 'The witching hour', 9: 'Nine lives', 69: 'Haunted forest' } },
+            party: { da: { 18: 'Myndig', 21: 'Nøglen til døren', 30: 'Trediveår', 40: 'Fyrre og frisk', 50: 'Et halvt hundrede', 60: 'Sølvhår', 70: 'Pensionist på eventyr' },
+                     en: { 18: 'Coming of age', 21: 'Key of the door', 30: 'Dirty thirty', 40: 'Life begins at forty', 50: 'Half a century', 60: 'Silver fox', 70: 'Still dancing' } }
+        };
+        let seasonChoice = 'none', season = 'none', partyText = '';
+        function easterDate(y) {        // anonymous Gregorian algorithm
+            const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+            const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+            const month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+            return new Date(y, month - 1, day);
+        }
+        function seasonByDate(d = new Date()) {
+            const m = d.getMonth() + 1, day = d.getDate(), y = d.getFullYear();
+            if ((m === 12 && day >= 27) || (m === 1 && day <= 2)) return 'newyear';
+            if (m === 12 || (m === 11 && day >= 25)) return 'xmas';
+            if (m === 10 && day >= 18) return 'halloween';
+            const e = easterDate(y), diff = (d - e) / 86400000;
+            if (diff >= -10 && diff <= 2) return 'easter';
+            return 'none';
+        }
+        function seasonLabel(id) { return translations[currentLang]['season' + id.charAt(0).toUpperCase() + id.slice(1)] || id; }
+        function setSeasonChoice(choice, silent) {
+            seasonChoice = choice;
+            try { localStorage.setItem('bingoSeason', choice); } catch (e) {}
+            setSeason(choice === 'auto' ? seasonByDate() : choice, silent);
+        }
+        function setSeason(id, silent) {
+            if (!SEASONS[id]) id = 'none';
+            // tear everything down
+            stopSnow(); stopSanta(); stopNewYear(); stopEaster(); stopHalloween();
+            Object.keys(SEASONS).forEach(k => document.body.classList.remove('season-' + k));
+            season = id; xmasOn = id === 'xmas';
             document.body.classList.toggle('xmas', xmasOn);
-            const tg = document.getElementById('xmasToggle'); if (tg) tg.checked = xmasOn;
-            const b = document.getElementById('xmasBtn'); if (b) b.classList.toggle('active', xmasOn);
-            try { localStorage.setItem('bingoXmas', xmasOn ? '1' : '0'); } catch (e) {}
-            if (xmasOn) { startSnow(); startSanta(); } else { stopSnow(); stopSanta(); }
+            document.body.classList.toggle('season-on', id !== 'none');
+            if (id !== 'none') {
+                document.body.classList.add('season-' + id);
+                startSnow(SEASONS[id].particles);
+                if (id === 'xmas') startSanta();
+                if (id === 'newyear') startNewYear();
+                if (id === 'easter') startEaster();
+                if (id === 'halloween') startHalloween();
+            }
+            const sel = document.getElementById('seasonSelect'); if (sel) sel.value = seasonChoice;
+            const ic = document.getElementById('seasonIcon'); if (ic) ic.textContent = id === 'none' ? 'celebration' : SEASONS[id].icon;
+            const b = document.getElementById('xmasBtn'); if (b) b.classList.toggle('active', id !== 'none');
+            const pr = document.getElementById('partyRow'); if (pr) pr.style.display = (seasonChoice === 'party' || id === 'party') ? '' : 'none';
+            updatePartyBanner();
+            buildSeasonMenu();
             if (drawnNumbers.length) showCurrentNumber();
             renderStage();
-            if (!silent) showToast(xmasOn ? (currentLang === 'da' ? '🎄 Glædelig jul! Juletilstand er slået til' : '🎄 Merry Christmas! Christmas mode is on') : (currentLang === 'da' ? 'Juletilstand er slået fra' : 'Christmas mode is off'));
+            if (!silent) {
+                const da = currentLang === 'da';
+                const msg = { none: da ? 'Sæsontilstand er slået fra' : 'Season mode is off', xmas: da ? '🎄 Glædelig jul!' : '🎄 Merry Christmas!', newyear: da ? '🎆 Godt nytår!' : '🎆 Happy New Year!',
+                              easter: da ? '🐣 God påske!' : '🐣 Happy Easter!', halloween: da ? '🎃 Uhyggelig halloween!' : '🎃 Happy Halloween!', party: da ? '🎉 Lad festen begynde!' : '🎉 Let the party begin!' }[id];
+                showToast(msg);
+            }
+        }
+        // kept for older calls / saved settings
+        function toggleXmas(on, silent) { setSeasonChoice((on === undefined ? !xmasOn : !!on) ? 'xmas' : 'none', silent); }
+        function lingoFor(n) {
+            const t = translations[currentLang];
+            if (season === 'xmas' && XMAS_LINGO[currentLang][n]) return '🎄 ' + XMAS_LINGO[currentLang][n];
+            const sl = SEASON_LINGO[season]; if (sl && sl[currentLang][n]) return SEASONS[season].emoji + ' ' + sl[currentLang][n];
+            return bingoLingoData[currentLang][n] || `${t.lingoDefault} ${n}`;
+        }
+        function drawSoundName() { return season !== 'none' ? SEASONS[season].draw : 'chime'; }
+        function setPartyText(v) { partyText = (v || '').slice(0, 60); try { localStorage.setItem('bingoPartyText', partyText); } catch (e) {} updatePartyBanner(); renderStage(); }
+        function updatePartyBanner() {
+            const el = document.getElementById('partyBanner'); if (!el) return;
+            const show = season === 'party' && partyText.trim();
+            el.textContent = show ? '🎉 ' + partyText.trim() + ' 🎉' : '';
+            el.classList.toggle('show', !!show);
+        }
+        function buildSeasonMenu() {
+            const m = document.getElementById('season-menu'); if (!m) return;
+            const items = ['none', 'auto', 'xmas', 'newyear', 'easter', 'halloween', 'party'];
+            const icon = id => id === 'none' ? 'block' : id === 'auto' ? 'event' : SEASONS[id].icon;
+            m.innerHTML = `<div class="wx-menu-title">${translations[currentLang].seasonMode}</div>` + items.map(id =>
+                `<button type="button" class="sm-item${seasonChoice === id ? ' on' : ''}" onclick="setSeasonChoice('${id}'); toggleSeasonMenu();"><span class="material-icons-outlined">${icon(id)}</span>${seasonLabel(id)}${id === 'auto' && seasonChoice === 'auto' ? ` <em>· ${seasonLabel(season)}</em>` : ''}</button>`).join('');
+        }
+        function toggleSeasonMenu(e) {
+            if (e) e.stopPropagation();
+            const m = document.getElementById('season-menu');
+            buildSeasonMenu();
+            m.classList.toggle('open');
+        }
+        document.addEventListener('click', e => { const m = document.getElementById('season-menu'); if (m && m.classList.contains('open') && !m.contains(e.target)) m.classList.remove('open'); });
+        function seasonPill(icon, where, sub) {
+            const p = document.getElementById('season-pill'); if (!p) return;
+            if (!where) { p.classList.remove('show'); return; }
+            document.getElementById('ssIcon').textContent = icon; document.getElementById('ssWhere').textContent = where; document.getElementById('ssSub').textContent = sub || '';
+            p.classList.add('show');
         }
 
+        // ---------- New Year: the midnight wave travels west, fireworks pop over each city ----------
+        const ny = { raf: 0, lastIdx: -1, timer: 0, markers: [] };
+        function nyClock() {
+            const now = Date.now(), y = new Date().getUTCFullYear();
+            const tl = yr => { const stops = SANTA_STOPS.map(st => Date.UTC(yr, 0, 1, 0, 0) - st[3] * 3600000); return { stops, start: stops[0] - 1800000, end: stops[stops.length - 1] + 1800000, yr }; };
+            let cur = tl(y + 1); const prev = tl(y);
+            if (now >= prev.start && now <= prev.end) return { live: true, t: now, tl: prev };
+            const lap = 6 * 60000, f = (now % lap) / lap;
+            return { live: false, t: cur.start + f * (cur.end - cur.start), tl: cur, next: now < prev.start ? prev.stops[0] : cur.stops[0] };
+        }
+        function fireworkAt(lon, lat, big) {
+            if (!map) return;
+            const el = document.createElement('div'); el.className = 'firework' + (big ? ' big' : '');
+            const hue = Math.floor(Math.random() * 360);
+            el.style.setProperty('--fw', `hsl(${hue} 95% 62%)`); el.style.setProperty('--fw2', `hsl(${(hue + 50) % 360} 95% 70%)`);
+            el.innerHTML = Array.from({ length: 14 }, (_, i) => `<i style="--a:${(i / 14) * 360}deg"></i>`).join('');
+            const mk = new maplibregl.Marker({ element: el, anchor: 'center', subpixelPositioning: true }).setLngLat([lon, lat]).addTo(map);
+            setTimeout(() => mk.remove(), 1900);
+        }
+        function startNewYear() {
+            ny.lastIdx = -1;
+            const tick = () => {
+                const c = nyClock(), stops = c.tl.stops;
+                let idx = -1; while (idx + 1 < stops.length && c.t >= stops[idx + 1]) idx++;
+                const da = currentLang === 'da', yr = c.tl.yr;
+                if (idx !== ny.lastIdx && idx >= 0) { const st = SANTA_STOPS[idx]; fireworkAt(st[2], st[1], true); if (!prefersReducedMotion()) playSound('pop'); }
+                ny.lastIdx = idx;
+                // random fireworks over places that are already in the new year
+                if (idx >= 0 && Math.random() < 0.6) { const st = SANTA_STOPS[Math.floor(Math.random() * (idx + 1))]; fireworkAt(st[2] + (Math.random() - 0.5) * 2, st[1] + (Math.random() - 0.5) * 2, false); }
+                const next = SANTA_STOPS[idx + 1];
+                const where = idx < 0 ? (da ? `Nytåret nærmer sig ${next[0]}` : `New Year approaches ${next[0]}`)
+                            : (da ? `Det er blevet ${yr} i ${SANTA_STOPS[idx][0]}` : `It is ${yr} in ${SANTA_STOPS[idx][0]}`);
+                let sub = next ? (da ? `Næste: ${next[0]}` : `Next: ${next[0]}`) : (da ? 'Hele verden har sagt godt nytår' : 'The whole world has said Happy New Year');
+                if (!c.live && c.next) { const days = Math.max(0, Math.ceil((c.next - Date.now()) / 86400000)); sub += ' · ' + (da ? `Prøvekørsel – nytår om ${days} dage` : `Rehearsal – New Year in ${days} days`); }
+                else if (c.live) sub += ' · LIVE';
+                seasonPill('🎆', where, sub);
+            };
+            tick(); ny.timer = setInterval(tick, 1300);
+        }
+        function stopNewYear() { clearInterval(ny.timer); ny.timer = 0; seasonPill(); document.querySelectorAll('.firework').forEach(e => e.parentNode && e.parentNode.removeChild(e)); }
+
+        // ---------- Easter: an egg hunt on the map ----------
+        const eggs = { markers: [], found: 0, total: 12 };
+        function eggSvg(c1, c2) { return `<svg viewBox="0 0 24 30" width="18" height="22"><path d="M12 1 C 4 1 1 13 1 19 C 1 25 6 29 12 29 C 18 29 23 25 23 19 C 23 13 20 1 12 1 z" fill="${c1}" stroke="rgba(0,0,0,0.25)" stroke-width="0.8"/>
+            <path d="M2.5 14 l3 -3 l3 3 l3 -3 l3 3 l3 -3 l3 3 l2 -2" stroke="${c2}" stroke-width="1.8" fill="none"/><circle cx="8" cy="21" r="1.6" fill="${c2}"/><circle cx="16" cy="22" r="1.6" fill="${c2}"/><circle cx="12" cy="25" r="1.2" fill="${c2}"/></svg>`; }
+        function startEaster() {
+            if (!map) return;
+            const seed = new Date().getFullYear() * 1000 + new Date().getDate();
+            const rnd = mulberry32(seed);
+            const pool = AIRPORT_DB.slice(); const picks = [];
+            while (picks.length < eggs.total && pool.length) picks.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]);
+            const cols = [['#ffc8dd', '#ff70a6'], ['#fff3a3', '#f4a300'], ['#c7f0bd', '#38a169'], ['#cfe3ff', '#3f7ae0'], ['#e4d4ff', '#8b5cf6']];
+            eggs.found = 0;
+            picks.forEach((ap, i) => {
+                const el = document.createElement('div'); el.className = 'egg-marker';
+                const c = cols[i % cols.length]; el.innerHTML = eggSvg(c[0], c[1]);
+                el.title = currentLang === 'da' ? 'Et påskeæg! Klik for at finde det' : 'An Easter egg! Click to find it';
+                el.addEventListener('mousedown', e => e.stopPropagation());
+                el.addEventListener('click', e => {
+                    e.stopPropagation(); if (el.classList.contains('found')) return;
+                    el.classList.add('found'); eggs.found++; playSound('chirp'); updateEggPill();
+                    if (eggs.found === eggs.total) { triggerConfetti(); showToast(currentLang === 'da' ? '🐣 Alle påskeæg er fundet!' : '🐣 You found every Easter egg!'); }
+                });
+                const off = [(rnd() - 0.5) * 3, (rnd() - 0.5) * 2];
+                eggs.markers.push(new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([ap.lon + off[0], ap.lat + off[1]]).addTo(map));
+            });
+            updateEggPill();
+        }
+        function updateEggPill() {
+            const da = currentLang === 'da';
+            seasonPill('🐣', da ? `Påskeæg fundet: ${eggs.found} af ${eggs.total}` : `Easter eggs found: ${eggs.found} of ${eggs.total}`,
+                       da ? 'Æggene gemmer sig ved lufthavne rundt om i verden – klik på dem' : 'The eggs hide near airports around the world – click them');
+        }
+        function stopEaster() { eggs.markers.forEach(m => m.remove()); eggs.markers = []; seasonPill(); }
+
+        // ---------- Halloween: ghosts drift over the map ----------
+        const ghosts = { markers: [], timer: 0, seen: 0 };
+        function startHalloween() {
+            if (!map) return;
+            ghosts.seen = 0;
+            const spawn = () => {
+                if (ghosts.markers.length >= 7) { const old = ghosts.markers.shift(); old.m.remove(); }
+                const ap = AIRPORT_DB[Math.floor(Math.random() * AIRPORT_DB.length)];
+                const el = document.createElement('div'); el.className = 'ghost-marker';
+                el.innerHTML = `<svg viewBox="0 0 30 34" width="26" height="30"><path d="M15 2 C 7 2 3 8 3 15 V 31 l4 -3 l4 3 l4 -3 l4 3 l4 -3 l4 3 V 15 C 27 8 23 2 15 2 z" fill="rgba(255,255,255,0.92)" stroke="rgba(60,40,90,0.35)"/>
+                    <ellipse cx="11" cy="14" rx="2.2" ry="3" fill="#2b1838"/><ellipse cx="19" cy="14" rx="2.2" ry="3" fill="#2b1838"/><ellipse cx="15" cy="21" rx="2.4" ry="3" fill="#2b1838"/></svg>`;
+                el.addEventListener('mousedown', e => e.stopPropagation());
+                el.addEventListener('click', e => { e.stopPropagation(); if (el.classList.contains('boo')) return; el.classList.add('boo'); ghosts.seen++; playSound('spooky');
+                    showToast(currentLang === 'da' ? '👻 BØH!' : '👻 BOO!'); updateGhostPill(); });
+                const m = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([ap.lon + (Math.random() - 0.5) * 4, ap.lat + (Math.random() - 0.5) * 3]).addTo(map);
+                ghosts.markers.push({ m, el });
+            };
+            for (let i = 0; i < 5; i++) spawn();
+            ghosts.timer = setInterval(spawn, 6000);
+            updateGhostPill();
+        }
+        function updateGhostPill() {
+            const da = currentLang === 'da', d = new Date(), h = new Date(d.getFullYear(), 9, 31);
+            if (d > h) h.setFullYear(h.getFullYear() + 1);
+            const days = Math.ceil((h - d) / 86400000);
+            seasonPill('🎃', da ? `Spøgelser skræmt: ${ghosts.seen}` : `Ghosts spooked: ${ghosts.seen}`,
+                       (da ? 'Klik på spøgelserne på kortet' : 'Click the ghosts on the map') + (days > 0 ? (da ? ` · Halloween om ${days} dage` : ` · Halloween in ${days} days`) : ''));
+        }
+        function stopHalloween() { clearInterval(ghosts.timer); ghosts.timer = 0; ghosts.markers.forEach(g => g.m.remove()); ghosts.markers = []; seasonPill(); }
+
         // ---------- snow (one light canvas loop for the map and the big screen) ----------
-        const snow = { flakes: [], raf: 0, last: 0 };
-        function startSnow() {
-            if (snow.raf) return;
-            const N = prefersReducedMotion() ? 40 : 140;
-            snow.flakes = Array.from({ length: N }, () => ({ x: Math.random(), y: Math.random(), r: 0.8 + Math.random() * 2.4, s: 0.02 + Math.random() * 0.05, w: Math.random() * Math.PI * 2, o: 0.35 + Math.random() * 0.5 }));
+        const snow = { flakes: [], raf: 0, last: 0, kind: null };
+        // particle kinds per season: snow, glitter, petals, bats, balloons
+        function makeParticle(kind, fresh) {
+            const p = { x: Math.random(), y: fresh ? Math.random() : (kind === 'balloons' ? 1.08 : -0.03), w: Math.random() * Math.PI * 2, o: 0.4 + Math.random() * 0.5 };
+            if (kind === 'snow') Object.assign(p, { r: 0.8 + Math.random() * 2.4, s: 0.02 + Math.random() * 0.05 });
+            if (kind === 'glitter') Object.assign(p, { r: 1.5 + Math.random() * 2.5, s: 0.03 + Math.random() * 0.05, c: ['#f4c542', '#fff1b8', '#c9b6ff', '#ffffff', '#ff9ad5'][Math.floor(Math.random() * 5)], rot: Math.random() * 6 });
+            if (kind === 'petals') Object.assign(p, { r: 2.5 + Math.random() * 3, s: 0.015 + Math.random() * 0.03, c: ['#ffc8dd', '#ffe57a', '#bde0a6', '#cdb4ff', '#ffffff'][Math.floor(Math.random() * 5)], rot: Math.random() * 6 });
+            if (kind === 'bats') Object.assign(p, { r: 5 + Math.random() * 6, s: 0.04 + Math.random() * 0.05, dir: Math.random() < 0.5 ? -1 : 1, y: fresh ? Math.random() * 0.7 : Math.random() * 0.6, x: fresh ? Math.random() : (Math.random() < 0.5 ? -0.05 : 1.05) });
+            if (kind === 'balloons') Object.assign(p, { r: 9 + Math.random() * 9, s: 0.018 + Math.random() * 0.025, c: ['#ff5d73', '#ffcd3c', '#4cc9f0', '#7bd389', '#b388ff', '#ff8fd1'][Math.floor(Math.random() * 6)] });
+            return p;
+        }
+        function startSnow(kind) {
+            kind = kind || 'snow';
+            if (snow.raf && snow.kind === kind) return;
+            cancelAnimationFrame(snow.raf);
+            snow.kind = kind;
+            const base = { snow: 140, glitter: 110, petals: 60, bats: 14, balloons: 26 }[kind] || 100;
+            const N = Math.round(base * (prefersReducedMotion() ? 0.3 : 1));
+            snow.flakes = Array.from({ length: N }, () => makeParticle(kind, true));
             snow.last = performance.now();
             const tick = (now) => {
                 const dt = Math.min(0.05, (now - snow.last) / 1000); snow.last = now;
@@ -6093,20 +6471,40 @@
                     const dpr = Math.min(2, window.devicePixelRatio || 1);
                     if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
                     const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
-                    const dark = id === 'stageSnow' || wxIsDark();
+                    const big = id === 'stageSnow' ? 1.6 : 1, dark = id === 'stageSnow' || wxIsDark();
                     snow.flakes.forEach(f => {
-                        ctx.globalAlpha = f.o * (dark ? 1 : 0.9);
-                        ctx.fillStyle = dark ? '#ffffff' : '#b9cbe3';
-                        ctx.beginPath(); ctx.arc(f.x * w + Math.sin(f.w) * 12, f.y * h, f.r * (id === 'stageSnow' ? 1.6 : 1), 0, Math.PI * 2); ctx.fill();
+                        const x = f.x * w, y = f.y * h;
+                        ctx.globalAlpha = f.o;
+                        if (kind === 'snow') { ctx.fillStyle = dark ? '#ffffff' : '#b9cbe3'; ctx.beginPath(); ctx.arc(x + Math.sin(f.w) * 12, y, f.r * big, 0, Math.PI * 2); ctx.fill(); }
+                        else if (kind === 'glitter') { ctx.save(); ctx.translate(x + Math.sin(f.w) * 8, y); ctx.rotate(f.rot); ctx.globalAlpha = f.o * (0.55 + 0.45 * Math.sin(f.w * 3));
+                            ctx.fillStyle = f.c; const r = f.r * big; ctx.fillRect(-r, -r * 0.35, r * 2, r * 0.7); ctx.restore(); }
+                        else if (kind === 'petals') { ctx.save(); ctx.translate(x + Math.sin(f.w) * 18, y); ctx.rotate(f.rot + Math.sin(f.w) * 0.6);
+                            ctx.fillStyle = f.c; ctx.beginPath(); ctx.ellipse(0, 0, f.r * big, f.r * 0.55 * big, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+                        else if (kind === 'bats') { const flap = Math.sin(f.w * 7) * 0.6, r = f.r * big; ctx.save(); ctx.translate(x, y + Math.sin(f.w * 2) * 10); ctx.scale(f.dir, 1);
+                            ctx.fillStyle = dark ? '#1a0f24' : '#2b1838'; ctx.globalAlpha = Math.min(1, f.o + 0.3); ctx.beginPath();
+                            ctx.moveTo(0, 0); ctx.quadraticCurveTo(-r * 0.8, -r * (0.9 + flap), -r * 2, -r * flap * 0.6); ctx.quadraticCurveTo(-r * 1.4, r * 0.1, -r * 1.2, r * 0.35);
+                            ctx.quadraticCurveTo(-r * 0.6, r * 0.05, 0, r * 0.35); ctx.quadraticCurveTo(r * 0.6, r * 0.05, r * 1.2, r * 0.35); ctx.quadraticCurveTo(r * 1.4, r * 0.1, r * 2, -r * flap * 0.6);
+                            ctx.quadraticCurveTo(r * 0.8, -r * (0.9 + flap), 0, 0); ctx.fill(); ctx.beginPath(); ctx.arc(0, -r * 0.1, r * 0.35, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+                        else if (kind === 'balloons') { const r = f.r * big, bx = x + Math.sin(f.w) * 10; ctx.globalAlpha = 0.85;
+                            ctx.strokeStyle = dark ? 'rgba(255,255,255,0.5)' : 'rgba(60,60,60,0.45)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx, y + r * 1.2);
+                            ctx.quadraticCurveTo(bx + Math.sin(f.w * 2) * 6, y + r * 2.2, bx, y + r * 3.4); ctx.stroke();
+                            ctx.fillStyle = f.c; ctx.beginPath(); ctx.ellipse(bx, y, r * 0.85, r * 1.1, 0, 0, Math.PI * 2); ctx.fill();
+                            ctx.beginPath(); ctx.moveTo(bx - 3, y + r * 1.15); ctx.lineTo(bx + 3, y + r * 1.15); ctx.lineTo(bx, y + r * 1.05); ctx.fill();
+                            ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.beginPath(); ctx.ellipse(bx - r * 0.3, y - r * 0.4, r * 0.18, r * 0.3, -0.5, 0, Math.PI * 2); ctx.fill(); }
                     });
                 });
-                snow.flakes.forEach(f => { f.y += f.s * dt * slow * (1 + f.r * 0.25); f.w += dt * 0.8; if (f.y > 1.02) { f.y = -0.02; f.x = Math.random(); } });
+                snow.flakes.forEach((f, i) => {
+                    f.w += dt * 0.8;
+                    if (kind === 'bats') { f.x += f.dir * f.s * dt * slow * 2; if (f.x < -0.1 || f.x > 1.1) snow.flakes[i] = makeParticle(kind, false); }
+                    else if (kind === 'balloons') { f.y -= f.s * dt * slow * 2; if (f.y < -0.1) snow.flakes[i] = makeParticle(kind, false); }
+                    else { f.y += f.s * dt * slow * (1 + (f.r || 1) * 0.25); if (f.rot != null) f.rot += dt * 0.7; if (f.y > 1.03) snow.flakes[i] = makeParticle(kind, false); }
+                });
                 snow.raf = requestAnimationFrame(tick);
             };
             snow.raf = requestAnimationFrame(tick);
         }
         function stopSnow() {
-            cancelAnimationFrame(snow.raf); snow.raf = 0;
+            cancelAnimationFrame(snow.raf); snow.raf = 0; snow.kind = null;
             ['snowCanvas', 'stageSnow'].forEach(id => { const c = document.getElementById(id); if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height); });
         }
 
@@ -6282,7 +6680,264 @@
             const st = santaState(); updateSantaUi(st);
         }
         // restore the saved choice once the map exists
-        setTimeout(() => { try { if (localStorage.getItem('bingoXmas') === '1') toggleXmas(true, true); } catch (e) {} }, 1200);
+        setTimeout(() => {
+            let choice = 'none';
+            try {
+                partyText = localStorage.getItem('bingoPartyText') || '';
+                const pt = document.getElementById('partyText'); if (pt) pt.value = partyText;
+                choice = localStorage.getItem('bingoSeason') || (localStorage.getItem('bingoXmas') === '1' ? 'xmas' : 'none');
+            } catch (e) {}
+            setSeasonChoice(choice, true);
+        }, 1200);
+
+        // =====================================================================
+        // ATTRACT MODE: when nothing happens, the camera tours the OCC map
+        // =====================================================================
+        const attract = { on: false, delay: 0, last: Date.now(), step: 0, timer: 0, saved: null, lastMouse: null, startedAt: 0 };
+        try { attract.delay = +(localStorage.getItem('bingoAttract') || 0); } catch (e) {}
+        function setAttractDelay(min) { attract.delay = min; try { localStorage.setItem('bingoAttract', String(min)); } catch (e) {} noteActivity(); }
+        function noteActivity(fromDraw) {
+            attract.last = Date.now();
+            if (attract.on && (fromDraw || Date.now() - attract.startedAt > 2500)) stopAttract();   // short grace period right after starting
+        }
+        ['mousedown', 'keydown', 'touchstart', 'wheel'].forEach(ev => window.addEventListener(ev, () => noteActivity(), { passive: true, capture: true }));
+        window.addEventListener('mousemove', e => {
+            const p = attract.lastMouse; attract.lastMouse = [e.clientX, e.clientY];
+            if (p && Math.hypot(e.clientX - p[0], e.clientY - p[1]) > 12) noteActivity();
+        }, { passive: true });
+        setInterval(() => {
+            const sel = document.getElementById('attractSelect'); if (sel && +sel.value !== attract.delay) sel.value = String(attract.delay);
+            if (!attract.delay || attract.on || !map || document.body.classList.contains('stage-open') || isSpinning || document.getElementById('start-overlay').style.display !== 'none' && document.getElementById('start-overlay').offsetParent) return;
+            if (Date.now() - attract.last > attract.delay * 60000) startAttract();
+        }, 5000);
+        function startAttract() {
+            if (!map || attract.on) return;
+            attract.on = true; attract.step = 0; attract.startedAt = Date.now();
+            releaseTracking(true);
+            if (focusedFlightNum !== null) clearFlightSelection();
+            if (typeof santa !== 'undefined' && santa.follow) toggleSantaFollow(false);
+            const c = map.getCenter();
+            attract.saved = { center: [c.lng, c.lat], zoom: map.getZoom(), bearing: map.getBearing(), pitch: map.getPitch() };
+            document.body.classList.add('attract');
+            attractStep();
+            attract.timer = setInterval(attractStep, 11000);
+            setTimeout(() => { attract.last = Date.now(); }, 0);
+        }
+        function stopAttract() {
+            if (!attract.on) return;
+            attract.on = false; clearInterval(attract.timer);
+            document.body.classList.remove('attract');
+            if (map && attract.saved) { map.stop(); map.flyTo({ ...attract.saved, duration: 1400 }); }
+        }
+        function attractStep() {
+            if (!attract.on || !map) return;
+            const da = currentLang === 'da';
+            const flights = Object.values(activePlaneMarkers).filter(p => !p.landed);
+            const kinds = ['world'];
+            if (flights.length) kinds.push('flight', 'flight');
+            kinds.push('airport');
+            if (season === 'xmas') kinds.push('santa');
+            const kind = attract.step % 4 === 0 ? 'world' : kinds[1 + Math.floor(Math.random() * (kinds.length - 1))] || 'airport';
+            attract.step++;
+            let title = '', sub = '';
+            if (kind === 'world') {
+                const lon = (map.getCenter().lng + 100) % 360 - 180;
+                map.flyTo({ center: [lon, isGlobeMode ? 25 : 30], zoom: isGlobeMode ? 1.9 : 2.2, pitch: 0, bearing: 0, duration: 7000, curve: 1.3, essential: true });
+                title = da ? 'Verden lige nu' : 'The world right now';
+                sub = da ? `${flights.length} fly i luften · ${drawnNumbers.length} af 90 tal trukket` : `${flights.length} aircraft airborne · ${drawnNumbers.length} of 90 numbers drawn`;
+            } else if (kind === 'flight') {
+                const p = flights[Math.floor(Math.random() * flights.length)];
+                map.flyTo({ center: [p.lon, p.lat], zoom: 5.2, pitch: 50, bearing: (p.headingDeg || 0) - 20, duration: 6500, curve: 1.5, essential: true });
+                const alt = Math.round(altAtNm(p, p.flownDistNm) / 100);
+                title = `${p.flightNo} · ${p.depAirport.code} → ${p.destAirport.code}`;
+                sub = `${p.depAirport.name} → ${p.destAirport.name} · FL${String(alt).padStart(3, '0')} · ${p.spd} kts`;
+            } else if (kind === 'santa') {
+                const st = santaState();
+                map.flyTo({ center: [st.lon, st.lat], zoom: 4.2, pitch: 40, bearing: 0, duration: 6500, essential: true });
+                title = '🎅 ' + (da ? 'Julemanden' : 'Santa'); sub = document.getElementById('spWhere').textContent;
+            } else {
+                const ap = AIRPORT_DB[Math.floor(Math.random() * AIRPORT_DB.length)];
+                map.flyTo({ center: [ap.lon, ap.lat], zoom: 6.2, pitch: 45, bearing: Math.random() * 60 - 30, duration: 6500, curve: 1.4, essential: true });
+                title = `${ap.code} · ${ap.name}`;
+                sub = da ? 'Lufthavn i Bingo Watch-netværket' : 'Airport in the Bingo Watch network';
+            }
+            // after arriving, drift slowly
+            setTimeout(() => { if (attract.on && map) map.easeTo({ bearing: map.getBearing() + 18, duration: 4200, easing: t => t }); }, 6800);
+            const last = drawnNumbers[drawnNumbers.length - 1];
+            document.getElementById('acNum').textContent = last || '--';
+            document.getElementById('acTitle').textContent = title;
+            document.getElementById('acSub').textContent = sub;
+            const cap = document.getElementById('attract-caption'); cap.classList.remove('swap'); void cap.offsetWidth; cap.classList.add('swap');
+        }
+
+        // =====================================================================
+        // CALLER SCREEN: a separate window for the caller; the OCC stays on the big screen
+        // =====================================================================
+        let callerWin = null;
+        function callerState() {
+            return { drawn: drawnNumbers.slice(), spinning: isSpinning, auto: !!autopilotInterval, round: currentRound, lang: currentLang, stage: document.body.classList.contains('stage-open'),
+                     attract: attract.on, last: drawnNumbers[drawnNumbers.length - 1] || null, lingo: drawnNumbers.length ? lingoFor(drawnNumbers[drawnNumbers.length - 1]) : '',
+                     cards: Object.keys(generatedCards || {}).length, dark: wxIsDark(), season };
+        }
+        setInterval(() => { if (callerWin && callerWin.closed) { callerWin = null; try { localStorage.removeItem('bingoCallerOpen'); } catch (e) {} } }, 2000);
+        setTimeout(() => {   // after a reload of this page: offer to reconnect the caller screen with one click
+            let was = false; try { was = localStorage.getItem('bingoCallerOpen') === '1'; } catch (e) {}
+            const rc = document.getElementById('caller-reconnect');
+            if (was && rc) { rc.querySelector('span').textContent = currentLang === 'da' ? 'Genforbind opråber-skærm' : 'Reconnect caller screen'; rc.classList.add('show'); }
+        }, 1500);
+        function callerMark(n) {           // tap a number on the caller screen = mark it (for physical balls)
+            if (isSpinning || drawnNumbers.includes(n)) return;
+            if (!startTime) { startTime = new Date(); statsInterval = setInterval(updateStats, 1000); }
+            finalize(n);
+        }
+        function callerCheck(id) {
+            const g = generatedCards && generatedCards[id];
+            if (!g) return null;
+            let rows = 0, hit = 0;
+            for (let r = 0; r < 3; r++) { let need = 0, h = 0; for (let c = 0; c < 9; c++) { const v = g[c][r]; if (v) { need++; if (drawnNumbers.includes(v)) h++; } } hit += h; if (h === need) rows++; }
+            return { rows, hit, ok: rows >= currentRound };
+        }
+        function callerShowCheck(id) {
+            const win = document.getElementById('panel-verify');
+            if (win && win.style.display === 'none') toggleWindow('panel-verify');
+            document.getElementById('verify-id').value = id; verifyWin();
+        }
+        function openCallerWindow() {
+            if (callerWin && !callerWin.closed) { callerWin.focus(); return; }
+            callerWin = window.open('', 'bingoCaller', 'width=560,height=860');   // re-uses the window if it is still open
+            if (!callerWin) { showToast(currentLang === 'da' ? 'Pop op-vindue blokeret – tillad pop op-vinduer for at åbne opråber-skærmen' : 'Popup blocked – allow popups to open the caller screen'); return; }
+            const fill = (w) => {
+                w.document.open();
+                w.document.write(CALLER_HTML());
+                w.document.close();
+                // scripts written with document.write are not always executed: insert the logic as a real script element
+                const sc = w.document.createElement('script');
+                sc.textContent = CALLER_JS;
+                w.document.body.appendChild(sc);
+            };
+            try { fill(callerWin); }
+            catch (e) {
+                // Only when the file is opened locally (file://): after a reload the old window belongs to the previous
+                // page and may not be taken over. Close it and open a fresh one (on https it reconnects by itself).
+                try { callerWin.close(); } catch (e2) {}
+                callerWin = window.open('', 'bingoCaller_' + Date.now(), 'width=560,height=860');
+                if (!callerWin) { showToast(currentLang === 'da' ? 'Pop op-vindue blokeret' : 'Popup blocked'); return; }
+                fill(callerWin);
+            }
+            try { localStorage.setItem('bingoCallerOpen', '1'); } catch (e) {}
+            document.getElementById('caller-reconnect').classList.remove('show');
+            showToast(currentLang === 'da' ? 'Opråber-skærm åbnet – flyt den til din egen skærm' : 'Caller screen opened – move it to your own monitor');
+        }
+        function CALLER_HTML() {
+            return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bingo Watch – Caller</title>' +
+            '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">' +
+            '<style>' + CALLER_CSS + '</style></head><body>' +
+            '<div id="lost" hidden></div>' +
+            '<header><span class="brand">✈ BINGO WATCH</span><span id="count"></span></header>' +
+            '<section class="now"><div class="num" id="num">--</div><div class="lingo" id="lingo"></div><div class="recent" id="recent"></div></section>' +
+            '<button id="next" class="next" onclick="act(\'next\')">NEXT</button>' +
+            '<div class="row"><button id="undo" onclick="act(\'undo\')"></button><button id="auto" onclick="act(\'auto\')"></button><button id="banko" class="banko" onclick="act(\'banko\')">BANKO!</button></div>' +
+            '<div class="seg" id="round"><button data-r="1" onclick="act(\'round\',1)"></button><button data-r="2" onclick="act(\'round\',2)"></button><button data-r="3" onclick="act(\'round\',3)"></button></div>' +
+            '<div class="grid" id="grid"></div>' +
+            '<div class="check"><input id="cid" autocomplete="off"><button id="cbtn" onclick="act(\'check\')"></button><button id="cshow" onclick="act(\'show\')"></button></div><div id="cres"></div>' +
+            '<div class="row small"><button id="stage" onclick="act(\'stage\')"></button><button id="attr" onclick="act(\'attract\')"></button></div>' +
+            '</body></html>';
+        }
+        const CALLER_CSS = `
+            :root { --bg:#eef0f3; --card:rgba(255,255,255,0.7); --line:rgba(17,20,26,0.1); --text:#15171a; --muted:#6b7079; --acc:#1e3a6e; --acc2:#24467f; --on:#1e3a6e; --onText:#fff; }
+            body.dark { --bg:#0c0d10; --card:rgba(255,255,255,0.06); --line:rgba(255,255,255,0.1); --text:#f2f3f5; --muted:#9097a1; --acc:#6f93d6; --acc2:#34589a; --on:#6f93d6; --onText:#0c0d10; }
+            body.xmas { --acc:#b3192e; --acc2:#c8253a; --on:#b3192e; --onText:#fff; }
+            * { box-sizing:border-box; } html, body { margin:0; }
+            body { font-family:Inter, system-ui, sans-serif; background:var(--bg); color:var(--text); padding:12px; display:flex; flex-direction:column; gap:8px; min-height:100vh; -webkit-font-smoothing:antialiased; }
+            header { display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:14px; letter-spacing:.03em; }
+            #count { color:var(--muted); font-weight:600; font-variant-numeric:tabular-nums; }
+            .now { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px 12px 12px; text-align:center; }
+            .num { font-size:min(22vw, 18vh, 120px); font-weight:300; line-height:1; letter-spacing:-.05em; color:var(--acc); font-variant-numeric:tabular-nums; }
+            .num.pop { animation:pop .5s cubic-bezier(.2,1.3,.3,1); } @keyframes pop { from { transform:scale(.7); opacity:0; } to { transform:none; opacity:1; } }
+            .lingo { min-height:20px; font-weight:600; color:var(--acc); font-size:14px; margin-top:4px; }
+            .recent { display:flex; gap:6px; justify-content:center; margin-top:8px; min-height:28px; }
+            .recent span { min-width:34px; padding:4px 6px; border:1px solid var(--line); border-radius:7px; font-weight:600; font-variant-numeric:tabular-nums; }
+            button { font-family:inherit; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:7px; font-weight:600; font-size:13px; padding:10px; cursor:pointer; }
+            button:hover { filter:brightness(1.05); } button:disabled { opacity:.5; cursor:default; }
+            .next { font-size:22px; font-weight:700; letter-spacing:.06em; padding:18px; border:none; color:#fff; background:linear-gradient(180deg, var(--acc2), var(--acc)); box-shadow:0 8px 22px rgba(0,0,0,.18); }
+            body.dark .next { color:#fff; }
+            .row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; } .row.small { grid-template-columns:1fr 1fr; }
+            #auto.on { background:var(--on); color:var(--onText); border-color:transparent; }
+            .banko { color:var(--acc); border-color:var(--acc); }
+            .seg { display:grid; grid-template-columns:repeat(3,1fr); gap:3px; padding:3px; border-radius:8px; background:rgba(127,127,127,.12); }
+            .seg button { border:none; background:transparent; padding:7px 4px; font-size:12px; color:var(--muted); }
+            .seg button.on { background:var(--card); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.12); }
+            .grid { display:grid; grid-template-columns:repeat(10, minmax(0,1fr)); gap:4px; }
+            .grid button { padding:0; aspect-ratio:1.65; font-size:13px; font-variant-numeric:tabular-nums; color:var(--muted); background:transparent; }
+            .grid button.on { background:var(--on); color:var(--onText); border-color:transparent; opacity:.75; }
+            .grid button.last { opacity:1; box-shadow:0 0 0 3px rgba(127,127,127,.35); }
+            .check { display:grid; grid-template-columns:1fr auto auto; gap:6px; }
+            .check input { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:7px; background:var(--card); color:var(--text); }
+            #cres { min-height:18px; font-size:13px; font-weight:600; }
+            #cres.ok { color:#30a46c; } #cres.no { color:var(--muted); } #cres.bad { color:#e5484d; }
+            #lost { position:fixed; inset:0; background:rgba(12,13,16,.85); color:#fff; display:flex; align-items:center; justify-content:center; text-align:center; padding:30px; font-weight:600; z-index:9; }
+            #lost[hidden] { display:none; }`;
+        const CALLER_JS = `
+            const M = () => { try { return window.opener && !window.opener.closed && window.opener.callerState ? window.opener : null; } catch (e) { return null; } };
+            const T = { da: { next:'NÆSTE NUMMER', undo:'↶ Fortryd', auto:'Autopilot', round:['1 række','2 rækker','Fuld plade'], check:'Tjek', show:'Vis på storskærm', ph:'Plade-ID',
+                              stage:'Storskærm', attr:'Attract mode', of:'af 90', lost:'Forbindelsen til hovedskærmen er tabt. Tryk på "Genforbind opråber-skærm" på hovedskærmen.',
+                              remove:'Fjern tallet {n} fra spillet?', nf:'Plade {id} findes ikke', okTxt:'Gyldig gevinst – {r}', noTxt:'Ikke nok – {r}', rows:['0 rækker','1 række','2 rækker','fuld plade'], nocards:'Ingen plader genereret' },
+                       en: { next:'NEXT NUMBER', undo:'↶ Undo', auto:'Autopilot', round:['1 row','2 rows','Full card'], check:'Check', show:'Show on big screen', ph:'Card ID',
+                              stage:'Big screen', attr:'Attract mode', of:'of 90', lost:'Lost the connection to the main screen. Press "Reconnect caller screen" on the main screen.',
+                              remove:'Remove number {n} from the game?', nf:'Card {id} not found', okTxt:'Valid win – {r}', noTxt:'Not enough – {r}', rows:['0 rows','1 row','2 rows','full card'], nocards:'No cards generated' } };
+            let sig = '', lastNum = null;
+            const grid = document.getElementById('grid');
+            for (let i = 1; i <= 90; i++) { const b = document.createElement('button'); b.textContent = i; b.id = 'g' + i; b.onclick = () => act('mark', i); grid.appendChild(b); }
+            function act(a, v) {
+                const m = M(); if (!m) return;
+                const st = m.callerState(), t = T[st.lang] || T.en;
+                if (a === 'next') m.drawNumber();
+                if (a === 'undo') m.undoLastNumber();
+                if (a === 'auto') m.toggleAutopilot();
+                if (a === 'banko') m.triggerConfetti();
+                if (a === 'round') m.setRound(v);
+                if (a === 'stage') m.toggleStage();
+                if (a === 'attract') { if (st.attract) m.stopAttract(); else m.startAttract(); }
+                if (a === 'mark') { if (st.drawn.includes(v)) { if (confirm(t.remove.replace('{n}', v))) m.removeNumber(v); } else m.callerMark(v); }
+                if (a === 'check' || a === 'show') {
+                    const id = document.getElementById('cid').value.trim(), out = document.getElementById('cres');
+                    const r = m.callerCheck(id);
+                    if (!r) { out.className = 'bad'; out.textContent = st.cards ? t.nf.replace('{id}', id || '–') : t.nocards; }
+                    else { out.className = r.ok ? 'ok' : 'no'; out.textContent = (r.ok ? t.okTxt : t.noTxt).replace('{r}', t.rows[r.rows]) + ' · ' + r.hit + '/15'; }
+                    if (a === 'show' && r) m.callerShowCheck(id);
+                }
+                if (a !== 'attract') m.noteActivity();
+                setTimeout(render, 30);
+            }
+            document.addEventListener('keydown', e => {
+                if (e.target.tagName === 'INPUT') { if (e.key === 'Enter') act('check'); return; }
+                if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); act('next'); }
+                const k = e.key.toLowerCase();
+                if (k === 'u') act('undo'); if (k === 'a') act('auto'); if (k === 'b') act('banko'); if (k === 'p') act('stage');
+            });
+            function render() {
+                const m = M(), lost = document.getElementById('lost');
+                if (!m) { lost.hidden = false; lost.textContent = T.da.lost + ' / ' + T.en.lost; return; }
+                lost.hidden = true;
+                const s = m.callerState(), t = T[s.lang] || T.en;
+                const key = JSON.stringify(s); if (key === sig) return; sig = key;
+                document.body.classList.toggle('dark', s.dark); document.body.classList.toggle('xmas', s.season === 'xmas');
+                document.getElementById('next').textContent = t.next; document.getElementById('next').disabled = s.spinning || s.drawn.length >= 90;
+                document.getElementById('undo').textContent = t.undo; document.getElementById('undo').disabled = !s.drawn.length;
+                const au = document.getElementById('auto'); au.textContent = t.auto; au.classList.toggle('on', s.auto);
+                document.querySelectorAll('#round button').forEach((b, i) => { b.textContent = t.round[i]; b.classList.toggle('on', s.round === i + 1); });
+                document.getElementById('count').textContent = s.drawn.length + ' ' + t.of;
+                const num = document.getElementById('num');
+                num.textContent = s.spinning ? '…' : (s.last || '--');
+                if (s.last !== lastNum && s.last) { num.classList.remove('pop'); void num.offsetWidth; num.classList.add('pop'); }
+                lastNum = s.last;
+                document.getElementById('lingo').textContent = s.lingo;
+                document.getElementById('recent').innerHTML = s.drawn.slice(-6, -1).reverse().map(n => '<span>' + n + '</span>').join('');
+                for (let i = 1; i <= 90; i++) { const b = document.getElementById('g' + i); b.className = (s.drawn.includes(i) ? 'on' : '') + (i === s.last ? ' last' : ''); }
+                document.getElementById('cid').placeholder = t.ph; document.getElementById('cbtn').textContent = t.check; document.getElementById('cshow').textContent = t.show;
+                document.getElementById('stage').textContent = t.stage + (s.stage ? ' ✓' : ''); document.getElementById('attr').textContent = t.attr + (s.attract ? ' ✓' : '');
+            }
+            render(); setInterval(render, 250);`;
 
         // ---- Smooth scrolling: mouse-wheel notches are eased; trackpads keep native (already smooth) scrolling ----
         (function () {
