@@ -1999,6 +1999,31 @@
         #caller-reconnect button { display: flex; align-items: center; gap: 8px; border: none; background: rgba(var(--accent-rgb), 0.12); color: var(--accent-orange); font-family: inherit; font-weight: 600; font-size: 12.5px; padding: 7px 12px; }
         #caller-reconnect button.x { background: transparent; color: var(--text-muted); padding: 7px 9px; }
         #caller-reconnect .material-icons-outlined { font-size: 17px; width: 18px; overflow: hidden; }
+
+        /* airport hover card */
+        .ap-tip .maplibregl-popup-content { padding: 10px 12px; border-radius: var(--r-md); background: var(--solid-surface); color: var(--text-main);
+            border: 1px solid var(--glass-border); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-shadow); font-family: 'Inter', sans-serif; }
+        .ap-tip .maplibregl-popup-tip { display: none; }
+        .ap-tip-head { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .ap-badge { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: var(--r-xs); background: rgba(var(--accent-rgb), 0.14); color: var(--accent-orange); }
+        .ap-tip-name { font-size: 12.5px; color: var(--text-muted); margin: 1px 0 8px; }
+        .ap-tip-grid { display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; font-size: 12px; }
+        .ap-tip-grid span { color: var(--text-muted); } .ap-tip-grid b { font-variant-numeric: tabular-nums; text-align: right; }
+        .ap-tip-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+        .ap-tip-hint { font-size: 11.5px; font-weight: 600; color: var(--accent-orange); margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--border-light); }
+
+        /* safety net: keep map markers in place even if the MapLibre stylesheet fails to load */
+        .maplibregl-marker { position: absolute; top: 0; left: 0; will-change: transform; }
+        .maplibregl-canvas-container, .maplibregl-map { position: relative; }
+
+        .content-wrapper > .window.push-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(24px) scale(0.98); transition: opacity 0.25s, transform 0.3s; }
+
+        /* round buttons as a compact row inside the flight panel */
+        .fab-container.in-panel { position: static; flex-direction: row; justify-content: center; gap: 8px; margin-top: auto; padding: 2px 0 0; }
+        .fab-container.in-panel + .ff-actions { margin-top: 0; }
+        .fab-container.in-panel .fab-btn { width: 38px; height: 38px; border-radius: var(--r-sm); box-shadow: none; background: transparent; border: 1px solid var(--border-light); }
+        .fab-container.in-panel .fab-btn:hover { background: var(--card-bg); transform: none; }
+        .fab-container.in-panel .material-icons { font-size: 20px; }
     </style>
 </head>
 <body>
@@ -2559,7 +2584,7 @@
         let liveWeatherState = {
             rings: true,
             radar: true,
-            jet: false, barbs: true, cloud: false, cat: false, trop: false,
+            jet: false, barbs: false, cloud: false, cat: false, trop: false,
             icing: false, cyclone: false, volcano: false, sigmet: false,
             sun: false
         };
@@ -2896,7 +2921,7 @@
             // Camera lock is released as soon as the user clicks or drags the map
             map.on('mousedown', () => { releaseTracking(false, true); if (santa.follow) toggleSantaFollow(false); });
             // Klik et tomt sted på kortet: fravælg flyet og fold dets kort i Active Flights sammen igen
-            map.on('click', () => clearFlightSelection());
+            map.on('click', (e) => { if (e.originalEvent && e.originalEvent._airportClick) return; clearFlightSelection(); });
             map.on('touchstart', () => releaseTracking(false, true));
             map.on('dragstart', () => releaseTracking(false, true));
 
@@ -3040,7 +3065,7 @@
             const vis = liveWeatherState.rings ? 'visible' : 'none';
 
             if (!map.getSource('occ-tactical')) {
-                map.addSource('occ-tactical', { type: 'geojson', data: geojson });
+                map.addSource('occ-tactical', { type: 'geojson', data: geojson, promoteId: 'code' });
             } else {
                 map.getSource('occ-tactical').setData(geojson);
             }
@@ -3071,7 +3096,7 @@
                     source: 'occ-tactical',
                     filter: ['==', ['get', 'kind'], 'waypoint'],
                     paint: {
-                        'circle-radius': ['case', ['==', ['get', 'isPrimary'], 1], 5, 3],
+                        'circle-radius': ['case', ['boolean', ['feature-state', 'hover'], false], 7, ['==', ['get', 'isPrimary'], 1], 5, 3],
                         'circle-color': ['case', ['==', ['get', 'isPrimary'], 1], '#2f5aa8', lineCol],
                         'circle-stroke-width': 1,
                         'circle-stroke-color': isDark ? '#101820' : '#ffffff',
@@ -3079,10 +3104,69 @@
                     },
                     layout: { visibility: vis }
                 });
+                // invisible, larger target so the small dots are easy to hover and click
+                map.addLayer({ id: 'layer-occ-airport-hit', type: 'circle', source: 'occ-tactical', filter: ['==', ['get', 'kind'], 'waypoint'],
+                    paint: { 'circle-radius': 11, 'circle-color': '#000', 'circle-opacity': 0 }, layout: { visibility: vis } });
+                bindAirportInteraction();
             } else {
                 map.setPaintProperty('layer-occ-waypoints', 'circle-color', ['case', ['==', ['get', 'isPrimary'], 1], '#2f5aa8', lineCol]);
                 map.setLayoutProperty('layer-occ-waypoints', 'visibility', vis);
+                if (map.getLayer('layer-occ-airport-hit')) map.setLayoutProperty('layer-occ-airport-hit', 'visibility', vis);
             }
+        }
+
+        // ---- Airports: info on hover, click = switch to that airport and show its weather ----
+        let apBound = false, apHoverId = null, apTip = null;
+        function airportInfoHtml(ap) {
+            const da = currentLang === 'da';
+            const dep = Object.values(activePlaneMarkers).filter(p => !p.landed && p.depAirport.code === ap.code).length;
+            const arr = Object.values(activePlaneMarkers).filter(p => !p.landed && p.destAirport.code === ap.code).length;
+            const home = ap.code === currentICAO;
+            const cur = AIRPORT_DB.find(a => a.code === currentICAO);
+            let dist = '';
+            if (cur && !home) dist = `${Math.round(gHav(cur.lat, cur.lon, ap.lat, ap.lon))} NM ${da ? 'fra' : 'from'} ${cur.code} · ${String(Math.round(gBearing(cur.lat, cur.lon, ap.lat, ap.lon))).padStart(3, '0')}°`;
+            const dms = formatDMS(ap.lat, ap.lon);
+            return `<div class="ap-tip-head"><b>${ap.code}</b>${home ? `<span class="ap-badge">${da ? 'Valgt' : 'Selected'}</span>` : ''}</div>
+                <div class="ap-tip-name">${ap.name}</div>
+                <div class="ap-tip-grid"><span>${da ? 'Afgange i luften' : 'Departures airborne'}</span><b>${dep}</b><span>${da ? 'På vej hertil' : 'Inbound'}</span><b>${arr}</b></div>
+                ${dist ? `<div class="ap-tip-sub">${dist}</div>` : ''}<div class="ap-tip-sub">${dms}</div>
+                <div class="ap-tip-hint">${home ? (da ? 'Vejret vises i vejrvinduet' : 'Weather is shown in the weather window') : (da ? 'Klik for at skifte hertil og se vejret' : 'Click to switch here and see the weather')}</div>`;
+        }
+        function bindAirportInteraction() {
+            if (apBound || !map) return;
+            apBound = true;
+            const clearHover = () => {
+                if (apHoverId !== null && map.getSource('occ-tactical')) map.setFeatureState({ source: 'occ-tactical', id: apHoverId }, { hover: false });
+                apHoverId = null; if (apTip) { apTip.remove(); apTip = null; }
+                map.getCanvas().style.cursor = '';
+            };
+            map.on('mousemove', 'layer-occ-airport-hit', (e) => {
+                const f = e.features && e.features[0]; if (!f) return;
+                const code = f.properties.code, ap = AIRPORT_DB.find(a => a.code === code); if (!ap) return;
+                map.getCanvas().style.cursor = 'pointer';
+                if (apHoverId !== code) {
+                    if (apHoverId !== null) map.setFeatureState({ source: 'occ-tactical', id: apHoverId }, { hover: false });
+                    apHoverId = code; map.setFeatureState({ source: 'occ-tactical', id: code }, { hover: true });
+                    if (apTip) apTip.remove();
+                    apTip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'ap-tip', offset: 12, maxWidth: '260px' })
+                        .setLngLat([ap.lon, ap.lat]).setHTML(airportInfoHtml(ap)).addTo(map);
+                }
+            });
+            map.on('mouseleave', 'layer-occ-airport-hit', clearHover);
+            map.on('click', 'layer-occ-airport-hit', (e) => {
+                const f = e.features && e.features[0]; if (!f) return;
+                if (e.originalEvent) e.originalEvent._airportClick = true;   // the general map click (deselect flight) must ignore this click
+                clearHover();
+                selectAirport(f.properties.code);
+            });
+        }
+        function selectAirport(code) {
+            const ap = AIRPORT_DB.find(a => a.code === code); if (!ap) return;
+            if (isMobileUI()) mobileSetTab('panel-metar');
+            else { const w = document.getElementById('panel-metar'); if (w && w.style.display === 'none') toggleWindow('panel-metar'); }
+            document.getElementById('wxSearchInput').value = code;
+            smartWeatherSearch();
+            showToast((currentLang === 'da' ? 'Skiftet til ' : 'Switched to ') + `${ap.code} – ${ap.name}`);
         }
 
         // Hjælpefunktioner til Web Mercator Y <-> Breddegrad, så ruten og flyet følger 100% samme rette linje på kortet
@@ -3213,8 +3297,28 @@
             wp.push(faf);
             wp.push(gDest(dest.lat, dest.lon, rwyArr + 180, 3.5));
             wp.push([dest.lat, dest.lon]);
-            const planned = densifyGC(wp, 30);                    // angular "flight plan" line
-            const track = chaikin(planned, 3);                    // smooth flown track
+            const planned = densifyGC(wp, 30);                    // the flight plan (drawn as the dashed line)
+            // The aircraft flies CLOSE to the plan, not exactly on it: corners are cut (direct-to's), and it drifts a few NM
+            // to either side (wind, ATC). Back on the plan for departure and for the approach.
+            const base = chaikin(densifyGC(wp, 10), 3);
+            const bc = [0];
+            for (let i = 1; i < base.length; i++) bc.push(bc[i - 1] + gHav(base[i - 1][1], base[i - 1][0], base[i][1], base[i][0]));
+            const L = bc[bc.length - 1];
+            const amp = D < 120 ? 1.5 : Math.min(3 + D * 0.0025, 12);       // max sideways drift in NM
+            const waves = [[0.55, 160 + rnd(0, 120)], [0.35, 420 + rnd(0, 300)], [0.25, 900 + rnd(0, 600)]].map(([a, l]) => [a, l, rnd(0, Math.PI * 2)]);
+            const depTaper = Math.min(30, L * 0.15), arrTaper = Math.min(45, L * 0.2);
+            const smooth = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+            const track = base.map((pt, i) => {
+                const d = bc[i];
+                const taper = smooth(d / depTaper) * smooth((L - d) / arrTaper);
+                if (taper <= 0.001) return pt;
+                const off = amp * taper * waves.reduce((sum, [a, l, ph]) => sum + a * Math.sin(2 * Math.PI * d / l + ph), 0);
+                const a = base[Math.max(0, i - 1)], b = base[Math.min(base.length - 1, i + 1)];
+                const brg = gBearing(a[1], a[0], b[1], b[0]);
+                const q = gDest(pt[1], pt[0], brg + 90, off);
+                return [q[1], q[0]];
+            });
+            unwrapLons(track);
             const cum = [0];
             for (let i = 1; i < track.length; i++) cum.push(cum[i - 1] + gHav(track[i - 1][1], track[i - 1][0], track[i][1], track[i][0]));
             const direct = densifyGC([[dep.lat, dep.lon], [dest.lat, dest.lon]], 60);
@@ -3257,12 +3361,9 @@
             const feats = [];
             Object.values(activePlaneMarkers).forEach(p => {
                 if (!p.route) return;
-                if (p.num === focusedFlightNum) {
-                    feats.push({ type: 'Feature', properties: { kind: 'route', num: p.num }, geometry: { type: 'LineString', coordinates: p.route.planned } });
-                    feats.push({ type: 'Feature', properties: { kind: 'direct', num: p.num }, geometry: { type: 'LineString', coordinates: p.route.direct } });
-                } else if (!p.landed) {
-                    feats.push({ type: 'Feature', properties: { kind: 'planned', num: p.num }, geometry: { type: 'LineString', coordinates: p.route.track } });
-                }
+                // the dashed line is always the flight plan – the same whether or not the flight is selected
+                if (!p.landed || p.num === focusedFlightNum)
+                    feats.push({ type: 'Feature', properties: { kind: 'planned', num: p.num }, geometry: { type: 'LineString', coordinates: p.route.planned } });
             });
             const gj = { type: 'FeatureCollection', features: feats };
             if (!map.getSource('occ-routes-static')) map.addSource('occ-routes-static', { type: 'geojson', data: gj, tolerance: 0.3 });
@@ -3298,23 +3399,26 @@
             const fnum = focusedFlightNum === null ? -1 : focusedFlightNum;
             if (!map.getLayer('layer-flight-planned')) map.addLayer({ id: 'layer-flight-planned', type: 'line', source: 'occ-routes-static',
                 filter: ['==', ['get', 'kind'], 'planned'],
-                paint: { 'line-color': isDark ? '#64748b' : '#475569', 'line-width': 1.1, 'line-dasharray': [3, 3], 'line-opacity': 0.5 } });
-            if (!map.getLayer('layer-flight-focus-direct')) map.addLayer({ id: 'layer-flight-focus-direct', type: 'line', source: 'occ-routes-static',
-                filter: ['==', ['get', 'kind'], 'direct'],
-                paint: { 'line-color': isDark ? '#94a3b8' : '#64748b', 'line-width': 1.4, 'line-dasharray': [4, 3], 'line-opacity': 0.75 } });
-            if (!map.getLayer('layer-flight-focus-planned')) map.addLayer({ id: 'layer-flight-focus-planned', type: 'line', source: 'occ-routes-static',
-                filter: ['==', ['get', 'kind'], 'route'], layout: { 'line-join': 'miter' },
-                paint: { 'line-color': isDark ? '#cbd5e1' : '#1e2f55', 'line-width': 1.4, 'line-opacity': 0.9 } });
+                layout: { 'line-join': 'round' },
+                paint: { 'line-color': plannedColorExpr(isDark, fnum), 'line-width': ['case', ['==', ['get', 'num'], fnum], 1.8, 1.1],
+                         'line-dasharray': [3, 3], 'line-opacity': ['case', ['==', ['get', 'num'], fnum], 0.9, 0.5] } });
             if (!map.getLayer('layer-flight-flown')) map.addLayer({ id: 'layer-flight-flown', type: 'line', source: 'occ-flight-routes',
                 filter: ['==', ['get', 'kind'], 'track'], layout: { 'line-cap': 'round', 'line-join': 'round' },
                 paint: { 'line-color': altColorExpr(),
                          'line-width': ['case', ['==', ['get', 'num'], fnum], 5, 1.7],
                          'line-opacity': ['case', ['==', ['get', 'num'], fnum], 0.95, 0.8] } });
         }
+        function plannedColorExpr(isDark, fnum) { return ['case', ['==', ['get', 'num'], fnum], isDark ? '#cbd5e1' : '#1e2f55', isDark ? '#64748b' : '#475569']; }
         function setFocusRouteFilter() {
             if (!map || !map.style || !map.style._loaded) return;
             updateFlightRoutesLayer(true);
             const fnum = focusedFlightNum === null ? -1 : focusedFlightNum;
+            if (map.getLayer('layer-flight-planned')) {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                map.setPaintProperty('layer-flight-planned', 'line-color', plannedColorExpr(isDark, fnum));
+                map.setPaintProperty('layer-flight-planned', 'line-width', ['case', ['==', ['get', 'num'], fnum], 1.8, 1.1]);
+                map.setPaintProperty('layer-flight-planned', 'line-opacity', ['case', ['==', ['get', 'num'], fnum], 0.9, 0.5]);
+            }
             if (map.getLayer('layer-flight-flown')) {
                 map.setPaintProperty('layer-flight-flown', 'line-width', ['case', ['==', ['get', 'num'], fnum], 5, 1.7]);
                 map.setPaintProperty('layer-flight-flown', 'line-opacity', ['case', ['==', ['get', 'num'], fnum], 0.95, 0.8]);
@@ -4050,7 +4154,7 @@
             } catch (e) { console.warn('Weather layer failed: ' + id, e); }
         }
         function bringOccToTop() {
-            ['layer-occ-rings', 'layer-occ-waypoints', 'layer-flight-planned', 'layer-flight-focus-direct', 'layer-flight-focus-planned', 'layer-flight-flown'].forEach(id => { if (map.getLayer(id)) map.moveLayer(id); });
+            ['layer-occ-rings', 'layer-occ-waypoints', 'layer-occ-airport-hit', 'layer-flight-planned', 'layer-flight-focus-direct', 'layer-flight-focus-planned', 'layer-flight-flown'].forEach(id => { if (map.getLayer(id)) map.moveLayer(id); });
         }
         function rebuildWxLayers(force) {
             if (!map) return;
@@ -4230,6 +4334,7 @@
                 if (map && map.getLayer('layer-occ-rings')) {
                     map.setLayoutProperty('layer-occ-rings', 'visibility', isVis);
                     map.setLayoutProperty('layer-occ-waypoints', 'visibility', isVis);
+                    if (map.getLayer('layer-occ-airport-hit')) map.setLayoutProperty('layer-occ-airport-hit', 'visibility', isVis);
                 }
                 document.getElementById('btn-occ-rings').classList.toggle('active', liveWeatherState.rings);
                 showToast(liveWeatherState.rings ? (da ? 'OCC rækkeviddecirkler TIL' : 'OCC Range Rings & Waypoints ON') : (da ? 'OCC rækkeviddecirkler FRA' : 'OCC Range Rings OFF'));
@@ -4263,18 +4368,19 @@
         // (right edge keeps clear of the map toolbar + round buttons, bottom keeps clear of the HUD).
         const isMobileUI = () => window.matchMedia('(max-width: 768px)').matches;
         function ensureInitialPositions() {
-            const G = 12;
+            const G = 10;                          // same 10px grid that dragging and resizing snap to
             const cw = document.querySelector('.content-wrapper');
             const W = cw ? cw.clientWidth : window.innerWidth, H = cw ? cw.clientHeight : window.innerHeight;
             const RIGHT = 66;                      // toolbar (10 + 44) + gap
             const BOTTOM = 76;                     // HUD strip at the bottom centre
-            const px = v => Math.round(v) + 'px';
+            const snap = v => Math.round(v / 10) * 10;
+            const px = v => snap(v) + 'px';
             const place = {};
             const logW = 300, deckW = 340;
-            const logH = Math.max(300, Math.round((H - 2 * G) * 0.5));
+            const deckH = Math.min(510, H - G - BOTTOM);
+            const logH = deckH;                    // Active Flights starts as tall as the Flight Deck next to it
             place['panel-log'] = { left: G, top: G, w: logW, h: logH, show: true };
             const deckL = G + logW + G;
-            const deckH = Math.min(510, H - G - BOTTOM);
             place['panel-control'] = { left: deckL, top: G, w: deckW, h: deckH, show: true };
             const rightRoom = W - RIGHT - (deckL + deckW + G);      // free width to the right of the deck
             if (rightRoom >= 340) {
@@ -4305,8 +4411,9 @@
                 if (mobile) { el.style.cssText = ''; el.style.display = 'none'; }
                 else {
                     el.style.top = px(pl.top); el.style.width = px(pl.w); el.style.height = px(pl.h);
-                    if (pl.right !== undefined) { el.style.right = px(pl.right); el.style.left = 'auto'; }
-                    else { el.style.left = px(pl.left); el.style.right = 'auto'; }
+                    // right-hand windows get a real left position on the grid (snapped down, so they keep clear of the toolbar)
+                    const left = pl.right !== undefined ? Math.floor((W - pl.right - snap(pl.w)) / 10) * 10 : snap(pl.left);
+                    el.style.left = left + 'px'; el.style.right = 'auto';
                     el.style.display = pl.show ? 'flex' : 'none';
                 }
                 if (btn) btn.classList.toggle('active', !mobile && pl.show);
@@ -4320,8 +4427,8 @@
             document.querySelectorAll('.content-wrapper > .window').forEach(w => {
                 if (w.style.display === 'none') return;
                 const r = w.getBoundingClientRect(), c = cw.getBoundingClientRect();
-                if (r.right > c.right - 10) { w.style.left = Math.max(10, c.width - r.width - 66) + 'px'; w.style.right = 'auto'; }
-                if (r.bottom > c.bottom - 10) w.style.top = Math.max(10, c.height - r.height - 10) + 'px';
+                if (r.right > c.right - 10) { w.style.left = Math.max(10, Math.floor((c.width - r.width - 66) / 10) * 10) + 'px'; w.style.right = 'auto'; }
+                if (r.bottom > c.bottom - 10) w.style.top = Math.max(10, Math.floor((c.height - r.height - 10) / 10) * 10) + 'px';
             });
         });
 
@@ -4830,8 +4937,8 @@
 
             if (!metarLoaded) {
                 rawEl.innerText = ap
-                    ? `No METAR available for ${icao} (station may not issue METARs, or the weather service/proxies are unreachable).`
-                    : `No METAR available for ${icao} (unknown airport and no live source reachable).`;
+                    ? (currentLang === 'da' ? `Ingen METAR for ${icao} (stationen udsender måske ikke METAR, eller vejrtjenesten kan ikke nås).` : `No METAR available for ${icao} (station may not issue METARs, or the weather service/proxies are unreachable).`)
+                    : (currentLang === 'da' ? `Ingen METAR for ${icao} (ukendt lufthavn, og ingen live-kilde kan nås).` : `No METAR available for ${icao} (unknown airport and no live source reachable).`);
                 ['wx-wind', 'wx-temp', 'wx-vis', 'wx-qnh'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = '--'; });
             }
         }
@@ -5535,8 +5642,9 @@
         // Åbner Active Flights, rydder evt. søgefilter, vælger flyet og scroller til det
         function focusFlightInLog(num) {
             if (focusedFlightNum === num) { clearFlightSelection(); return; }
+            // the Active Flights window is NOT opened if it is closed – the flight panel shows the details
             const win = document.getElementById('panel-log');
-            if (win && win.style.display === 'none') toggleWindow('panel-log');
+            const logOpen = !!win && win.style.display !== 'none' && !isMobileUI();
             const row = document.getElementById('log-entry-' + num);
             if (row && row.style.display === 'none') {
                 const search = document.querySelector('#panel-log .log-search-input');
@@ -5544,7 +5652,7 @@
                 filterLog('');
             }
             selectFlightFromLog(num);
-            if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (row && logOpen) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         // Fravælg: fold kortet sammen, luk detaljepanelet, slip kameraet og zoom ud til standardvisningen
@@ -5623,6 +5731,7 @@
             if (!p) return;
             focusedFlightNum = num;
             const panel = document.getElementById('flight-focus');
+            dockFabsInPanel(false);
             const alts = nearestAlternates(p);
             const etaMs = p.stdMs + p.durMin * 60000;
             const chip = code => `<span class="ff-chip"><span class="ff-dot"></span>${code}</span>`;
@@ -5661,6 +5770,7 @@
                     <button class="ff-btn ff-primary" data-ff="followBtn" onclick="toggleFollowFocused()">${L('Følg fly', 'Follow aircraft')}</button>
                 </div>`;
             document.body.classList.add('flight-focus-open');
+            dockFabsInPanel(true);
             pushWindowsForFocus(true);
             panel.classList.add('open');
             document.getElementById('flight-profile').classList.add('open');
@@ -5671,6 +5781,7 @@
         function closeFlightFocus() {
             focusedFlightNum = null;
             if (document.body.classList.contains('flight-focus-open')) pushWindowsForFocus(false);
+            dockFabsInPanel(false);
             document.body.classList.remove('flight-focus-open');
             const panel = document.getElementById('flight-focus'), prof = document.getElementById('flight-profile');
             if (panel) panel.classList.remove('open');
@@ -5687,25 +5798,55 @@
             const cw = document.querySelector('.content-wrapper');
             const wins = [...document.querySelectorAll('.content-wrapper > .window')];
             if (!open) {
-                wins.forEach(w => { if (w.dataset.pushed) { const o = JSON.parse(w.dataset.pushed); w.style.left = o.left; w.style.top = o.top; w.style.height = o.height; delete w.dataset.pushed; } });
+                wins.forEach(w => {
+                    if (!w.dataset.pushed) return;
+                    const o = JSON.parse(w.dataset.pushed);
+                    w.style.left = o.left; w.style.top = o.top; w.style.height = o.height; w.style.width = o.width;
+                    w.classList.remove('push-hidden');
+                    delete w.dataset.pushed;
+                });
                 return;
             }
             requestAnimationFrame(() => {
                 const cr = cw.getBoundingClientRect();
-                const maxR = (window.innerWidth - cr.left - 322) - 12, maxB = cr.height - 196;    // final size (the width is still animating)
-                wins.forEach(w => {
-                    if (w.style.display === 'none' || w.dataset.pushed) return;   // already moved for an open panel
+                // windows must clear the flight panel AND the toolbar / round buttons that slide in next to it, and the profile chart
+                const railW = document.querySelector('.ops-right-toolbar').offsetWidth || 44;
+                const maxR = (window.innerWidth - cr.left) - (322 + railW + 10), maxB = cr.height - 196;    // final size (the width is still animating)
+                const MIN_W = 300, MIN_H = 180, floor10 = v => Math.floor(v / 10) * 10;
+                const vis = wins.filter(w => w.style.display !== 'none' && !w.dataset.pushed);
+                const fits = w => w.offsetLeft + w.offsetWidth <= maxR && w.offsetTop + w.offsetHeight <= maxB;
+                // windows that already fit stay exactly where they are; the others are placed around them
+                const placed = vis.filter(fits).map(w => ({ l: w.offsetLeft, t: w.offsetTop, r: w.offsetLeft + w.offsetWidth, b: w.offsetTop + w.offsetHeight }));
+                const hits = (r) => placed.some(p => r.l < p.r && p.l < r.r && r.t < p.b && p.t < r.b);
+                vis.filter(w => !fits(w)).sort((a, b) => a.offsetLeft - b.offsetLeft).forEach(w => {
                     const x = w.offsetLeft, y = w.offsetTop, ww = w.offsetWidth, hh = w.offsetHeight;
-                    let nx = x, ny = y, nh = hh;
-                    if (w.style.left !== 'auto' && x + ww > maxR) nx = Math.max(12, maxR - ww);
-                    if (y + hh > maxB) { ny = Math.max(12, maxB - hh); if (ny + hh > maxB) nh = Math.max(160, maxB - ny); }
-                    if (nx !== x || ny !== y || nh !== hh) {
-                        w.dataset.pushed = JSON.stringify({ left: w.style.left, top: w.style.top, height: w.style.height });
-                        if (nx !== x) w.style.left = nx + 'px';
-                        w.style.top = ny + 'px'; w.style.height = nh + 'px';
-                    }
+                    const xs = x + ww <= maxR ? [[x, ww]] : [[floor10(maxR - ww), ww], [x, Math.max(MIN_W, floor10(maxR - x))], [floor10(maxR - MIN_W), MIN_W]];
+                    const ys = y + hh <= maxB ? [[y, hh]] : [[floor10(maxB - hh), hh], [y, Math.max(MIN_H, floor10(maxB - y))], [floor10(maxB - MIN_H), MIN_H]];
+                    w.dataset.pushed = JSON.stringify({ left: w.style.left, top: w.style.top, height: w.style.height, width: w.style.width });
+                    let best = null;
+                    for (const [cx, cw] of xs) { for (const [cy, ch] of ys) {
+                        const r = { l: cx, t: cy, r: cx + cw, b: cy + ch };
+                        if (cx >= 10 && cy >= 10 && cw >= MIN_W && ch >= MIN_H && r.r <= maxR + 1 && r.b <= maxB + 1 && !hits(r)) { best = { x: cx, y: cy, w: cw, h: ch, r }; break; }
+                    } if (best) break; }
+                    if (!best) { w.classList.add('push-hidden'); return; }   // no room without covering something: tuck it away until the panel closes
+                    w.style.left = best.x + 'px'; w.style.top = best.y + 'px'; w.style.width = best.w + 'px'; w.style.height = best.h + 'px';
+                    placed.push(best.r);
                 });
             });
+        }
+        // the round buttons (fullscreen, sound, undo, autopilot) sit in the flight panel while it is open
+        let fabHome = null;
+        function dockFabsInPanel(on) {
+            const fab = document.querySelector('.fab-container'); if (!fab || isMobileUI()) return;
+            if (!fabHome) fabHome = { parent: fab.parentNode, next: fab.nextSibling };
+            if (on) {
+                const actions = document.querySelector('#flight-focus .ff-actions');
+                if (actions && fab.parentNode !== actions.parentNode) actions.parentNode.insertBefore(fab, actions);
+                fab.classList.add('in-panel');
+            } else if (fab.classList.contains('in-panel')) {
+                fabHome.parent.insertBefore(fab, fabHome.next);
+                fab.classList.remove('in-panel');
+            }
         }
         function toggleFollowFocused() {
             const p = activePlaneMarkers[focusedFlightNum];
