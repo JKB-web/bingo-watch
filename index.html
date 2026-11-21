@@ -936,7 +936,7 @@
         #remainCount.hud-val { color: var(--accent-orange) !important; }
         .hud-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.8px; margin-top: 3px; }
 
-        @media (max-width: 768px) {
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) {
             .content-wrapper { left: 0 !important; width: 100% !important; }
             .sidebar-dock { width: 0; }
             body.sidebar-is-open .sidebar-dock { width: 220px; }
@@ -1427,10 +1427,10 @@
 
         /* ---- welcome card: no scrollbar on desktop (JS scales it to fit) ---- */
         .briefing-card { transform-origin: center center; }
-        @media (min-width: 900px) {
+        @media (min-width: 900px) and (min-height: 521px) {
             .briefing-card { max-height: none; overflow: hidden; }
         }
-        @media (max-width: 899px) {
+        @media (max-width: 899px), (max-height: 520px) {
             .briefing-card { max-height: calc(100vh - 24px); overflow-y: auto; }
         }
         .verify-input-group > input { min-width: 0; }
@@ -1634,7 +1634,7 @@
 
         /* ---------------- SIMPLE MOBILE VERSION ---------------- */
         #m-nav, #m-more { display: none; }
-        @media (max-width: 768px) {
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) {
             :root { --header-height: 50px; --m-nav-h: 62px; }
             /* header: only the essentials */
             .utc-clock, .new-game-btn, header .header-icon-btn:last-child, .progress-bar-container { display: none; }
@@ -1707,7 +1707,7 @@
         body.flight-focus-open .content-wrapper { width: calc(100% - var(--sidebar-width-closed) - 322px); }
         body.flight-focus-open.sidebar-is-open .content-wrapper { width: calc(100% - var(--sidebar-width-open) - 322px); }
         body.pushing .content-wrapper > .window { transition: left 0.3s cubic-bezier(0.2, 0.9, 0.3, 1), top 0.3s cubic-bezier(0.2, 0.9, 0.3, 1), height 0.3s cubic-bezier(0.2, 0.9, 0.3, 1), right 0.3s; }
-        .content-wrapper { transition: left 250ms ease, width 300ms cubic-bezier(0.2, 0.9, 0.3, 1); }
+        .content-wrapper { transition: left 250ms ease; }
 
         /* altitude legend in the profile chart */
         .pf-legend { position: absolute; top: 2px; right: 6px; display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--text-muted); font-variant-numeric: tabular-nums;
@@ -1879,7 +1879,7 @@
         body.xmas .sg.on { background: rgba(255,107,125,0.3); }
         body.xmas .sg.last { background: #c8253a; box-shadow: 0 0 0 3px rgba(255,255,255,0.35), 0 0 30px rgba(255,90,110,0.7); }
         body.xmas .stage-number { text-shadow: 0 0 60px rgba(255,120,140,0.5); }
-        @media (max-width: 768px) {
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) {
             #santa-pill { bottom: calc(var(--m-nav-h) + 72px); max-width: calc(100% - 16px); }
             .sp-text { white-space: normal; }
             body.m-sheet-open #santa-pill { opacity: 0; pointer-events: none; }
@@ -1990,7 +1990,7 @@
         .ac-main b { display: block; font-size: 18px; font-weight: 600; color: var(--text-main); }
         .ac-main > div span { display: block; font-size: 13px; color: var(--text-muted); }
         .attract-now { color: var(--text-main) !important; height: 30px; }
-        @media (max-width: 768px) { #season-pill { bottom: calc(var(--m-nav-h) + 72px); max-width: calc(100% - 16px); } body.m-sheet-open #season-pill { opacity: 0; } #season-menu { right: 8px; } #partyBanner { display: none !important; } }
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) { #season-pill { bottom: calc(var(--m-nav-h) + 72px); max-width: calc(100% - 16px); } body.m-sheet-open #season-pill { opacity: 0; } #season-menu { right: 8px; } #partyBanner { display: none !important; } }
         @media (prefers-reduced-motion: reduce) { .egg-marker, .ghost-marker, body.season-on header::after { animation: none; } }
 
         #caller-reconnect { position: fixed; top: calc(var(--header-height) + 10px); left: 50%; transform: translateX(-50%); z-index: 3400; display: none; gap: 4px; padding: 4px;
@@ -2065,7 +2065,7 @@
         .manual-foot button { border: 1px solid var(--border-light); background: transparent; color: var(--text-main); font: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 12px; max-width: 48%;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .manual-foot button:disabled { visibility: hidden; }
-        @media (max-width: 768px) {
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) {
             #manual { padding: 0; }
             .manual-card { height: 100%; border-radius: 0; }
             .manual-main { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
@@ -2073,6 +2073,96 @@
             .mt-item { width: auto; white-space: nowrap; flex: none; }
             #manualBody { padding: 14px 16px 8px; }
             #manualSearch { width: 40vw; }
+        }
+
+        /* =====================================================================
+           SIMPLE MOBILE LAYOUT (v28): clean header, no floating clutter, clear switches
+           ===================================================================== */
+        .m-quick { display: none; }
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) {
+            /* header: logo + BANKO only – everything else lives under "More" */
+            header .header-icon-btn, #partyBanner, #season-menu { display: none !important; }
+            header .toolbar { gap: 6px; }
+            /* map: no floating toolbar or extra pills; stats become a small strip under the header */
+            .ops-right-toolbar, #santa-pill, #season-pill, #track-pill, .coord-pill, #caller-reconnect { display: none !important; }
+            #hud-stats { top: calc(var(--header-height) + 8px); bottom: auto !important; left: 8px; right: auto; transform: none; padding: 5px 12px; gap: 10px; border-radius: var(--r-md); }
+            #hud-stats .hud-item { flex-direction: row; align-items: baseline; gap: 4px; }
+            #hud-stats .hud-val { font-size: 14px; }
+            #hud-stats .hud-label { font-size: 10.5px; margin: 0; }
+            #hud-stats .hud-separator { height: 14px; }
+            body.m-sheet-open #hud-stats, body.flight-focus-open #hud-stats { opacity: 0; pointer-events: none; }
+            #toast { bottom: calc(var(--m-nav-h) + 14px) !important; max-width: calc(100% - 32px); }
+            .carto-osm-badge { font-size: 8.5px; padding: 1px 6px; }
+            body.m-sheet-open .carto-osm-badge, body.flight-focus-open .carto-osm-badge { display: none; }
+            /* Flight Deck sheet: undo + autopilot under the big number */
+            .m-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: none; }
+            .m-quick button { display: flex; align-items: center; justify-content: center; gap: 6px; height: 42px; border: 1px solid var(--border-light); background: var(--card-bg);
+                color: var(--text-main); font: inherit; font-size: 13px; font-weight: 600; position: relative; }
+            .m-quick .material-icons-outlined { font-size: 19px; width: 20px; overflow: hidden; }
+            .m-quick button.on { background: var(--accent-orange); color: #fff; border-color: transparent; }
+            .m-quick .m-state { width: 8px; height: 8px; border-radius: 50%; background: rgba(127,127,127,0.45); margin-left: 2px; }
+            .m-quick button.on .m-state { background: #7CFFB2; box-shadow: 0 0 6px #7CFFB2; }
+            #panel-control .round-bar .stage-open-btn { display: none; }
+            /* "More": a full-height list with sections */
+            #m-more { top: calc(var(--header-height) + 8px); bottom: calc(var(--m-nav-h) + 8px); left: 8px; right: 8px; padding: 0; display: none !important; overflow: hidden; }
+            #m-more.open { display: block !important; }
+            .mm-scroll { height: 100%; overflow-y: auto; padding: 6px 10px 14px; overscroll-behavior: contain; }
+            .mm-sec { margin-top: 10px; }
+            .mm-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); padding: 6px 6px 6px; }
+            .mm-sec > .mm-row:first-of-type { border-top-left-radius: var(--r-md); border-top-right-radius: var(--r-md); }
+            .mm-sec > .mm-row:last-child { border-bottom-left-radius: var(--r-md); border-bottom-right-radius: var(--r-md); border-bottom: 1px solid var(--border-light); }
+            .mm-row { display: flex !important; align-items: center; gap: 12px; width: 100%; min-height: 50px; padding: 8px 12px !important; margin: 0 !important; text-align: left;
+                background: var(--card-bg) !important; border: 1px solid var(--border-light) !important; border-bottom: none !important; border-radius: 0 !important; color: var(--text-main); font: inherit; font-size: 14px !important; font-weight: 500 !important; }
+            .mm-row .material-icons-outlined { font-size: 21px; width: 22px; overflow: hidden; color: var(--text-muted) !important; flex: none; }
+            .mm-label { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+            .mm-label small { font-size: 11.5px; color: var(--text-muted); font-weight: 500; }
+            .mm-chev { font-size: 20px; color: var(--text-muted); }
+            .mm-sw { flex: none; width: 46px; height: 28px; border-radius: 999px; background: rgba(127,127,127,0.35); position: relative; transition: background 0.2s; }
+            .mm-sw i { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: left 0.2s; }
+            .mm-sw.on { background: var(--success-green); }
+            .mm-sw.on i { left: 21px; }
+            .mm-select { flex: none; max-width: 52%; padding: 6px 8px; border-radius: var(--r-sm); border: 1px solid var(--border-light); background: var(--solid-surface); color: var(--text-main); font: inherit; font-size: 13px; }
+            /* the selected flight: bottom sheet, no overlap with stats */
+            #flight-focus { max-height: 62vh; }
+            /* settings sheet: switches clearly visible */
+            .slider { background-color: rgba(127,127,127,0.45); }
+        }
+
+        /* ===== MOBILE LANDSCAPE: compact bars, side-by-side layouts ===== */
+        @media (max-height: 520px) and (max-width: 1100px) and (orientation: landscape) {
+            :root { --header-height: 42px; --m-nav-h: 46px; }
+            #m-nav { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+            #m-nav button { flex-direction: row; gap: 6px; font-size: 12px; }
+            #m-nav button .material-icons-outlined { padding: 2px 10px; font-size: 20px; width: 44px; }
+            header { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+            .content-wrapper > .window { left: calc(8px + env(safe-area-inset-left)) !important; right: calc(8px + env(safe-area-inset-right)) !important; }
+            .window-header { height: 34px; }
+            /* Flight Deck: number on the left, controls on the right */
+            #panel-control .window-content { display: grid !important; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-rows: auto auto auto 1fr auto;
+                column-gap: 14px; row-gap: 8px; }
+            #panel-control .display-container { grid-column: 1; grid-row: 1 / span 5; min-height: 0; }
+            #panel-control .round-bar, #panel-control .recent-strip, #panel-control .lingo-display, #panel-control .m-quick, #panel-control .btn-draw { grid-column: 2; }
+            #panel-control .round-bar { grid-row: 1; } #panel-control .recent-strip { grid-row: 2; justify-content: flex-start; flex-wrap: wrap; }
+            #panel-control .lingo-display { grid-row: 3; min-height: 0; padding: 4px 0; }
+            #panel-control .m-quick { grid-row: 4; align-self: end; } #panel-control .btn-draw { grid-row: 5; padding: 12px; }
+            #currentNumber { font-size: min(34vh, 140px) !important; }
+            /* number grid: fill the width, short rows */
+            #panel-grid .grid-container { gap: 3px; height: 100%; grid-auto-rows: 1fr; }
+            #panel-grid .grid-cell { font-size: 12px; min-height: 0; }
+            /* selected flight: a side panel on the right instead of a bottom sheet */
+            #flight-focus { top: calc(var(--header-height) + 8px) !important; bottom: calc(var(--m-nav-h) + 8px) !important; left: auto !important;
+                right: calc(8px + env(safe-area-inset-right)) !important; width: 330px !important; max-height: none !important; }
+            /* "More" in two columns */
+            .mm-scroll { columns: 2; column-gap: 12px; }
+            .mm-sec { break-inside: avoid; display: inline-block; width: 100%; }
+            /* welcome card fits the short screen */
+            .briefing-card { max-height: calc(100vh - 16px); }
+            .briefing-content { padding-top: 12px; padding-bottom: 12px; }
+            #hud-stats { padding: 4px 10px; }
+            /* big screen: side by side, smaller number */
+            .stage-main { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) !important; align-items: center !important; }
+            .stage-number { font-size: min(30vw, 46vh) !important; }
+            .sg { aspect-ratio: auto; height: calc((100vh - 120px) / 9); font-size: 13px; }
         }
     </style>
 </head>
@@ -2162,6 +2252,10 @@
                 </div>
                 <div class="recent-strip" id="recentStrip"></div>
                 <div class="lingo-display" id="lingoText" data-lang="systemReady">System Online. Ready.</div>
+                <div class="m-quick">
+                    <button type="button" onclick="undoLastNumber(); renderMobileQuick();"><span class="material-icons-outlined">undo</span><span data-lang="mUndo">Undo</span></button>
+                    <button type="button" id="mQuickAuto" onclick="toggleAutopilot(); renderMobileQuick();"><span class="material-icons-outlined">smart_toy</span><span>Autopilot</span><i class="m-state"></i></button>
+                </div>
                 <button type="button" class="btn-draw" onclick="drawNumber(); this.blur();" tabindex="-1" data-lang="drawBtn">TRÆK NUMMER</button>
             </div>
             <div class="window-resizer"></div>
@@ -2570,17 +2664,7 @@
         <button data-tab="flights" onclick="mobileNav('flights')"><span class="material-icons-outlined">flight</span><span data-lang="mFlights">Flights</span></button>
         <button data-tab="more" onclick="mobileNav('more')"><span class="material-icons-outlined">more_horiz</span><span data-lang="mMore">More</span></button>
     </nav>
-    <div id="m-more">
-        <button onclick="mobileSetTab('panel-metar')"><span class="material-icons-outlined">cloud</span><span data-lang="weatherTitle">Weather</span></button>
-        <button onclick="mobileSetTab('panel-prizes')"><span class="material-icons-outlined">redeem</span><span data-lang="prizeTitle">Prizes</span></button>
-        <button onclick="mobileSetTab('panel-verify')"><span class="material-icons-outlined">verified</span><span data-lang="verifyTitle">Verify Win</span></button>
-        <button onclick="mobileSetTab('panel-tie')"><span class="material-icons-outlined">gavel</span><span data-lang="tieTitle">Conflict Resolution</span></button>
-        <button onclick="mobileSetTab('panel-gen')"><span class="material-icons-outlined">grid_view</span><span data-lang="genTitle">Card Generator</span></button>
-        <button onclick="mobileSetTab('map'); openManual();"><span class="material-icons-outlined">menu_book</span><span data-lang="manualLabel">Manual</span></button>
-        <button onclick="mobileSetTab('panel-settings')"><span class="material-icons-outlined">settings</span><span data-lang="settings">Settings</span></button>
-        <button onclick="toggleAutopilot(); mobileSetTab('map')"><span class="material-icons-outlined">hdr_auto</span>Autopilot</button>
-        <button onclick="toggleMute()"><span class="material-icons-outlined">volume_up</span><span data-lang="mMute">Mute</span></button>
-    </div>
+    <div id="m-more"></div>
 
     <aside class="sidebar-dock" id="sidebar">
         <div class="dock-items-container" id="dockContainer"></div>
@@ -2860,7 +2944,7 @@
                 brKeysH: "Cockpit-kontroller (genveje)",
                 brK1: "Træk næste nummer", brK2: "BANKO! (fejring)", brK3: "Autopilot (auto-træk)", brK4: "Lyd til / fra", brK5: "Nulstil system", brK6: "Fuldskærm",
                 brStatus: "Lokal tilstand og live-vejr:", brLaunch: "BEKRÆFT & START",
-                thFlight: "Fly", thDep: "AFG", thDest: "DEST", tieShort: "Konfliktløsning", mMute: "Lyd fra/til", keyBanko: "Banko", keyReset: "Nulstil", ttAutoUpd: "Opdateres automatisk hvert 10. min", ttWxRefresh: "Opdatér vejrdata nu", ttSearch: "Søg", ttPrint: "Print flyvelog", ttRelease: "Slip kameraet", ttFull: "Fuldskærm (F)", ttMute: "Lyd fra/til (M)", ttUndo: "Fortryd", ttAuto: "Autopilot (A)", ttTheme: "Skift lys / mørk tilstand", ttSettings: "Indstillinger", thLight: "OCC Taktisk lys", thNight: "OCC Taktisk nat", thMatrix: "OCC Matrix-radar", roundLabel: "Der spilles om", round1: "1 række", round2: "2 rækker", round3: "Fuld plade", ttStage: "Storskærm (P)", ttStageClose: "Luk (Esc)", xmasMode: "Juletilstand", ttXmas: "Juletilstand (julemand, sne og julelyde)", seasonMode: "Sæson", seasonNone: "Fra", seasonAuto: "Automatisk (efter dato)", seasonXmas: "Jul", seasonNewyear: "Nytår", seasonEaster: "Påske", seasonHalloween: "Halloween", seasonParty: "Fest / fødselsdag", partyText: "Bannertekst", ttSeason: "Sæsontilstand", attractLabel: "Attract mode", attractOff: "Fra", attract2: "Efter 2 min", attract5: "Efter 5 min", attract10: "Efter 10 min", attractNow: "Start nu", ttCaller: "Opråber-skærm (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Storskærm", keyFull: "Fuldskærm", mMap: "Kort", mDraw: "Træk", mGrid: "Tal", mFlights: "Fly", mMore: "Mere", flightLog: "Aktive fly", statsTitle: "Missionsstatistik", statDrawn: "Trukket", statRemain: "Tilbage", statTime: "Flyvetid", statPrev: "Forrige",
+                thFlight: "Fly", thDep: "AFG", thDest: "DEST", tieShort: "Konfliktløsning", mMute: "Lyd fra/til", keyBanko: "Banko", keyReset: "Nulstil", ttAutoUpd: "Opdateres automatisk hvert 10. min", ttWxRefresh: "Opdatér vejrdata nu", ttSearch: "Søg", ttPrint: "Print flyvelog", ttRelease: "Slip kameraet", ttFull: "Fuldskærm (F)", ttMute: "Lyd fra/til (M)", ttUndo: "Fortryd", ttAuto: "Autopilot (A)", ttTheme: "Skift lys / mørk tilstand", ttSettings: "Indstillinger", thLight: "OCC Taktisk lys", thNight: "OCC Taktisk nat", thMatrix: "OCC Matrix-radar", roundLabel: "Der spilles om", round1: "1 række", round2: "2 rækker", round3: "Fuld plade", ttStage: "Storskærm (P)", ttStageClose: "Luk (Esc)", xmasMode: "Juletilstand", ttXmas: "Juletilstand (julemand, sne og julelyde)", seasonMode: "Sæson", seasonNone: "Fra", seasonAuto: "Automatisk (efter dato)", seasonXmas: "Jul", seasonNewyear: "Nytår", seasonEaster: "Påske", seasonHalloween: "Halloween", seasonParty: "Fest / fødselsdag", partyText: "Bannertekst", ttSeason: "Sæsontilstand", attractLabel: "Attract mode", attractOff: "Fra", attract2: "Efter 2 min", attract5: "Efter 5 min", attract10: "Efter 10 min", attractNow: "Start nu", ttCaller: "Opråber-skærm (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Storskærm", keyFull: "Fuldskærm", mUndo: "Fortryd", mMap: "Kort", mDraw: "Træk", mGrid: "Tal", mFlights: "Fly", mMore: "Mere", flightLog: "Aktive fly", statsTitle: "Missionsstatistik", statDrawn: "Trukket", statRemain: "Tilbage", statTime: "Flyvetid", statPrev: "Forrige",
                 newGame: "Nyt spil", bankoMsg: "BANKO!",
                 prizeTitle: "Gavefordeling", prizeSmall: "Små gaver", prizeBig: "Store gaver", btnSet: "SÆT", btnDrawSmall: "TRÆK", btnDrawBig: "TRÆK",
                 lingoDefault: "Waypoint bekræftet",
@@ -2895,7 +2979,7 @@
                 brKeysH: "Cockpit Controls (Shortcuts)",
                 brK1: "Draw Next Number", brK2: "BINGO! (Celebration)", brK3: "Autopilot (Auto-draw)", brK4: "Mute / Unmute", brK5: "Reset System", brK6: "Fullscreen",
                 brStatus: "Local Mode & Live Weather:", brLaunch: "CONFIRM & LAUNCH",
-                thFlight: "Flight", thDep: "DEP", thDest: "DEST", tieShort: "Conflict Res.", mMute: "Mute", keyBanko: "Banko", keyReset: "Reset", ttAutoUpd: "Auto-updates every 10 min", ttWxRefresh: "Refresh weather data now", ttSearch: "Search", ttPrint: "Print flight log", ttRelease: "Release camera", ttFull: "Fullscreen (F)", ttMute: "Mute / unmute (M)", ttUndo: "Undo", ttAuto: "Autopilot (A)", ttTheme: "Switch light / dark mode", ttSettings: "Settings", thLight: "OCC Tactical Light", thNight: "OCC Tactical Night", thMatrix: "OCC Matrix Radar", roundLabel: "Playing for", round1: "1 row", round2: "2 rows", round3: "Full card", ttStage: "Big screen (P)", ttStageClose: "Close (Esc)", xmasMode: "Christmas mode", ttXmas: "Christmas mode (Santa, snow and sleigh bells)", seasonMode: "Season", seasonNone: "Off", seasonAuto: "Automatic (by date)", seasonXmas: "Christmas", seasonNewyear: "New Year", seasonEaster: "Easter", seasonHalloween: "Halloween", seasonParty: "Party / birthday", partyText: "Banner text", ttSeason: "Season mode", attractLabel: "Attract mode", attractOff: "Off", attract2: "After 2 min", attract5: "After 5 min", attract10: "After 10 min", attractNow: "Start now", ttCaller: "Caller screen (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Big screen", keyFull: "Fullscreen", mMap: "Map", mDraw: "Draw", mGrid: "Numbers", mFlights: "Flights", mMore: "More", flightLog: "Active Flights", statsTitle: "Mission Stats", statDrawn: "Drawn", statRemain: "Remain", statTime: "Flight Time", statPrev: "Previous",
+                thFlight: "Flight", thDep: "DEP", thDest: "DEST", tieShort: "Conflict Res.", mMute: "Mute", keyBanko: "Banko", keyReset: "Reset", ttAutoUpd: "Auto-updates every 10 min", ttWxRefresh: "Refresh weather data now", ttSearch: "Search", ttPrint: "Print flight log", ttRelease: "Release camera", ttFull: "Fullscreen (F)", ttMute: "Mute / unmute (M)", ttUndo: "Undo", ttAuto: "Autopilot (A)", ttTheme: "Switch light / dark mode", ttSettings: "Settings", thLight: "OCC Tactical Light", thNight: "OCC Tactical Night", thMatrix: "OCC Matrix Radar", roundLabel: "Playing for", round1: "1 row", round2: "2 rows", round3: "Full card", ttStage: "Big screen (P)", ttStageClose: "Close (Esc)", xmasMode: "Christmas mode", ttXmas: "Christmas mode (Santa, snow and sleigh bells)", seasonMode: "Season", seasonNone: "Off", seasonAuto: "Automatic (by date)", seasonXmas: "Christmas", seasonNewyear: "New Year", seasonEaster: "Easter", seasonHalloween: "Halloween", seasonParty: "Party / birthday", partyText: "Banner text", ttSeason: "Season mode", attractLabel: "Attract mode", attractOff: "Off", attract2: "After 2 min", attract5: "After 5 min", attract10: "After 10 min", attractNow: "Start now", ttCaller: "Caller screen (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Big screen", keyFull: "Fullscreen", mUndo: "Undo", mMap: "Map", mDraw: "Draw", mGrid: "Numbers", mFlights: "Flights", mMore: "More", flightLog: "Active Flights", statsTitle: "Mission Stats", statDrawn: "Drawn", statRemain: "Remain", statTime: "Flight Time", statPrev: "Previous",
                 newGame: "New Game", bankoMsg: "BINGO!",
                 prizeTitle: "Prize Distribution", prizeSmall: "Small Prizes", prizeBig: "Big Prizes", btnSet: "SET", btnDrawSmall: "DRAW", btnDrawBig: "DRAW",
                 lingoDefault: "Waypoint confirmed",
@@ -2978,7 +3062,7 @@
                 container: 'realMap',
                 style: buildOccMapStyle('default'),
                 center: [currentLon, currentLat],
-                zoom: 4.5,
+                zoom: defaultMapZoom(),
                 attributionControl: false
             });
 
@@ -2992,7 +3076,7 @@
                 updateAllPlaneScreenHeadings();
             });
             // Camera lock is released as soon as the user clicks or drags the map
-            map.on('mousedown', () => { releaseTracking(false, true); if (santa.follow) toggleSantaFollow(false); });
+            map.on('mousedown', () => { window._mapGrabAt = Date.now(); releaseTracking(false, true); if (santa.follow) toggleSantaFollow(false); });
             // Klik et tomt sted på kortet: fravælg flyet og fold dets kort i Active Flights sammen igen
             map.on('click', (e) => { if (e.originalEvent && e.originalEvent._airportClick) return; clearFlightSelection(); });
             map.on('touchstart', () => releaseTracking(false, true));
@@ -3473,15 +3557,15 @@
             if (!map.getLayer('layer-flight-planned')) map.addLayer({ id: 'layer-flight-planned', type: 'line', source: 'occ-routes-static',
                 filter: ['==', ['get', 'kind'], 'planned'],
                 layout: { 'line-join': 'round' },
-                paint: { 'line-color': plannedColorExpr(isDark, fnum), 'line-width': ['case', ['==', ['get', 'num'], fnum], 1.8, 1.1],
-                         'line-dasharray': [3, 3], 'line-opacity': ['case', ['==', ['get', 'num'], fnum], 0.9, 0.5] } });
+                paint: { 'line-color': plannedColorExpr(isDark, fnum), 'line-width': ['case', ['==', ['get', 'num'], fnum], 2.2, 1.5],
+                         'line-dasharray': [3, 2.5], 'line-opacity': ['case', ['==', ['get', 'num'], fnum], 0.95, 0.75] } });
             if (!map.getLayer('layer-flight-flown')) map.addLayer({ id: 'layer-flight-flown', type: 'line', source: 'occ-flight-routes',
                 filter: ['==', ['get', 'kind'], 'track'], layout: { 'line-cap': 'round', 'line-join': 'round' },
                 paint: { 'line-color': altColorExpr(),
-                         'line-width': ['case', ['==', ['get', 'num'], fnum], 5, 1.7],
-                         'line-opacity': ['case', ['==', ['get', 'num'], fnum], 0.95, 0.8] } });
+                         'line-width': ['case', ['==', ['get', 'num'], fnum], 5, 2.6],
+                         'line-opacity': ['case', ['==', ['get', 'num'], fnum], 0.95, 0.92] } });
         }
-        function plannedColorExpr(isDark, fnum) { return ['case', ['==', ['get', 'num'], fnum], isDark ? '#cbd5e1' : '#1e2f55', isDark ? '#64748b' : '#475569']; }
+        function plannedColorExpr(isDark, fnum) { return ['case', ['==', ['get', 'num'], fnum], isDark ? '#e2e8f0' : '#14213d', isDark ? '#a8b6cc' : '#2b3f63']; }
         function setFocusRouteFilter() {
             if (!map || !map.style || !map.style._loaded) return;
             updateFlightRoutesLayer(true);
@@ -3489,12 +3573,12 @@
             if (map.getLayer('layer-flight-planned')) {
                 const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
                 map.setPaintProperty('layer-flight-planned', 'line-color', plannedColorExpr(isDark, fnum));
-                map.setPaintProperty('layer-flight-planned', 'line-width', ['case', ['==', ['get', 'num'], fnum], 1.8, 1.1]);
-                map.setPaintProperty('layer-flight-planned', 'line-opacity', ['case', ['==', ['get', 'num'], fnum], 0.9, 0.5]);
+                map.setPaintProperty('layer-flight-planned', 'line-width', ['case', ['==', ['get', 'num'], fnum], 2.2, 1.5]);
+                map.setPaintProperty('layer-flight-planned', 'line-opacity', ['case', ['==', ['get', 'num'], fnum], 0.95, 0.75]);
             }
             if (map.getLayer('layer-flight-flown')) {
-                map.setPaintProperty('layer-flight-flown', 'line-width', ['case', ['==', ['get', 'num'], fnum], 5, 1.7]);
-                map.setPaintProperty('layer-flight-flown', 'line-opacity', ['case', ['==', ['get', 'num'], fnum], 0.95, 0.8]);
+                map.setPaintProperty('layer-flight-flown', 'line-width', ['case', ['==', ['get', 'num'], fnum], 5, 2.6]);
+                map.setPaintProperty('layer-flight-flown', 'line-opacity', ['case', ['==', ['get', 'num'], fnum], 0.95, 0.92]);
             }
         }
 
@@ -4439,7 +4523,8 @@
 
         // Start layout: computed from the real window size, fixed 12px spacing, nothing overlaps
         // (right edge keeps clear of the map toolbar + round buttons, bottom keeps clear of the HUD).
-        const isMobileUI = () => window.matchMedia('(max-width: 768px)').matches;
+        const MOBILE_MQ = '(max-width: 768px), (max-height: 520px) and (max-width: 1100px)';   // phones in portrait AND landscape
+        const isMobileUI = () => window.matchMedia(MOBILE_MQ).matches;
         function ensureInitialPositions() {
             const G = 10;                          // same 10px grid that dragging and resizing snap to
             const cw = document.querySelector('.content-wrapper');
@@ -4512,7 +4597,7 @@
             const all = ['panel-log', 'panel-control', 'panel-metar', 'panel-prizes', 'panel-grid', 'panel-gen', 'panel-verify', 'panel-tie', 'panel-settings'];
             const target = MOBILE_TABS[tab] || (tab.startsWith('panel-') ? tab : null);
             all.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = (id === target) ? 'flex' : 'none'; });
-            const more = document.getElementById('m-more'); if (more) more.classList.toggle('open', tab === 'more');
+            const more = document.getElementById('m-more'); if (more) { more.classList.toggle('open', tab === 'more'); if (tab === 'more') renderMobileMore(); }
             document.body.classList.toggle('m-sheet-open', !!target || tab === 'more');
             const key = target ? (Object.keys(MOBILE_TABS).find(k => MOBILE_TABS[k] === target) || 'more') : tab;
             document.querySelectorAll('#m-nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === key));
@@ -4522,7 +4607,7 @@
             if (btn && btn.classList.contains('active') && tab !== 'map') mobileSetTab('map');   // tap again = back to map
             else mobileSetTab(tab);
         }
-        window.matchMedia('(max-width: 768px)').addEventListener('change', () => ensureInitialPositions());
+        window.matchMedia(MOBILE_MQ).addEventListener('change', () => { ensureInitialPositions(); if (map) map.resize(); });
 
         // --- SHARED MODERN ANIMATIONS: slot reel + particle burst ---
         const prefersReducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -5106,6 +5191,7 @@
 
         function toggleManualMode(checked) {
             manualMode = checked;
+            document.querySelectorAll('#tab-general input[onchange^="toggleManualMode"]').forEach(c => c.checked = checked);
             showToast(manualMode ? (currentLang=='da'?"Manuel Mode Aktiveret":"Manual Mode ON") : (currentLang=='da'?"Manuel Mode Deaktiveret":"Manual Mode OFF"));
         }
 
@@ -5713,8 +5799,10 @@
             document.querySelectorAll('.radar-plane.selected-plane').forEach(el => el.classList.remove('selected-plane'));
             if (p.el) p.el.classList.add('selected-plane');
             openFlightFocus(num);
-            map.flyTo({ center: [p.lon, p.lat], zoom: Math.max(map.getZoom(), isGlobeMode ? 3.2 : 5.2), duration: 1100 });
-            if (!p.landed) { trackedFlightNum = num; updateTrackPill(); }
+            map.resize();                                  // the map area just got narrower: measure it BEFORE flying
+            flyToAircraft(p, Math.max(map.getZoom(), isGlobeMode ? 3.2 : 5.2), 1100, () => {
+                if (!p.landed && focusedFlightNum === p.num) { trackedFlightNum = p.num; updateTrackPill(); }
+            });
         }
 
         // Åbner Active Flights, rydder evt. søgefilter, vælger flyet og scroller til det
@@ -5743,10 +5831,22 @@
             closeFlightFocus();
             if (hadSelection) zoomToDefaultView();
         }
+        // Fly to where the aircraft WILL be when the animation ends, then hand over to frame-by-frame following.
+        function flyToAircraft(p, zoom, duration, done) {
+            const lead = p.landed || !p.route ? 0 : CONSTANT_NM_PER_SECOND * duration / 1000;
+            const target = p.route ? routePosAt(p.route, Math.min(p.route.total, p.flownDistNm + lead)) : [p.lon, p.lat];
+            map.stop();
+            const started = Date.now();
+            map.flyTo({ center: target, zoom, duration, essential: true });
+            if (done) map.once('moveend', () => { if ((window._mapGrabAt || 0) < started) done(); });
+        }
+        // phones: start further out, so routes and weather around the airport are actually in view
+        function defaultMapZoom() { return isMobileUI() ? 2.6 : 4.5; }
         function zoomToDefaultView() {
             if (!map) return;
+            map.resize();
             if (isGlobeMode) map.flyTo({ center: [currentLon, 35], zoom: 2.1, pitch: 0, bearing: 0, duration: 1200 });
-            else map.flyTo({ center: [currentLon, currentLat], zoom: 4.5, pitch: 0, bearing: 0, duration: 1200 });
+            else map.flyTo({ center: [currentLon, currentLat], zoom: defaultMapZoom(), pitch: 0, bearing: 0, duration: 1200 });
         }
 
         // ---------------- FLIGHT DETAIL PANEL + VERTICAL PROFILE ----------------
@@ -5930,7 +6030,7 @@
             const p = activePlaneMarkers[focusedFlightNum];
             if (!p || p.landed) return;
             if (trackedFlightNum === p.num) releaseTracking(false, true);
-            else { trackedFlightNum = p.num; updateTrackPill(); map.flyTo({ center: [p.lon, p.lat], duration: 700 }); }
+            else flyToAircraft(p, map.getZoom(), 700, () => { if (focusedFlightNum === p.num) { trackedFlightNum = p.num; updateTrackPill(); updateFlightFocus(); } });
             updateFlightFocus();
         }
         function updateFlightFocus() {
@@ -7572,6 +7672,52 @@
         }
         function closeManual() { document.body.classList.remove('manual-open'); }
 
+        // =====================================================================
+        // SIMPLE MOBILE "MORE": one list, every on/off shown as a clear switch
+        // =====================================================================
+        function renderMobileQuick() {
+            const b = document.getElementById('mQuickAuto'); if (b) b.classList.toggle('on', !!autopilotInterval);
+        }
+        function renderMobileMore() {
+            const el = document.getElementById('m-more'); if (!el) return;
+            const da = currentLang === 'da', T = (d, e) => da ? d : e;
+            const sw = (on, label, icon, action) => `<button type="button" class="mm-row" role="switch" aria-checked="${on}" onclick="${action}; setTimeout(renderMobileMore, 250);">
+                <span class="material-icons-outlined">${icon}</span><span class="mm-label">${label}</span><span class="mm-sw${on ? ' on' : ''}"><i></i></span></button>`;
+            const go = (label, icon, action, sub) => `<button type="button" class="mm-row" onclick="${action}"><span class="material-icons-outlined">${icon}</span><span class="mm-label">${label}${sub ? `<small>${sub}</small>` : ''}</span><span class="mm-chev">›</span></button>`;
+            const sec = (title, rows) => `<div class="mm-sec"><div class="mm-title">${title}</div>${rows.join('')}</div>`;
+            const wxRows = WX_LAYER_DEFS.map(d => sw(!!liveWeatherState[d.id], da ? d.da : d.en, d.icon, `toggleWxLayer('${d.id}')`));
+            const seasonOpts = ['none', 'auto', 'xmas', 'newyear', 'easter', 'halloween', 'party'].map(id => `<option value="${id}"${seasonChoice === id ? ' selected' : ''}>${seasonLabel(id)}</option>`).join('');
+            el.innerHTML = `<div class="mm-scroll">
+                ${sec(T('Spil', 'Game'), [
+                    sw(!!autopilotInterval, 'Autopilot', 'smart_toy', 'toggleAutopilot()'),
+                    sw(!isMuted, T('Lyd', 'Sound'), 'volume_up', 'toggleMute()'),
+                    sw(manualMode, T('Manuel tilstand (klik på tal)', 'Manual mode (tap numbers)'), 'touch_app', 'toggleManualMode(!manualMode)'),
+                    go(T('Nyt spil', 'New game'), 'restart_alt', "mobileSetTab('map'); confirmNewGame()")])}
+                ${sec(T('Værktøjer', 'Tools'), [
+                    go(T('Vejr', 'Weather'), 'cloud', "mobileSetTab('panel-metar')", currentICAO),
+                    go(T('Tjek plade', 'Verify win'), 'verified', "mobileSetTab('panel-verify')"),
+                    go(T('Gavefordeling', 'Prizes'), 'redeem', "mobileSetTab('panel-prizes')"),
+                    go(T('Konfliktløsning', 'Conflict resolution'), 'gavel', "mobileSetTab('panel-tie')"),
+                    go(T('Pladegenerator', 'Card generator'), 'grid_view', "mobileSetTab('panel-gen')")])}
+                ${sec(T('Kort', 'Map'), [
+                    sw(liveWeatherState.rings, T('Rækkeviddecirkler og lufthavne', 'Range rings and airports'), 'track_changes', "toggleLiveLayer('rings')"),
+                    sw(liveWeatherState.radar, T('Nedbørsradar', 'Precipitation radar'), 'radar', "toggleLiveLayer('radar')"),
+                    sw(!!liveWeatherState.sun, T('Sol og dag/nat', 'Sun and day/night'), 'wb_sunny', 'toggleSun()'),
+                    sw(isGlobeMode, T('3D-globus', '3D globe'), 'public', 'toggleGlobeProjection()'),
+                    go(T('Centrér på lufthavn', 'Centre on airport'), 'my_location', "mobileSetTab('map'); centerMapOnAirport()")])}
+                ${sec(T('Vejrlag', 'Weather layers'), wxRows)}
+                ${sec(T('Udseende', 'Appearance'), [
+                    sw(wxIsDark(), T('Mørkt tema', 'Dark theme'), 'dark_mode', 'toggleLightDarkQuick()'),
+                    `<label class="mm-row"><span class="material-icons-outlined">celebration</span><span class="mm-label">${T('Sæson', 'Season')}</span><select class="mm-select" onchange="setSeasonChoice(this.value); setTimeout(renderMobileMore, 250);">${seasonOpts}</select></label>`,
+                    `<label class="mm-row"><span class="material-icons-outlined">translate</span><span class="mm-label">${T('Sprog', 'Language')}</span><select class="mm-select" onchange="setLanguage(this.value); renderMobileMore();"><option value="da"${da ? ' selected' : ''}>Dansk</option><option value="en"${!da ? ' selected' : ''}>English</option></select></label>`])}
+                ${sec(T('Mere', 'More'), [
+                    go('Manual', 'menu_book', "mobileSetTab('map'); openManual()"),
+                    go(T('Alle indstillinger', 'All settings'), 'settings', "mobileSetTab('panel-settings')")])}
+            </div>`;
+            renderMobileQuick();
+        }
+        setInterval(() => { if (isMobileUI()) renderMobileQuick(); }, 1000);
+
         // ---- Smooth scrolling: mouse-wheel notches are eased; trackpads keep native (already smooth) scrolling ----
         (function () {
             const SEL = '.window-content, .log-table-container, .dock-items-container, .briefing-content, .wx-menu, .autocomplete-items, .raw-text-box';
@@ -7606,7 +7752,7 @@
             const card = document.querySelector('#start-overlay .briefing-card');
             if (!card) return;
             card.style.transform = '';
-            if (window.innerWidth < 900) return;           // phones/tablets: normal scrolling
+            if (window.innerWidth < 900 || window.innerHeight <= 520) return;   // phones/tablets (also landscape): normal scrolling
             const avail = window.innerHeight - 32, h = card.scrollHeight;
             if (h > avail) card.style.transform = `scale(${Math.max(0.6, avail / h).toFixed(3)})`;
         }
