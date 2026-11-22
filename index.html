@@ -2268,6 +2268,27 @@
             .gb-main { font-size: 12px; padding: 6px 10px; }
         }
         @media (prefers-reduced-motion: reduce) { .radar-plane .plane-rotator::before, .radar-plane .plane-rotator::after, .gb-dot { animation: none !important; } }
+
+        /* ===== v31: calmer GADSS + profile marking ===== */
+        .radar-plane.gadss-caution .plane-rotator::before, .radar-plane.gadss-warning .plane-rotator::before,
+        .radar-plane.gadss-caution .plane-rotator::after, .radar-plane.gadss-warning .plane-rotator::after {
+            background: radial-gradient(circle, rgba(var(--gc), 0.35) 0%, rgba(var(--gc), 0.1) 55%, rgba(var(--gc), 0) 72%); animation-duration: 2.6s; }
+        .radar-plane.gadss-caution .plane-rotator::after, .radar-plane.gadss-warning .plane-rotator::after { animation-delay: 1.3s; }
+        .radar-plane.gadss-warning .plane-rotator::before, .radar-plane.gadss-warning .plane-rotator::after { animation-duration: 2s; }
+        .radar-plane.gadss-warning .plane-rotator::after { animation-delay: 1s; }
+        @keyframes gadssGlow { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.6); opacity: 0; } }
+        .gb-dot { animation-duration: 2.4s !important; }
+        .gb-chip.warning .gb-dot { animation-duration: 1.6s !important; }
+        .gb-main { padding: 5px 10px; font-size: 12px; }
+        .gb-chip { box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+        .pf-gadss, .pf-gadss-edge, .pf-gadss-last, .pf-gadss-label { display: none; }
+        svg.gadss-caution, svg.gadss-warning { --gc: 245, 190, 40; }
+        svg.gadss-warning { --gc: 232, 60, 60; }
+        svg.gadss-caution .pf-gadss, svg.gadss-warning .pf-gadss { display: inline; fill: rgba(var(--gc), 0.16); }
+        svg.gadss-caution .pf-gadss-edge, svg.gadss-warning .pf-gadss-edge { display: inline; stroke: rgb(var(--gc)); stroke-width: 1.5; stroke-dasharray: 3 3; }
+        svg.gadss-caution .pf-gadss-last, svg.gadss-warning .pf-gadss-last { display: inline; fill: var(--solid-surface); stroke: rgb(var(--gc)); stroke-width: 2; }
+        svg.gadss-caution .pf-gadss-label, svg.gadss-warning .pf-gadss-label { display: inline; fill: rgb(var(--gc)); font-size: 10.5px; font-weight: 700; font-family: 'Inter', sans-serif; filter: brightness(0.85); }
+        svg.gadss-caution .pf-dot, svg.gadss-warning .pf-dot { fill: rgb(var(--gc)); }
     </style>
 </head>
 <body>
@@ -5901,9 +5922,9 @@
                         o.frequency.setValueAtTime(f, now + d); o.connect(g); g.connect(masterGain); g.gain.setValueAtTime(0, now + d);
                         g.gain.linearRampToValueAtTime(0.22, now + d + 0.02); g.gain.exponentialRampToValueAtTime(0.001, now + d + 1.2); o.start(now + d); o.stop(now + d + 1.25); });
                 } else if (type === 'gadss-caution' || type === 'gadss-warning') {
-                    const warn = type === 'gadss-warning', notes = warn ? [[880, 0], [660, 0.22], [880, 0.44], [660, 0.66]] : [[740, 0], [988, 0.18]];
-                    notes.forEach(([f, t]) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = warn ? 'square' : 'sine'; o.frequency.value = f; o.connect(g); g.connect(masterGain);
-                        g.gain.setValueAtTime(0, now + t); g.gain.linearRampToValueAtTime(warn ? 0.06 : 0.12, now + t + 0.015); g.gain.exponentialRampToValueAtTime(0.0008, now + t + 0.19); o.start(now + t); o.stop(now + t + 0.2); });
+                    const warn = type === 'gadss-warning', notes = warn ? [[784, 0], [587, 0.2]] : [[740, 0], [988, 0.18]];
+                    notes.forEach(([f, t]) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(masterGain);
+                        g.gain.setValueAtTime(0, now + t); g.gain.linearRampToValueAtTime(0.07, now + t + 0.02); g.gain.exponentialRampToValueAtTime(0.0008, now + t + 0.35); o.start(now + t); o.stop(now + t + 0.36); });
                 } else if (type === 'pop') {
                     // firework / balloon pop: filtered noise burst + a little crackle
                     const len = 0.35, buf = audioCtx.createBuffer(1, audioCtx.sampleRate * len, audioCtx.sampleRate), d = buf.getChannelData(0);
@@ -6557,6 +6578,10 @@
                 <rect class="pf-future" x="0" y="${m.t}" width="0" height="${H - m.t - m.b}"/>
                 <path class="pf-planned" d="${path(pts)}"/>
                 <path class="pf-flown" d=""/>
+                <rect class="pf-gadss" x="0" y="${m.t}" width="0" height="${H - m.t - m.b}"/>
+                <line class="pf-gadss-edge" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}"/>
+                <circle class="pf-gadss-last" r="4" cx="-10" cy="-10"/>
+                <text class="pf-gadss-label" x="0" y="${m.t + 12}"></text>
                 <line class="pf-now" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}"/>
                 <circle class="pf-dot" r="4.5" cx="-10" cy="-10"/>
                 <line class="pf-cross" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}" style="display:none"/>
@@ -6592,6 +6617,21 @@
             const now = svg.querySelector('.pf-now'); now.setAttribute('x1', nx); now.setAttribute('x2', nx);
             const dot = svg.querySelector('.pf-dot'); dot.setAttribute('cx', nx); dot.setAttribute('cy', ny);
             const fut = svg.querySelector('.pf-future'); fut.setAttribute('x', nx); fut.setAttribute('width', Math.max(0, g.W - g.m.r - nx));
+            // GADSS: shade the stretch since the last position report and mark that report
+            const gr = svg.querySelector('.pf-gadss'), ge = svg.querySelector('.pf-gadss-edge'), gl = svg.querySelector('.pf-gadss-last'), gt = svg.querySelector('.pf-gadss-label');
+            if (gr) {
+                svg.classList.toggle('gadss-caution', !!p.gadss && p.gadss.level === 'caution');
+                svg.classList.toggle('gadss-warning', !!p.gadss && p.gadss.level === 'warning');
+                if (p.gadss) {
+                    const tLast = Math.max(g.t0, st.simMs - gadssMinutes(p) * 60000);
+                    const fLast = (tLast - g.t0) / (g.t1 - g.t0), lx = g.x(tLast), ly = g.y(altAtNm(p, Math.max(0, fLast) * p.totalDistNm) / 100);
+                    gr.setAttribute('x', lx); gr.setAttribute('width', Math.max(0, nx - lx));
+                    ge.setAttribute('x1', lx); ge.setAttribute('x2', lx);
+                    gl.setAttribute('cx', lx); gl.setAttribute('cy', ly);
+                    gt.textContent = `GADSS · ${gadssMinutes(p)} min`;
+                    gt.setAttribute('x', Math.max(g.m.l + 4, lx + 4));
+                } else { gr.setAttribute('width', 0); gl.setAttribute('cx', -10); gt.textContent = ''; ge.setAttribute('x1', -10); ge.setAttribute('x2', -10); }
+            }
         }
         window.addEventListener('resize', () => { const p = activePlaneMarkers[focusedFlightNum]; if (p) { renderProfileChart(p); updateFlightFocus(); } });
 
@@ -7904,23 +7944,25 @@
                 <p class="note">The aircraft are fictional: registration, squawk, profile and fuel are simulated.</p>` } },
             { id: 'gadss', icon: 'emergency_home',
               da: { t: 'GADSS-advarsler', h: `
-                <p>GADSS er ICAO's system til at holde øje med fly, der holder op med at sende deres position. Bingo Watch simulerer det for sjov: engang imellem stopper et fly i marchhøjde med at rapportere.</p>
+                <p>GADSS er ICAO's system til at holde øje med fly, der holder op med at sende deres position. Bingo Watch simulerer det for sjov – sjældent og stille, så det ikke forstyrrer spillet: ca. én gang hvert 4.–5. minut stopper et fly i marchhøjde med at rapportere, og der er aldrig mere end én advarsel ad gangen.</p>
                 <ul>
-                  <li><b>Forsigtighed (gul)</b>: ingen positionsrapport i 10 minutter. Flyet får en pulserende gul glorie på kortet, og rækken i Aktive fly bliver gul.</li>
-                  <li><b>Advarsel (rød)</b>: ingen rapport i 15 minutter eller mere. Glorien bliver rød og pulserer hurtigere, og der lyder en kort alarm.</li>
+                  <li><b>Forsigtighed (gul)</b>: ingen positionsrapport i 10 minutter. Flyet får en svag gul glorie på kortet, og rækken i Aktive fly bliver gul. Ingen lyd. De fleste forsvinder igen her.</li>
+                  <li><b>Advarsel (rød)</b>: ingen rapport i 15 minutter eller mere. Glorien bliver rød, og der lyder et enkelt blødt signal.</li>
+                  <li>I <b>højdeprofilen</b> er strækningen siden sidste positionsrapport farvet gul eller rød, og sidste rapport er markeret med en prik.</li>
                   <li><b>Advarselsbjælken</b> øverst på kortet viser alle aktive advarsler. Klik på en for at vælge flyet, eller tryk ✓ for at kvittere.</li>
                   <li>I <b>flypanelet</b> står advarslen øverst med en <b>Kvittér</b>-knap. Kvitterede advarsler pulserer roligere.</li>
-                  <li>Når flyet melder sig igen, forsvinder advarslen, og du får besked.</li>
+                  <li>Når flyet melder sig igen, forsvinder advarslen stille.</li>
                 </ul>
                 <p>Slå simuleringen fra under Indstillinger → Generelt (eller Mere på mobil). 1 minut i simuleringen svarer til ca. 3 sekunder.</p>` },
               en: { t: 'GADSS warnings', h: `
-                <p>GADSS is ICAO's system for keeping track of aircraft that stop sending their position. Bingo Watch simulates it for fun: every now and then an aircraft in cruise stops reporting.</p>
+                <p>GADSS is ICAO's system for keeping track of aircraft that stop sending their position. Bingo Watch simulates it for fun – rarely and quietly, so it does not disturb the game: about once every 4–5 minutes an aircraft in cruise stops reporting, and there is never more than one alert at a time.</p>
                 <ul>
-                  <li><b>Caution (yellow)</b>: no position report for 10 minutes. The aircraft gets a pulsing yellow glow on the map and its row in Active Flights turns yellow.</li>
-                  <li><b>Warning (red)</b>: no report for 15 minutes or more. The glow turns red and pulses faster, and a short alert sounds.</li>
+                  <li><b>Caution (yellow)</b>: no position report for 10 minutes. The aircraft gets a soft yellow glow on the map and its row in Active Flights turns yellow. No sound. Most clear again at this stage.</li>
+                  <li><b>Warning (red)</b>: no report for 15 minutes or more. The glow turns red and a single soft chime sounds.</li>
+                  <li>In the <b>vertical profile</b> the stretch since the last position report is shaded yellow or red, and the last report is marked with a dot.</li>
                   <li>The <b>alert bar</b> at the top of the map lists every active alert. Click one to select the aircraft, or press ✓ to acknowledge.</li>
                   <li>In the <b>flight panel</b> the alert is shown at the top with an <b>Acknowledge</b> button. Acknowledged alerts pulse more calmly.</li>
-                  <li>When the aircraft reports again, the alert disappears and you are told.</li>
+                  <li>When the aircraft reports again, the alert quietly disappears.</li>
                 </ul>
                 <p>Turn the simulation off under Settings → General (or More on mobile). One simulated minute is about 3 seconds.</p>` } },
             { id: 'weather', icon: 'cloud',
@@ -8223,22 +8265,20 @@
         const rndIn = (a, b) => a + Math.random() * (b - a);
         function gadssMinutes(p) { const g = p.gadss; return Math.floor((g.level === 'caution' ? 10 : 15) + (Date.now() - g.levelAt) / 3000); }   // 1 sim-minute ≈ 3 s
         function startGadss(p) {
-            const now = Date.now(), resolvesEarly = Math.random() < 0.4;
-            p.gadss = { level: 'caution', levelAt: now, ack: false, escalateAt: resolvesEarly ? Infinity : now + rndIn(15000, 26000), resolveAt: resolvesEarly ? now + rndIn(9000, 16000) : Infinity };
-            playSound('gadss-caution');
-            showToast((currentLang === 'da' ? '⚠ GADSS – ' : '⚠ GADSS – ') + p.flightNo + (currentLang === 'da' ? ': positionsrapport forsinket' : ': position report overdue'));
-            applyGadssClass(p); renderGadssBar();
+            // most alerts clear again while still yellow; only about one in four turns red
+            const now = Date.now(), resolvesEarly = Math.random() < 0.75;
+            p.gadss = { level: 'caution', levelAt: now, ack: false, escalateAt: resolvesEarly ? Infinity : now + rndIn(15000, 22000), resolveAt: resolvesEarly ? now + rndIn(8000, 14000) : Infinity };
+            applyGadssClass(p); renderGadssBar();                 // quiet: no sound and no pop-up for a caution
         }
         function escalateGadss(p) {
             const now = Date.now();
-            Object.assign(p.gadss, { level: 'warning', levelAt: now, ack: false, escalateAt: Infinity, resolveAt: now + rndIn(25000, 45000) });
-            playSound('gadss-warning');
-            showToast('⛔ GADSS – ' + p.flightNo + (currentLang === 'da' ? ': tab af positionsrapportering' : ': loss of position reporting'));
+            Object.assign(p.gadss, { level: 'warning', levelAt: now, ack: false, escalateAt: Infinity, resolveAt: now + rndIn(15000, 25000) });
+            playSound('gadss-warning');                           // one soft two-tone chime, no pop-up
             applyGadssClass(p); renderGadssBar();
         }
         function endGadss(p, silent) {
-            p.gadss = null; applyGadssClass(p); renderGadssBar();
-            if (!silent) showToast('✓ ' + p.flightNo + (currentLang === 'da' ? ': position modtaget igen' : ': position report received'));
+            p.gadss = null; gadss.lastEnd = Date.now(); applyGadssClass(p); renderGadssBar();
+            // resolved silently: the alert simply disappears
             if (focusedFlightNum === p.num) updateFlightFocus();
         }
         function ackGadss(num) {
@@ -8280,7 +8320,7 @@
             if (gadss.enabled) {
                 const airborne = planes.filter(p => !p.landed && p.route && p.flownDistNm > 40 && p.totalDistNm - p.flownDistNm > 60);
                 const active = planes.filter(p => p.gadss).length;
-                if (airborne.length >= 2 && active < 2 && Math.random() < 0.035) {
+                if (airborne.length >= 3 && active < 1 && now - (gadss.lastEnd || 0) > 90000 && Math.random() < 0.006) {   // rare: ≈ one every 4–5 min, never two at once
                     const c = airborne.filter(p => !p.gadss); if (c.length) startGadss(c[Math.floor(Math.random() * c.length)]);
                 }
             }
