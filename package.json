@@ -1,0 +1,14 @@
+{
+  "name": "bingo-watch",
+  "private": true,
+  "description": "Bingo Watch – a bingo caller with a live OCC flight map.",
+  "scripts": {
+    "build": "node tools/build-single.js",
+    "test": "node tests/run.js",
+    "test:single": "node tools/build-single.js && node tests/run.js dist/bingo-watch.html"
+  },
+  "devDependencies": {
+    "maplibre-gl": "5.0.0",
+    "playwright": "1.63.0"
+  }
+}
