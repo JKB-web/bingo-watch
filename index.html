@@ -2164,6 +2164,110 @@
             .stage-number { font-size: min(30vw, 46vh) !important; }
             .sg { aspect-ratio: auto; height: calc((100vh - 120px) / 9); font-size: 13px; }
         }
+
+        /* ===== v29: mobile flight view ===== */
+        .ff-more { display: none; }
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) {
+            #flight-profile { display: none !important; }                 /* never covers the map on a phone */
+            #flight-focus { transition: opacity 0.22s, transform 0.28s, max-height 0.28s; }
+            #flight-focus:not(.expanded) .ff-scroll { display: none; }    /* compact card: route, altitude, progress + buttons */
+            #flight-focus:not(.expanded) { bottom: calc(var(--m-nav-h) + 8px) !important; top: auto !important; max-height: none !important; }
+            #flight-focus .ff-head { cursor: pointer; }
+            #flight-focus .ff-actions { grid-template-columns: auto 1fr 1.3fr; }
+            .ff-more { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 0 10px; }
+            .ff-more .material-icons-outlined { font-size: 18px; width: 18px; overflow: hidden; transition: transform 0.25s; transform: rotate(0deg); }
+            #flight-focus.expanded .ff-more .material-icons-outlined { transform: rotate(180deg); }
+            #flight-focus.expanded { max-height: 70vh; }
+        }
+        @media (max-height: 520px) and (max-width: 1100px) and (orientation: landscape) {
+            #flight-focus:not(.expanded) { top: auto !important; }
+            #flight-focus.expanded { top: calc(var(--header-height) + 8px) !important; max-height: none; }
+            #flight-focus { width: 320px !important; }
+        }
+
+        /* ===== v30 weather layers ===== */
+        .wx-menu { max-height: calc(100vh - var(--header-height) - 80px); overflow-y: auto; overscroll-behavior: contain; }
+        .wx-grp { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); padding: 10px 8px 3px; }
+        .wx-level { display: none; gap: 3px; padding: 2px 8px 6px 42px; }
+        .wx-level.show { display: flex; }
+        .wx-level button { flex: 1; border: 1px solid var(--border-light); background: transparent; color: var(--text-muted); font: inherit; font-size: 11px; font-weight: 600; padding: 4px 0; border-radius: 5px; }
+        .wx-level button.on { background: var(--accent-orange); color: #fff; border-color: transparent; }
+        #flowCanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; display: none; }
+        #wx-legend { position: fixed; z-index: 2150; left: calc(var(--sidebar-width-closed) + 10px); bottom: 64px; display: none; flex-direction: column; gap: 8px; padding: 8px 12px 10px; width: 230px;
+            border-radius: var(--r-md); background: var(--glass-fill); border: 1px solid var(--glass-border); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-edge), var(--glass-shadow); }
+        #wx-legend.show { display: flex; }
+        body.sidebar-is-open #wx-legend { left: calc(var(--sidebar-width-open) + 10px); }
+        .lg-name { font-size: 11.5px; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+        .lg-name em { font-style: normal; font-weight: 500; color: var(--text-muted); }
+        .lg-bar { height: 8px; border-radius: var(--r-xs); border: 1px solid var(--border-light); }
+        .lg-ticks { position: relative; height: 13px; font-size: 10px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+        .lg-ticks span { position: absolute; top: 1px; transform: translateX(-50%); }
+        .lg-ticks span:first-child { transform: none; } .lg-ticks span:last-child { transform: translateX(-100%); }
+        body.flight-focus-open #wx-legend { bottom: 206px; }
+        body.attract #wx-legend { opacity: 0; }
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) {
+            #wx-legend { left: 8px; bottom: calc(var(--m-nav-h) + 26px); width: 200px; padding: 6px 10px 8px; }
+            body.m-sheet-open #wx-legend, body.flight-focus-open #wx-legend { display: none; }
+        }
+
+        /* ===== v30 aircraft icons ===== */
+        .plane-icon { width: var(--ac-size, 19px) !important; height: var(--ac-size, 19px) !important; }
+        .radar-plane .plane-rotator { width: calc(var(--ac-box, 28px)); height: calc(var(--ac-box, 28px)); }
+        .ff-actype { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .ff-actype svg { width: 20px; height: 20px; fill: var(--text-main); flex: none; }
+        .ff-actype small { flex-basis: 100%; padding-left: 28px; font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: -2px; }
+
+        /* ===== v30 GADSS ===== */
+        .radar-plane.gadss-caution, .radar-plane.gadss-warning { --gc: 245, 190, 40; z-index: 5; }
+        .radar-plane.gadss-warning { --gc: 232, 60, 60; }
+        .radar-plane.gadss-caution .plane-rotator, .radar-plane.gadss-warning .plane-rotator {
+            background: rgba(var(--gc), 0.28) !important; border: 2px solid rgb(var(--gc)) !important; }
+        .radar-plane.gadss-caution .plane-icon, .radar-plane.gadss-warning .plane-icon { fill: rgb(var(--gc)) !important; filter: drop-shadow(0 0 2px rgba(0,0,0,0.35)); }
+        .radar-plane.gadss-caution .plane-rotator::before, .radar-plane.gadss-warning .plane-rotator::before,
+        .radar-plane.gadss-caution .plane-rotator::after, .radar-plane.gadss-warning .plane-rotator::after {
+            content: ''; position: absolute; inset: -2px; border-radius: 50%; pointer-events: none;
+            background: radial-gradient(circle, rgba(var(--gc), 0.55) 0%, rgba(var(--gc), 0.18) 55%, rgba(var(--gc), 0) 72%);
+            animation: gadssGlow 1.8s ease-out infinite; }
+        .radar-plane.gadss-caution .plane-rotator::after, .radar-plane.gadss-warning .plane-rotator::after { animation-delay: 0.9s; }
+        .radar-plane.gadss-warning .plane-rotator::before, .radar-plane.gadss-warning .plane-rotator::after { animation-duration: 1.1s; }
+        .radar-plane.gadss-warning .plane-rotator::after { animation-delay: 0.55s; }
+        .radar-plane.gadss-ack .plane-rotator::before, .radar-plane.gadss-ack .plane-rotator::after { animation-duration: 3.2s !important; opacity: 0.7; }
+        .radar-plane.gadss-caution .plane-info-box, .radar-plane.gadss-warning .plane-info-box { border-color: rgb(var(--gc)) !important; box-shadow: 0 0 0 1px rgba(var(--gc), 0.4), 0 2px 8px rgba(0,0,0,0.15); }
+        @keyframes gadssGlow { 0% { transform: scale(1); opacity: 0.95; } 100% { transform: scale(3.4); opacity: 0; } }
+        #gadss-bar { position: fixed; z-index: 2350; top: calc(var(--header-height) + 10px); left: 50%; transform: translateX(-50%); display: none; flex-direction: column; gap: 6px; align-items: center; max-width: min(560px, calc(100vw - 24px)); }
+        #gadss-bar.show { display: flex; }
+        .gb-chip { display: flex; align-items: stretch; border-radius: var(--r-md); overflow: hidden; box-shadow: var(--glass-shadow); border: 1px solid rgba(var(--gc), 0.65);
+            background: var(--solid-surface); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); animation: fadeIn 0.25s; --gc: 245, 190, 40; }
+        .gb-chip.warning { --gc: 232, 60, 60; }
+        .gb-main { display: flex; align-items: center; gap: 8px; border: none; background: rgba(var(--gc), 0.14); color: var(--text-main); font: inherit; font-size: 12.5px; padding: 7px 12px; text-align: left; }
+        .gb-main b { font-variant-numeric: tabular-nums; }
+        .gb-dot { width: 9px; height: 9px; border-radius: 50%; background: rgb(var(--gc)); box-shadow: 0 0 0 0 rgba(var(--gc), 0.7); animation: gbPulse 1.4s infinite; flex: none; }
+        .gb-chip.warning .gb-dot { animation-duration: 0.8s; }
+        .gb-chip.ack .gb-dot { animation: none; }
+        @keyframes gbPulse { 0% { box-shadow: 0 0 0 0 rgba(var(--gc), 0.7); } 70% { box-shadow: 0 0 0 8px rgba(var(--gc), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--gc), 0); } }
+        .gb-ack { border: none; border-left: 1px solid rgba(var(--gc), 0.4); background: transparent; color: var(--text-main); font-size: 14px; font-weight: 700; padding: 0 12px; }
+        .gb-ack:hover { background: rgba(var(--gc), 0.2); }
+        body.flight-focus-open #gadss-bar { left: calc((100vw - 322px) / 2); }
+        body.attract #gadss-bar, body.stage-open #gadss-bar { display: none; }
+        .flight-table tbody tr.flight-row.gadss-caution td:first-child { border-left-color: #f5be28 !important; }
+        .flight-table tbody tr.flight-row.gadss-warning td:first-child { border-left-color: #e83c3c !important; }
+        .flight-table tbody tr.flight-row.gadss-caution { background: rgba(245,190,40,0.12); }
+        .flight-table tbody tr.flight-row.gadss-warning { background: rgba(232,60,60,0.12); }
+        .ff-gadss { display: none; }
+        .ff-gadss.show { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-md); border: 1px solid rgba(var(--gc), 0.6); background: rgba(var(--gc), 0.13); --gc: 245, 190, 40; }
+        .ff-gadss.warning { --gc: 232, 60, 60; }
+        .ff-gadss > div { flex: 1; display: flex; flex-direction: column; font-size: 12px; }
+        .ff-gadss b { font-size: 12.5px; color: rgb(var(--gc)); filter: brightness(0.8); }
+        [data-theme="dark"] .ff-gadss b { filter: none; }
+        .ff-gadss button { border: 1px solid rgba(var(--gc), 0.7); background: transparent; color: var(--text-main); font: inherit; font-size: 12px; font-weight: 600; padding: 5px 10px; }
+        .ff-gadss em { font-style: normal; font-size: 11.5px; color: var(--text-muted); }
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) {
+            #gadss-bar { top: calc(var(--header-height) + 44px); }
+            body.flight-focus-open #gadss-bar { left: 50%; }
+            body.m-sheet-open #gadss-bar { display: none; }
+            .gb-main { font-size: 12px; padding: 6px 10px; }
+        }
+        @media (prefers-reduced-motion: reduce) { .radar-plane .plane-rotator::before, .radar-plane .plane-rotator::after, .gb-dot { animation: none !important; } }
     </style>
 </head>
 <body>
@@ -2272,6 +2376,7 @@
                 </div>
                 
                 <div id="tab-general" class="tab-content active">
+                    <div class="setting-row"><span class="setting-label" data-lang="gadssLabel">GADSS simulation</span><label class="switch"><input type="checkbox" class="gadss-toggle" checked onchange="setGadssEnabled(this.checked)"><span class="slider"></span></label></div>
                     <div class="setting-row"><span class="setting-label" data-lang="attractLabel">Attract mode</span>
                         <div style="display:flex; gap:6px; align-items:center;">
                             <select class="select-input" id="attractSelect" onchange="setAttractDelay(+this.value)">
@@ -2741,6 +2846,7 @@
             rings: true,
             radar: true,
             jet: false, barbs: false, cloud: false, cat: false, trop: false,
+            flow: false, cape: false, conv: false, dust: false, fog: false, frz: false, mslp: false, ptend: false, t2m: false, vis: false, sat: false,
             icing: false, cyclone: false, volcano: false, sigmet: false,
             sun: false
         };
@@ -2757,7 +2863,7 @@
             console.warn('Could not load saved cards from localStorage', e);
         }
 
-        let soundConfig = { tick: true, chime: true, fanfare: true, jingle: true, pop: true, chirp: true, spooky: true, 'spooky-fanfare': true, 'newyear-fanfare': true, 'jingle-fanfare': true, 'fanfare-xmas': true };
+        let soundConfig = { 'gadss-caution': true, 'gadss-warning': true, tick: true, chime: true, fanfare: true, jingle: true, pop: true, chirp: true, spooky: true, 'spooky-fanfare': true, 'newyear-fanfare': true, 'jingle-fanfare': true, 'fanfare-xmas': true };
         let startTime = null;
         let statsInterval = null;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2944,7 +3050,7 @@
                 brKeysH: "Cockpit-kontroller (genveje)",
                 brK1: "Træk næste nummer", brK2: "BANKO! (fejring)", brK3: "Autopilot (auto-træk)", brK4: "Lyd til / fra", brK5: "Nulstil system", brK6: "Fuldskærm",
                 brStatus: "Lokal tilstand og live-vejr:", brLaunch: "BEKRÆFT & START",
-                thFlight: "Fly", thDep: "AFG", thDest: "DEST", tieShort: "Konfliktløsning", mMute: "Lyd fra/til", keyBanko: "Banko", keyReset: "Nulstil", ttAutoUpd: "Opdateres automatisk hvert 10. min", ttWxRefresh: "Opdatér vejrdata nu", ttSearch: "Søg", ttPrint: "Print flyvelog", ttRelease: "Slip kameraet", ttFull: "Fuldskærm (F)", ttMute: "Lyd fra/til (M)", ttUndo: "Fortryd", ttAuto: "Autopilot (A)", ttTheme: "Skift lys / mørk tilstand", ttSettings: "Indstillinger", thLight: "OCC Taktisk lys", thNight: "OCC Taktisk nat", thMatrix: "OCC Matrix-radar", roundLabel: "Der spilles om", round1: "1 række", round2: "2 rækker", round3: "Fuld plade", ttStage: "Storskærm (P)", ttStageClose: "Luk (Esc)", xmasMode: "Juletilstand", ttXmas: "Juletilstand (julemand, sne og julelyde)", seasonMode: "Sæson", seasonNone: "Fra", seasonAuto: "Automatisk (efter dato)", seasonXmas: "Jul", seasonNewyear: "Nytår", seasonEaster: "Påske", seasonHalloween: "Halloween", seasonParty: "Fest / fødselsdag", partyText: "Bannertekst", ttSeason: "Sæsontilstand", attractLabel: "Attract mode", attractOff: "Fra", attract2: "Efter 2 min", attract5: "Efter 5 min", attract10: "Efter 10 min", attractNow: "Start nu", ttCaller: "Opråber-skærm (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Storskærm", keyFull: "Fuldskærm", mUndo: "Fortryd", mMap: "Kort", mDraw: "Træk", mGrid: "Tal", mFlights: "Fly", mMore: "Mere", flightLog: "Aktive fly", statsTitle: "Missionsstatistik", statDrawn: "Trukket", statRemain: "Tilbage", statTime: "Flyvetid", statPrev: "Forrige",
+                thFlight: "Fly", thDep: "AFG", thDest: "DEST", tieShort: "Konfliktløsning", mMute: "Lyd fra/til", keyBanko: "Banko", keyReset: "Nulstil", ttAutoUpd: "Opdateres automatisk hvert 10. min", ttWxRefresh: "Opdatér vejrdata nu", ttSearch: "Søg", ttPrint: "Print flyvelog", ttRelease: "Slip kameraet", ttFull: "Fuldskærm (F)", ttMute: "Lyd fra/til (M)", ttUndo: "Fortryd", ttAuto: "Autopilot (A)", ttTheme: "Skift lys / mørk tilstand", ttSettings: "Indstillinger", thLight: "OCC Taktisk lys", thNight: "OCC Taktisk nat", thMatrix: "OCC Matrix-radar", roundLabel: "Der spilles om", round1: "1 række", round2: "2 rækker", round3: "Fuld plade", ttStage: "Storskærm (P)", ttStageClose: "Luk (Esc)", xmasMode: "Juletilstand", ttXmas: "Juletilstand (julemand, sne og julelyde)", seasonMode: "Sæson", seasonNone: "Fra", seasonAuto: "Automatisk (efter dato)", seasonXmas: "Jul", seasonNewyear: "Nytår", seasonEaster: "Påske", seasonHalloween: "Halloween", seasonParty: "Fest / fødselsdag", partyText: "Bannertekst", ttSeason: "Sæsontilstand", attractLabel: "Attract mode", attractOff: "Fra", attract2: "Efter 2 min", attract5: "Efter 5 min", attract10: "Efter 10 min", attractNow: "Start nu", ttCaller: "Opråber-skærm (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Storskærm", keyFull: "Fuldskærm", mUndo: "Fortryd", gadssLabel: "GADSS-simulering", mMap: "Kort", mDraw: "Træk", mGrid: "Tal", mFlights: "Fly", mMore: "Mere", flightLog: "Aktive fly", statsTitle: "Missionsstatistik", statDrawn: "Trukket", statRemain: "Tilbage", statTime: "Flyvetid", statPrev: "Forrige",
                 newGame: "Nyt spil", bankoMsg: "BANKO!",
                 prizeTitle: "Gavefordeling", prizeSmall: "Små gaver", prizeBig: "Store gaver", btnSet: "SÆT", btnDrawSmall: "TRÆK", btnDrawBig: "TRÆK",
                 lingoDefault: "Waypoint bekræftet",
@@ -2979,7 +3085,7 @@
                 brKeysH: "Cockpit Controls (Shortcuts)",
                 brK1: "Draw Next Number", brK2: "BINGO! (Celebration)", brK3: "Autopilot (Auto-draw)", brK4: "Mute / Unmute", brK5: "Reset System", brK6: "Fullscreen",
                 brStatus: "Local Mode & Live Weather:", brLaunch: "CONFIRM & LAUNCH",
-                thFlight: "Flight", thDep: "DEP", thDest: "DEST", tieShort: "Conflict Res.", mMute: "Mute", keyBanko: "Banko", keyReset: "Reset", ttAutoUpd: "Auto-updates every 10 min", ttWxRefresh: "Refresh weather data now", ttSearch: "Search", ttPrint: "Print flight log", ttRelease: "Release camera", ttFull: "Fullscreen (F)", ttMute: "Mute / unmute (M)", ttUndo: "Undo", ttAuto: "Autopilot (A)", ttTheme: "Switch light / dark mode", ttSettings: "Settings", thLight: "OCC Tactical Light", thNight: "OCC Tactical Night", thMatrix: "OCC Matrix Radar", roundLabel: "Playing for", round1: "1 row", round2: "2 rows", round3: "Full card", ttStage: "Big screen (P)", ttStageClose: "Close (Esc)", xmasMode: "Christmas mode", ttXmas: "Christmas mode (Santa, snow and sleigh bells)", seasonMode: "Season", seasonNone: "Off", seasonAuto: "Automatic (by date)", seasonXmas: "Christmas", seasonNewyear: "New Year", seasonEaster: "Easter", seasonHalloween: "Halloween", seasonParty: "Party / birthday", partyText: "Banner text", ttSeason: "Season mode", attractLabel: "Attract mode", attractOff: "Off", attract2: "After 2 min", attract5: "After 5 min", attract10: "After 10 min", attractNow: "Start now", ttCaller: "Caller screen (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Big screen", keyFull: "Fullscreen", mUndo: "Undo", mMap: "Map", mDraw: "Draw", mGrid: "Numbers", mFlights: "Flights", mMore: "More", flightLog: "Active Flights", statsTitle: "Mission Stats", statDrawn: "Drawn", statRemain: "Remain", statTime: "Flight Time", statPrev: "Previous",
+                thFlight: "Flight", thDep: "DEP", thDest: "DEST", tieShort: "Conflict Res.", mMute: "Mute", keyBanko: "Banko", keyReset: "Reset", ttAutoUpd: "Auto-updates every 10 min", ttWxRefresh: "Refresh weather data now", ttSearch: "Search", ttPrint: "Print flight log", ttRelease: "Release camera", ttFull: "Fullscreen (F)", ttMute: "Mute / unmute (M)", ttUndo: "Undo", ttAuto: "Autopilot (A)", ttTheme: "Switch light / dark mode", ttSettings: "Settings", thLight: "OCC Tactical Light", thNight: "OCC Tactical Night", thMatrix: "OCC Matrix Radar", roundLabel: "Playing for", round1: "1 row", round2: "2 rows", round3: "Full card", ttStage: "Big screen (P)", ttStageClose: "Close (Esc)", xmasMode: "Christmas mode", ttXmas: "Christmas mode (Santa, snow and sleigh bells)", seasonMode: "Season", seasonNone: "Off", seasonAuto: "Automatic (by date)", seasonXmas: "Christmas", seasonNewyear: "New Year", seasonEaster: "Easter", seasonHalloween: "Halloween", seasonParty: "Party / birthday", partyText: "Banner text", ttSeason: "Season mode", attractLabel: "Attract mode", attractOff: "Off", attract2: "After 2 min", attract5: "After 5 min", attract10: "After 10 min", attractNow: "Start now", ttCaller: "Caller screen (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Big screen", keyFull: "Fullscreen", mUndo: "Undo", gadssLabel: "GADSS simulation", mMap: "Map", mDraw: "Draw", mGrid: "Numbers", mFlights: "Flights", mMore: "More", flightLog: "Active Flights", statsTitle: "Mission Stats", statDrawn: "Drawn", statRemain: "Remain", statTime: "Flight Time", statPrev: "Previous",
                 newGame: "New Game", bankoMsg: "BINGO!",
                 prizeTitle: "Prize Distribution", prizeSmall: "Small Prizes", prizeBig: "Big Prizes", btnSet: "SET", btnDrawSmall: "DRAW", btnDrawBig: "DRAW",
                 lingoDefault: "Waypoint confirmed",
@@ -3635,20 +3741,36 @@
            batches (no more HTTP 429 bursts) and cached in localStorage.
            ===================================================================== */
         const WX_LAYER_DEFS = [
-            { id: 'jet',     icon: 'multiline_chart', en: 'Jetstreams',        da: 'Jetstrømme' },
-            { id: 'barbs',   icon: 'air',             en: 'Wind barbs',        da: 'Vindfaner' },
-            { id: 'cloud',   icon: 'cloud',           en: 'Cloud areas',       da: 'Skyområder' },
-            { id: 'cat',     icon: 'waves',           en: 'CAT areas',         da: 'CAT-områder' },
-            { id: 'trop',    icon: 'layers',          en: 'Tropopause',        da: 'Tropopause' },
-            { id: 'icing',   icon: 'ac_unit',         en: 'Icing',             da: 'Isdannelse' },
-            { id: 'cyclone', icon: 'cyclone',         en: 'Tropical cyclones', da: 'Tropiske cykloner' },
-            { id: 'volcano', icon: 'volcano',         en: 'Active volcanoes',  da: 'Aktive vulkaner' },
-            { id: 'sigmet',  icon: 'warning_amber',   en: 'SIGMET',            da: 'SIGMET' }
+            { id: 'flow',    grp: 'wind', icon: 'air',             en: 'Animated winds',          da: 'Animerede vinde' },
+            { id: 'jet',     grp: 'wind', icon: 'multiline_chart', en: 'Jetstreams',              da: 'Jetstrømme' },
+            { id: 'barbs',   grp: 'wind', icon: 'flag',            en: 'Wind barbs',              da: 'Vindfaner' },
+            { id: 'cat',     grp: 'wind', icon: 'waves',           en: 'Clear air turbulence',    da: 'Turbulens i klar luft (CAT)' },
+            { id: 'trop',    grp: 'wind', icon: 'layers',          en: 'Tropopause',              da: 'Tropopause' },
+            { id: 'cloud',   grp: 'cloud', icon: 'cloud',          en: 'Cloud cover total',       da: 'Samlet skydække' },
+            { id: 'cape',    grp: 'cloud', icon: 'thunderstorm',   en: 'CAPE and lifted index',   da: 'CAPE og lifted index' },
+            { id: 'conv',    grp: 'cloud', icon: 'filter_drama',   en: 'Convective cloud tops',   da: 'Konvektive skytoppe' },
+            { id: 'sat',     grp: 'cloud', icon: 'satellite_alt',  en: 'Satellite',               da: 'Satellit' },
+            { id: 'icing',   grp: 'hazard', icon: 'ac_unit',       en: 'In-flight icing',         da: 'Isdannelse under flyvning' },
+            { id: 'frz',     grp: 'hazard', icon: 'severe_cold',   en: 'Freezing rain probability', da: 'Isslag-sandsynlighed' },
+            { id: 'fog',     grp: 'hazard', icon: 'foggy',         en: 'Fog probability',         da: 'Tåge-sandsynlighed' },
+            { id: 'vis',     grp: 'hazard', icon: 'visibility',    en: 'Visibility',              da: 'Sigtbarhed' },
+            { id: 'dust',    grp: 'hazard', icon: 'grain',         en: 'Dust',                    da: 'Støv' },
+            { id: 'mslp',    grp: 'surface', icon: 'speed',        en: 'Mean sea level pressure', da: 'Lufttryk (isobarer)' },
+            { id: 'ptend',   grp: 'surface', icon: 'trending_down', en: 'Pressure tendency',      da: 'Trykændring (3 t)' },
+            { id: 't2m',     grp: 'surface', icon: 'thermostat',   en: 'Temperature (2 m)',       da: 'Temperatur (2 m)' },
+            { id: 'cyclone', grp: 'warn', icon: 'cyclone',         en: 'Tropical cyclones',       da: 'Tropiske cykloner' },
+            { id: 'volcano', grp: 'warn', icon: 'volcano',         en: 'Active volcanoes',        da: 'Aktive vulkaner' },
+            { id: 'sigmet',  grp: 'warn', icon: 'warning_amber',   en: 'SIGMET',                  da: 'SIGMET' }
         ];
+        const WX_GROUP_NAMES = { wind: ['Vind og højde', 'Wind and altitude'], cloud: ['Skyer og konvektion', 'Cloud and convection'], hazard: ['Farer', 'Hazards'],
+                                 surface: ['Jordoverflade', 'Surface'], warn: ['Advarsler', 'Warnings'] };
         const WX_LAYER_GROUPS = {
             jet:     ['wx-jet-band', 'wx-jet-core', 'wx-jet-arrows', 'wx-jet-labels'],
             barbs:   ['wx-barbs'],
-            cloud:   ['wx-cloud-fill-1', 'wx-cloud-fill-2', 'wx-cloud-line'],
+            cloud:   ['wx-f-cloud'],
+            cape:    ['wx-f-cape', 'wx-li-line'], conv: ['wx-f-conv'], dust: ['wx-f-dust'], fog: ['wx-f-fog'], frz: ['wx-f-frz'],
+            ptend:   ['wx-f-ptend'], t2m: ['wx-f-t2m'], vis: ['wx-f-vis'], sat: ['wx-sat'], flow: [],
+            mslp:    ['wx-mslp-line', 'wx-mslp-label', 'wx-mslp-hl', 'wx-mslp-hlv'],
             cat:     ['wx-cat-fill', 'wx-cat-line', 'wx-cat-label'],
             trop:    ['wx-trop-line', 'wx-trop-label', 'wx-trop-pt'],
             icing:   ['wx-ice-fill', 'wx-ice-line', 'wx-ice-label'],
@@ -3667,7 +3789,8 @@
         function windUV(spd, dirFrom) { const r = dirFrom * D2R; return [-spd * Math.sin(r), -spd * Math.cos(r)]; }
 
         // ---- ATMOSPHERE: grid, model, sampler -------------------------------------
-        const ATMO_F = ['u10', 'v10', 'u250', 'v250', 'u300', 'v300', 'cld', 't700', 'rh700'];
+        const ATMO_F = ['u10', 'v10', 'u250', 'v250', 'u300', 'v300', 'cld', 't700', 'rh700',
+                        'u500', 'v500', 't2', 'td2', 'pmsl', 'ptend', 'cape', 'li', 'vis', 't850', 'prcp', 'frzl'];
         const ATMO = {
             latMin: -63, latStep: 9, nLat: 16,
             lonMin: -180, lonStep: 12, nLon: 30,
@@ -3675,7 +3798,7 @@
             fetching: false, updated: null, version: 1, error: null, cs: null
         };
         ATMO.total = ATMO.nLat * ATMO.nLon;
-        const WX_CACHE_KEY = 'bingoAtmoCacheV1';
+        const WX_CACHE_KEY = 'bingoAtmoCacheV2';
 
         function wxClimateState(date) {
             const d = date || new Date();
@@ -3719,7 +3842,22 @@
                 - 28 * wxGauss(absLat, 24, 7) + 16 * Math.sin(5 * l + cs.ph * 0.7 + lat * 0.15) * Math.sin(lat * D2R * 3), 0, 100);
             const t700 = 10 - 0.55 * absLat + 3 * Math.sin(2 * l + cs.ph);
             const rh700 = wxClamp(20 + 0.9 * cld + 8 * Math.sin(2 * l + lat * 0.1 + cs.ph), 0, 100);
-            return { u10, v10, u250: u, v250: v, u300, v300, cld, t700, rh700 };
+            // surface + mid-level extras (analytic stand-ins used until live data arrives)
+            const u500 = 0.55 * u + 0.3 * u10, v500 = 0.55 * v;
+            const hemi = lat >= 0 ? 1 : -1, summer = hemi * cs.season;               // >0 = summer in this hemisphere
+            const t2 = 29 - 0.62 * absLat - 0.0045 * absLat * absLat + 9 * summer * wxClamp(absLat / 50, 0, 1) + 4 * Math.sin(2 * l + cs.ph * 0.6);
+            const lowTrack = wxGauss(absLat, 55, 9) * (0.5 + 0.5 * Math.sin(4 * l + cs.ph * 1.2 + lat * 0.05));
+            const pmsl = 1012 + 9 * wxGauss(absLat, 32, 8) * (0.7 + 0.3 * Math.cos(3 * l + cs.ph)) - 22 * lowTrack - 5 * wxGauss(lat, 6, 8);
+            const ptend = -3.2 * wxGauss(absLat, 55, 10) * Math.cos(4 * l + cs.ph * 1.2 + lat * 0.05);
+            const cape = Math.max(0, 2600 * wxGauss(lat, 6 + 10 * cs.season, 12) * (0.45 + 0.55 * Math.sin(5 * l + cs.ph)) + 700 * wxGauss(absLat, 32, 8) * Math.max(0, summer) * (0.5 + 0.5 * Math.sin(3 * l)));
+            const li = 4 - cape / 450;
+            const rh2 = wxClamp(55 + 0.35 * cld + 10 * Math.sin(3 * l + lat * 0.2 + cs.ph), 15, 100);
+            const td2 = t2 - (100 - rh2) / 5;
+            const prcp = Math.max(0, (cld - 70) / 30) * (0.6 + 0.6 * wxGauss(lat, 6, 9) + 0.4 * lowTrack);
+            const vis = wxClamp(24000 - 220 * Math.max(0, rh2 - 70) * Math.max(0, 6 - (t2 - td2)) - 6000 * prcp, 400, 24000);
+            const t850 = t2 - 9 + 3 * lowTrack;
+            const frzl = Math.max(0, (t2 + 2) * 150);
+            return { u10, v10, u250: u, v250: v, u300, v300, cld, t700, rh700, u500, v500, t2, td2, pmsl, ptend, cape, li, vis, t850, prcp, frzl };
         }
         function atmoModelNodes() {
             const nodes = new Float32Array(ATMO.total * ATMO.F);
@@ -3792,13 +3930,14 @@
             const pts = [];
             for (let j = 0; j < ATMO.nLat; j++) for (let i = 0; i < ATMO.nLon; i++)
                 pts.push({ j, i, lat: ATMO.latMin + j * ATMO.latStep, lon: ATMO.lonMin + i * ATMO.lonStep });
-            const vars = 'wind_speed_10m,wind_direction_10m,wind_speed_250hPa,wind_direction_250hPa,wind_speed_300hPa,wind_direction_300hPa,cloud_cover,temperature_700hPa,relative_humidity_700hPa';
+            const vars = 'wind_speed_10m,wind_direction_10m,wind_speed_250hPa,wind_direction_250hPa,wind_speed_300hPa,wind_direction_300hPa,cloud_cover,temperature_700hPa,relative_humidity_700hPa,' +
+                         'wind_speed_500hPa,wind_direction_500hPa,temperature_2m,dew_point_2m,pressure_msl,cape,lifted_index,visibility,temperature_850hPa,precipitation,freezing_level_height';
             let got = 0, failures = 0;
             for (let c = 0; c < pts.length && failures < 3; c += 40) {
                 const chunk = pts.slice(c, c + 40);
                 const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + chunk.map(p => p.lat).join(',') +
                     '&longitude=' + chunk.map(p => p.lon).join(',') + '&hourly=' + vars +
-                    '&wind_speed_unit=kn&forecast_hours=1&timezone=GMT';
+                    '&wind_speed_unit=kn&forecast_hours=1&past_hours=3&timezone=GMT';
                 let ok = false;
                 for (let attempt = 0; attempt < 3 && !ok; attempt++) {
                     try {
@@ -3810,14 +3949,24 @@
                         chunk.forEach((p, idx) => {
                             const h = items[idx] && items[idx].hourly;
                             if (!h) return;
-                            const g = (k) => (h[k] && h[k][0] != null) ? Number(h[k][0]) : null;
+                            const now = (k) => h[k] ? h[k].length - 1 : 0;                 // last entry = the current hour
+                            const g = (k) => (h[k] && h[k][now(k)] != null) ? Number(h[k][now(k)]) : null;
+                            const g0 = (k) => (h[k] && h[k][0] != null) ? Number(h[k][0]) : null;
                             const s10 = g('wind_speed_10m'), d10 = g('wind_direction_10m');
                             const s250 = g('wind_speed_250hPa'), d250 = g('wind_direction_250hPa');
                             const s300 = g('wind_speed_300hPa'), d300 = g('wind_direction_300hPa');
                             const cld = g('cloud_cover'), t7 = g('temperature_700hPa'), r7 = g('relative_humidity_700hPa');
                             if ([s10, d10, s250, d250, s300, d300, cld, t7, r7].some(x => x === null || isNaN(x))) return;
                             const [u10, v10] = windUV(s10, d10), [u250, v250] = windUV(s250, d250), [u300, v300] = windUV(s300, d300);
-                            const vals = [u10, v10, u250, v250, u300, v300, cld, t7, r7];
+                            const s500 = g('wind_speed_500hPa'), d500 = g('wind_direction_500hPa');
+                            const [u500, v500] = (s500 === null || d500 === null) ? [0.55 * u250, 0.55 * v250] : windUV(s500, d500);
+                            const fb = atmoModel(p.lat, p.lon);                                  // per-field fallback if one variable is missing
+                            const or = (x, d) => (x === null || isNaN(x)) ? d : x;
+                            const pm = g('pressure_msl'), pm0 = g0('pressure_msl');
+                            const vals = [u10, v10, u250, v250, u300, v300, cld, t7, r7, u500, v500,
+                                or(g('temperature_2m'), fb.t2), or(g('dew_point_2m'), fb.td2), or(pm, fb.pmsl), (pm !== null && pm0 !== null) ? pm - pm0 : fb.ptend,
+                                or(g('cape'), fb.cape), or(g('lifted_index'), fb.li), or(g('visibility'), fb.vis), or(g('temperature_850hPa'), fb.t850),
+                                or(g('precipitation'), fb.prcp), or(g('freezing_level_height'), fb.frzl)];
                             vals.forEach((x, f) => { nodes[(p.j * ATMO.nLon + p.i) * ATMO.F + f] = x; });
                             got++;
                         });
@@ -4079,11 +4228,19 @@
             for (const id of ['layer-flight-planned', 'layer-flight-focus-direct', 'layer-flight-focus-planned', 'layer-flight-flown', 'layer-occ-rings', 'layer-occ-waypoints']) if (map.getLayer(id)) return id;
             return undefined;
         }
+        // Text labels get their own copy of the source: if the label font cannot be loaded,
+        // only the labels are lost – the lines and areas of the same layer still draw.
+        const wxData = {};
         function wxPutSource(id, data) {
-            const s = map.getSource(id);
-            if (s) s.setData(data); else map.addSource(id, { type: 'geojson', data });
+            wxData[id] = data;
+            [id, id + '-lbl'].forEach(sid => { const s = map.getSource(sid); if (s) s.setData(data); else if (sid === id) map.addSource(sid, { type: 'geojson', data }); });
         }
         function wxPutLayer(def, group) {
+            if (def.type === 'symbol' && def.layout && def.layout['text-field'] && wxData[def.source]) {
+                const lbl = def.source + '-lbl';
+                if (!map.getSource(lbl)) map.addSource(lbl, { type: 'geojson', data: wxData[def.source] });
+                def.source = lbl;
+            }
             const vis = liveWeatherState[group] ? 'visible' : 'none';
             def.layout = def.layout || {}; def.layout.visibility = vis;
             if (map.getLayer(def.id)) { map.setLayoutProperty(def.id, 'visibility', vis); return; }
@@ -4293,19 +4450,238 @@
                 layout: wxLabelLayout({ 'text-size': 10.5 }), paint: { 'text-color': T.color, 'text-halo-color': T.halo, 'text-halo-width': 1.6 } }, 'sigmet');
         }
 
+        // =====================================================================
+        // FIELD LAYERS (v30): smooth colour fields drawn from the global grid
+        // Each field is rendered into a Web-Mercator image (so it lines up exactly on the map)
+        // =====================================================================
+        const FIELD_MERC_LAT = 82;
+        const mercY = lat => Math.log(Math.tan(Math.PI / 4 + lat * D2R / 2));
+        const invMercY = y => (2 * Math.atan(Math.exp(y)) - Math.PI / 2) / D2R;
+        function rampColor(stops, v) {      // stops: [[value, [r,g,b,a]], ...]
+            if (v <= stops[0][0]) return stops[0][1];
+            for (let i = 1; i < stops.length; i++) if (v <= stops[i][0]) {
+                const [a, ca] = stops[i - 1], [b, cb] = stops[i], t = (v - a) / (b - a);
+                return [0, 1, 2, 3].map(k => ca[k] + (cb[k] - ca[k]) * t);
+            }
+            return stops[stops.length - 1][1];
+        }
+        const C = (hex, a) => { const n = parseInt(hex.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255, a]; };
+        // value(atmos sample, lat, lon) -> number; ramp: colour stops; legend: label, unit, ticks
+        const FIELD_DEFS = {
+            cloud: { val: a => a.cld, unit: '%', ticks: [0, 50, 100],
+                     ramp: [[20, C('#8a97a8', 0)], [45, C('#8a97a8', 70)], [75, C('#6b7686', 125)], [100, C('#4d5665', 165)]] },
+            cape:  { val: a => a.cape, unit: 'J/kg', ticks: [0, 1000, 2500, 4000],
+                     ramp: [[100, C('#5b8def', 0)], [300, C('#5b8def', 90)], [800, C('#38c3a0', 130)], [1500, C('#a8d84a', 150)], [2500, C('#f6c445', 165)], [3500, C('#f0703a', 175)], [4500, C('#c8326a', 185)]] },
+            conv:  { val: a => Math.min(500, (8000 + 750 * Math.sqrt(Math.max(0, a.cape))) / 100) * wxClamp((a.cape - 80) / 400, 0, 1) * wxClamp((a.cld - 15) / 35, 0, 1), unit: 'FL', ticks: [100, 250, 400, 500],
+                     ramp: [[40, C('#6aa8ff', 0)], [110, C('#6aa8ff', 110)], [200, C('#3fd0b0', 140)], [300, C('#f5d442', 160)], [400, C('#f07a3a', 175)], [480, C('#d8345f', 190)]] },
+            dust:  { val: (a, lat, lon) => dustAt(lat, lon), unit: 'µg/m³', ticks: [0, 100, 500, 1000],
+                     ramp: [[30, C('#e3c56a', 0)], [80, C('#e3c56a', 95)], [250, C('#dca04e', 135)], [600, C('#c8683a', 160)], [1200, C('#9b3a5a', 180)]] },
+            fog:   { val: a => fogProb(a), unit: '%', ticks: [0, 50, 100],
+                     ramp: [[20, C('#8da2c8', 0)], [40, C('#8da2c8', 90)], [70, C('#6c7fb0', 140)], [100, C('#4e5d96', 175)]] },
+            frz:   { val: a => frzProb(a), unit: '%', ticks: [0, 50, 100],
+                     ramp: [[8, C('#9aa7d6', 0)], [20, C('#9aa7d6', 110)], [50, C('#7c6fd0', 150)], [100, C('#5b3fb8', 185)]] },
+            ptend: { val: a => a.ptend, unit: 'hPa/3h', ticks: [-4, 0, 4],
+                     ramp: [[-5, C('#5a6fa8', 150)], [-2, C('#8aa0cc', 90)], [-0.6, C('#c9d3e6', 0)], [0.6, C('#d9e6c4', 0)], [2, C('#a9c77d', 90)], [5, C('#6f9a3e', 150)]] },
+            t2m:   { val: a => a.t2, unit: '°C', ticks: [-30, 0, 20, 40],
+                     ramp: [[-40, C('#6a4fb8', 150)], [-20, C('#4f7fd8', 140)], [-5, C('#7fc0e8', 125)], [0, C('#cfe9f2', 110)], [10, C('#b7e0a2', 115)], [20, C('#f3e07a', 125)], [30, C('#f29b4c', 140)], [42, C('#d24343', 155)]] },
+            vis:   { val: a => a.vis / 1000, unit: 'km', ticks: [0, 5, 10],
+                     ramp: [[0.3, C('#d24a6e', 170)], [1.5, C('#e9886e', 140)], [3, C('#f2c27a', 110)], [6, C('#9cc9e6', 60)], [9, C('#9cc9e6', 0)]] }
+        };
+        const FIELD_LAYERS = Object.keys(FIELD_DEFS);
+        function fogProb(a) {
+            const spread = a.t2 - a.td2, wind = Math.hypot(a.u10, a.v10);
+            let p = wxClamp((3 - spread) / 3, 0, 1) * wxClamp((14 - wind) / 10, 0.15, 1);
+            if (a.vis < 1000) p = Math.max(p, 0.9); else if (a.vis < 3000) p = Math.max(p, 0.55);
+            return 100 * wxClamp(p, 0, 1);
+        }
+        function frzProb(a) {    // rain falling from a warm layer onto a sub-zero surface
+            const warmNose = wxClamp(a.t850 / 3, 0, 1), cold = wxClamp((1 - a.t2) / 4, 0, 1), wet = wxClamp(a.prcp / 0.4, 0, 1) * 0.8 + wxClamp((a.cld - 60) / 40, 0, 1) * 0.2;
+            return 100 * warmNose * cold * wet;
+        }
+        // airborne dust: live from Open-Meteo air quality when available, otherwise source regions
+        const DUST = { nodes: null, fetching: false, updated: 0 };
+        const DUST_SRC = [[22, 3, 14, 18, 1100], [18, 15, 10, 14, 700], [24, 48, 8, 12, 600], [41, 105, 6, 14, 450], [-25, 135, 6, 10, 250], [32, -112, 4, 6, 150]];
+        function dustModel(lat, lon) {
+            let v = 0; const ph = Date.now() / 86400000;
+            DUST_SRC.forEach(([la, lo, sla, slo, amp]) => { v += amp * wxGauss(lat, la, sla) * wxGauss(((lon - lo + 540) % 360) - 180, 4 * Math.sin(ph + la), slo); });
+            return v;
+        }
+        function dustAt(lat, lon) {
+            if (!DUST.nodes) return dustModel(lat, lon);
+            const fj = wxClamp((lat - ATMO.latMin) / ATMO.latStep, 0, ATMO.nLat - 1); let fi = (lon - ATMO.lonMin) / ATMO.lonStep; fi = ((fi % ATMO.nLon) + ATMO.nLon) % ATMO.nLon;
+            const j0 = Math.floor(fj), j1 = Math.min(ATMO.nLat - 1, j0 + 1), i0 = Math.floor(fi) % ATMO.nLon, i1 = (i0 + 1) % ATMO.nLon, tj = fj - j0, ti = fi - Math.floor(fi), N = DUST.nodes, nl = ATMO.nLon;
+            return (N[j0 * nl + i0] * (1 - ti) + N[j0 * nl + i1] * ti) * (1 - tj) + (N[j1 * nl + i0] * (1 - ti) + N[j1 * nl + i1] * ti) * tj;
+        }
+        async function fetchDust() {
+            if (DUST.fetching || (DUST.nodes && Date.now() - DUST.updated < 45 * 60000)) return;
+            DUST.fetching = true;
+            const nodes = new Float32Array(ATMO.total); let got = 0;
+            const pts = []; for (let j = 0; j < ATMO.nLat; j++) for (let i = 0; i < ATMO.nLon; i++) pts.push({ j, i, lat: ATMO.latMin + j * ATMO.latStep, lon: ATMO.lonMin + i * ATMO.lonStep });
+            for (let c = 0; c < pts.length; c += 60) {
+                const chunk = pts.slice(c, c + 60);
+                try {
+                    const res = await fetchTimeout('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + chunk.map(p => p.lat).join(',') + '&longitude=' + chunk.map(p => p.lon).join(',') + '&hourly=dust&forecast_hours=1&timezone=GMT', {}, 12000);
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const json = await res.json(), items = Array.isArray(json) ? json : [json];
+                    chunk.forEach((p, k) => { const h = items[k] && items[k].hourly; const v = h && h.dust && h.dust[0]; nodes[p.j * ATMO.nLon + p.i] = (v == null) ? dustModel(p.lat, p.lon) : Number(v); if (v != null) got++; });
+                } catch (e) { chunk.forEach(p => { nodes[p.j * ATMO.nLon + p.i] = dustModel(p.lat, p.lon); }); }
+                await wxSleep(400);
+            }
+            DUST.fetching = false;
+            if (got > ATMO.total * 0.3) { DUST.nodes = nodes; DUST.updated = Date.now(); if (liveWeatherState.dust) renderWxLayer('dust', true); }
+        }
+        function renderFieldLayer(id) {
+            const def = FIELD_DEFS[id], W = 360, H = 240;
+            const y0 = mercY(FIELD_MERC_LAT), y1 = mercY(-FIELD_MERC_LAT);
+            const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+            const ctx = cv.getContext('2d'), img = ctx.createImageData(W, H), d = img.data;
+            for (let py = 0; py < H; py++) {
+                const lat = invMercY(y0 + (y1 - y0) * (py + 0.5) / H);
+                for (let px = 0; px < W; px++) {
+                    const lon = -180 + 360 * (px + 0.5) / W;
+                    const v = def.val(sampleAtmos(lat, lon), lat, lon);
+                    const c = rampColor(def.ramp, v), o = (py * W + px) * 4;
+                    d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = c[3];
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+            const url = cv.toDataURL('image/png'), src = 'wx-f-' + id + '-src', coords = [[-180, FIELD_MERC_LAT], [180, FIELD_MERC_LAT], [180, -FIELD_MERC_LAT], [-180, -FIELD_MERC_LAT]];
+            const s = map.getSource(src);
+            if (s && s.updateImage) s.updateImage({ url, coordinates: coords });
+            else map.addSource(src, { type: 'image', url, coordinates: coords });
+            wxPutLayer({ id: 'wx-f-' + id, type: 'raster', source: src, paint: { 'raster-opacity': 0.85, 'raster-resampling': 'linear', 'raster-fade-duration': 0 } }, id);
+            if (id === 'cape') renderLiLines();
+        }
+        // lifted index ≤ -2 outlined on top of CAPE
+        function renderLiLines() {
+            const f = wxField((la, lo) => -sampleAtmos(la, lo).li, -78, 78, 3, -180, 180, 3);
+            const feats = [];
+            [[2, 1], [5, 2]].forEach(([lv, k]) => wxRings(f, lv).forEach(r => feats.push({ type: 'Feature', properties: { k }, geometry: { type: 'LineString', coordinates: r } })));
+            wxPutSource('wx-li-src', fc(feats));
+            wxPutLayer({ id: 'wx-li-line', type: 'line', source: 'wx-li-src', paint: { 'line-color': wxIsDark() ? '#e6edf3' : '#2b3a55', 'line-width': ['match', ['get', 'k'], 2, 1.4, 0.9], 'line-opacity': 0.6, 'line-dasharray': [2, 2] } }, 'cape');
+        }
+        // mean sea level pressure: isobars every 4 hPa + H/L centres
+        function renderMslp() {
+            const f = wxField((la, lo) => sampleAtmos(la, lo).pmsl, -78, 78, 2, -180, 180, 2);
+            const feats = [];
+            for (let lv = 960; lv <= 1048; lv += 4) {
+                contourPolylines(f.vals, f.nx, f.ny, lv, fi => f.lo0 + fi * f.dlo, fj => f.la0 + fj * f.dla)
+                    .filter(l => l.pts.length >= 4).forEach(l => feats.push({ type: 'Feature', properties: { kind: 'iso', label: String(lv), major: lv % 8 === 0 ? 1 : 0 }, geometry: { type: 'LineString', coordinates: l.pts } }));
+            }
+            // local extremes -> H / L
+            for (let j = 2; j < f.ny - 2; j += 1) for (let i = 2; i < f.nx - 2; i += 1) {
+                const v = f.vals[j * f.nx + i]; let mx = true, mn = true;
+                for (let dj = -3; dj <= 3; dj++) for (let di = -3; di <= 3; di++) { if (!dj && !di) continue; const jj = j + dj, ii = (i + di + f.nx) % f.nx; if (jj < 0 || jj >= f.ny) continue; const w = f.vals[jj * f.nx + ii]; if (w >= v) mx = false; if (w <= v) mn = false; }
+                if ((mx && v > 1018) || (mn && v < 1004)) feats.push({ type: 'Feature', properties: { kind: 'centre', hl: mx ? 'H' : 'L', label: Math.round(v) + '' }, geometry: { type: 'Point', coordinates: [f.lo0 + i * f.dlo, f.la0 + j * f.dla] } });
+            }
+            wxPutSource('wx-mslp-src', fc(feats));
+            const T = wxText(), dark = wxIsDark();
+            wxPutLayer({ id: 'wx-mslp-line', type: 'line', source: 'wx-mslp-src', filter: ['==', ['get', 'kind'], 'iso'],
+                paint: { 'line-color': dark ? '#b8c4d6' : '#4a5a74', 'line-width': ['match', ['get', 'major'], 1, 1.3, 0.8], 'line-opacity': 0.75 } }, 'mslp');
+            wxPutLayer({ id: 'wx-mslp-label', type: 'symbol', source: 'wx-mslp-src', filter: ['all', ['==', ['get', 'kind'], 'iso'], ['==', ['get', 'major'], 1]],
+                layout: wxLabelLayout({ 'symbol-placement': 'line', 'symbol-spacing': 320, 'text-size': 10 }), paint: { 'text-color': T.color, 'text-halo-color': T.halo, 'text-halo-width': 1.5 } }, 'mslp');
+            wxPutLayer({ id: 'wx-mslp-hl', type: 'symbol', source: 'wx-mslp-src', filter: ['==', ['get', 'kind'], 'centre'],
+                layout: { 'text-field': ['get', 'hl'], 'text-font': WX_FONT, 'text-size': 20, 'text-allow-overlap': false },
+                paint: { 'text-color': ['match', ['get', 'hl'], 'H', dark ? '#7fb2ff' : '#1e3a6e', dark ? '#ff8a8a' : '#b3192e'], 'text-halo-color': T.halo, 'text-halo-width': 2 } }, 'mslp');
+            wxPutLayer({ id: 'wx-mslp-hlv', type: 'symbol', source: 'wx-mslp-src', filter: ['==', ['get', 'kind'], 'centre'],
+                layout: { 'text-field': ['get', 'label'], 'text-font': WX_FONT, 'text-size': 10, 'text-offset': [0, 1.5], 'text-allow-overlap': false },
+                paint: { 'text-color': T.color, 'text-halo-color': T.halo, 'text-halo-width': 1.5 } }, 'mslp');
+        }
+        // satellite: NASA GIBS true-colour mosaic (previous UTC day, so it is complete)
+        function renderSatellite() {
+            const d = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+            const url = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_NOAA20_CorrectedReflectance_TrueColor/default/${d}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`;
+            if (map.getSource('wx-sat-src') && map.getSource('wx-sat-src').tiles && map.getSource('wx-sat-src').tiles[0] !== url) { if (map.getLayer('wx-sat')) map.removeLayer('wx-sat'); map.removeSource('wx-sat-src'); }
+            if (!map.getSource('wx-sat-src')) map.addSource('wx-sat-src', { type: 'raster', tiles: [url], tileSize: 256, maxzoom: 9, attribution: 'NASA GIBS' });
+            wxPutLayer({ id: 'wx-sat', type: 'raster', source: 'wx-sat-src', paint: { 'raster-opacity': 0.9, 'raster-fade-duration': 200 } }, 'sat');
+            // satellite sits right above the base map, under everything else
+            if (map.getLayer('wx-sat') && map.getLayer('occ-osm-layer')) { const layers = map.getStyle().layers; const i = layers.findIndex(l => l.id === 'occ-osm-layer'); if (layers[i + 1]) map.moveLayer('wx-sat', layers[i + 1].id); }
+        }
+
+        // ---------- animated winds (particle flow field) ----------
+        const WIND_LEVELS = [['sfc', 'SFC', 'u10', 'v10'], ['fl180', 'FL180', 'u500', 'v500'], ['fl300', 'FL300', 'u300', 'v300'], ['fl340', 'FL340', 'u250', 'v250']];
+        const flow = { on: false, raf: 0, parts: [], level: 'fl340', last: 0, moved: 0 };
+        try { flow.level = localStorage.getItem('bingoFlowLevel') || 'fl340'; } catch (e) {}
+        function setFlowLevel(lv) { flow.level = lv; try { localStorage.setItem('bingoFlowLevel', lv); } catch (e) {} flowReset(); syncWxMenuUI(); updateWxLegend(); }
+        function flowCanvas() {
+            let c = document.getElementById('flowCanvas');
+            if (!c) { c = document.createElement('canvas'); c.id = 'flowCanvas'; c.setAttribute('aria-hidden', 'true'); document.getElementById('radarLayer').appendChild(c); }
+            return c;
+        }
+        function flowReset() {
+            const c = flowCanvas(), dpr = Math.min(2, window.devicePixelRatio || 1);
+            c.width = Math.round(c.clientWidth * dpr); c.height = Math.round(c.clientHeight * dpr);
+            const n = Math.round(Math.min(2200, c.clientWidth * c.clientHeight / 380) * (prefersReducedMotion() ? 0.3 : 1));
+            flow.parts = Array.from({ length: n }, () => ({ x: Math.random() * c.clientWidth, y: Math.random() * c.clientHeight, age: Math.random() * 80 }));
+            const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, c.width, c.height);
+        }
+        function startFlow() {
+            if (flow.raf || !map) return;
+            flow.on = true; flowCanvas().style.display = 'block'; flowReset();
+            if (!startFlow._bound) { startFlow._bound = true; map.on('move', () => { if (flow.on) { flow.moved = performance.now(); const c = flowCanvas(); c.getContext('2d').clearRect(0, 0, c.width, c.height); } }); window.addEventListener('resize', () => { if (flow.on) flowReset(); }); }
+            const tick = (now) => {
+                const c = flowCanvas(), ctx = c.getContext('2d'), w = c.clientWidth, h = c.clientHeight;
+                const lv = WIND_LEVELS.find(l => l[0] === flow.level) || WIND_LEVELS[3];
+                const dark = wxIsDark();
+                ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = 'rgba(0,0,0,0.08)'; ctx.fillRect(0, 0, w, h);
+                ctx.globalCompositeOperation = 'source-over';
+                if (now - flow.moved > 120) {
+                    const pxPerKt = 0.022;                       // screen-space speed: 100 kt ≈ 2 px per frame
+                    ctx.lineWidth = 1.2;
+                    for (const p of flow.parts) {
+                        const ll = map.unproject([p.x, p.y]);
+                        const a = sampleAtmos(ll.lat, ll.lng), u = a[lv[2]], v = a[lv[3]], sp = Math.hypot(u, v);
+                        const nx = p.x + u * pxPerKt, ny = p.y - v * pxPerKt;
+                        ctx.strokeStyle = sp < 15 ? (dark ? 'rgba(180,200,230,0.5)' : 'rgba(90,110,140,0.45)') : sp < 40 ? (dark ? 'rgba(120,200,255,0.7)' : 'rgba(40,120,200,0.6)') : sp < 80 ? 'rgba(60,190,140,0.75)' : sp < 120 ? 'rgba(240,180,40,0.8)' : 'rgba(230,80,70,0.85)';
+                        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(nx, ny); ctx.stroke();
+                        p.x = nx; p.y = ny; p.age++;
+                        if (p.age > 90 || p.x < 0 || p.y < 0 || p.x > w || p.y > h) { p.x = Math.random() * w; p.y = Math.random() * h; p.age = 0; }
+                    }
+                }
+                flow.raf = requestAnimationFrame(tick);
+            };
+            flow.raf = requestAnimationFrame(tick);
+        }
+        function stopFlow() {
+            flow.on = false; cancelAnimationFrame(flow.raf); flow.raf = 0;
+            const c = document.getElementById('flowCanvas'); if (c) { c.getContext('2d').clearRect(0, 0, c.width, c.height); c.style.display = 'none'; }
+        }
+
+        // ---------- legend for the active colour layers ----------
+        const LEGEND_LABEL = { cloud: ['Skydække', 'Cloud cover'], cape: ['CAPE', 'CAPE'], conv: ['Konvektive skytoppe (est.)', 'Convective cloud tops (est.)'], dust: ['Støv', 'Dust'],
+            fog: ['Tåge-sandsynlighed', 'Fog probability'], frz: ['Isslag-sandsynlighed', 'Freezing rain probability'], ptend: ['Trykændring', 'Pressure tendency'],
+            t2m: ['Temperatur (2 m)', 'Temperature (2 m)'], vis: ['Sigtbarhed', 'Visibility'] };
+        function updateWxLegend() {
+            let el = document.getElementById('wx-legend');
+            if (!el) { el = document.createElement('div'); el.id = 'wx-legend'; document.body.appendChild(el); }
+            const da = currentLang === 'da';
+            const rows = FIELD_LAYERS.filter(id => liveWeatherState[id]).map(id => {
+                const def = FIELD_DEFS[id], lo = def.ramp[0][0], hi = def.ramp[def.ramp.length - 1][0];
+                const grad = def.ramp.map(([v, c]) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${Math.max(0.15, c[3] / 255).toFixed(2)}) ${(100 * (v - lo) / (hi - lo)).toFixed(0)}%`).join(',');
+                const ticks = def.ticks.map(t => `<span style="left:${wxClamp(100 * (t - lo) / (hi - lo), 0, 100)}%">${t}</span>`).join('');
+                return `<div class="lg-row"><div class="lg-name">${LEGEND_LABEL[id][da ? 0 : 1]} <em>${def.unit}</em></div><div class="lg-bar" style="background:linear-gradient(90deg,${grad})"></div><div class="lg-ticks">${ticks}</div></div>`;
+            });
+            if (liveWeatherState.flow) { const lv = WIND_LEVELS.find(l => l[0] === flow.level); rows.unshift(`<div class="lg-row"><div class="lg-name">${da ? 'Vind' : 'Wind'} · ${lv[1]} <em>kt</em></div><div class="lg-bar" style="background:linear-gradient(90deg,#7c8fa8 0%,#2878c8 20%,#3cbe8c 45%,#f0b428 70%,#e65046 100%)"></div><div class="lg-ticks"><span style="left:0">0</span><span style="left:20%">15</span><span style="left:45%">40</span><span style="left:70%">80</span><span style="left:100%">120+</span></div></div>`); }
+            el.innerHTML = rows.join('');
+            el.classList.toggle('show', rows.length > 0);
+        }
+
         // ---- ORCHESTRATION --------------------------------------------------------
         let wxBuilt = {};
         let wxPopupsBound = false;
         async function renderWxLayer(id, force) {
             if (!map || !map.getStyle()) return;
-            const atmoDep = ['jet', 'barbs', 'cloud', 'cat', 'icing'].includes(id);
+            if (id === 'flow') { if (liveWeatherState.flow) startFlow(); return; }
+            const atmoDep = ['jet', 'barbs', 'cat', 'icing', 'mslp'].includes(id) || FIELD_LAYERS.includes(id);
             const fresh = wxBuilt[id] === (atmoDep ? ATMO.version : 1) && map.getLayer(WX_LAYER_GROUPS[id][0]);
             if (fresh && !force) return;
             ATMO.cs = wxClimateState();
             try {
                 if (id === 'cyclone') await loadCyclones(force);
                 if (id === 'sigmet') await loadSigmetData();
-                ({ jet: renderJet, barbs: renderBarbs, cloud: renderCloud, cat: renderCat, trop: renderTrop, icing: renderIcing,
+                if (id === 'dust') fetchDust();
+                if (FIELD_LAYERS.includes(id)) renderFieldLayer(id);
+                else ({ jet: renderJet, barbs: renderBarbs, cat: renderCat, trop: renderTrop, icing: renderIcing, mslp: renderMslp, sat: renderSatellite,
                    cyclone: renderCyclone, volcano: renderVolcano, sigmet: renderSigmet })[id]();
                 wxBuilt[id] = atmoDep ? ATMO.version : 1;
             } catch (e) { console.warn('Weather layer failed: ' + id, e); }
@@ -4320,6 +4696,8 @@
         }
         function setWxVisibility(id, on) {
             (WX_LAYER_GROUPS[id] || []).forEach(lid => { if (map.getLayer(lid)) map.setLayoutProperty(lid, 'visibility', on ? 'visible' : 'none'); });
+            if (id === 'flow') { if (on) startFlow(); else stopFlow(); }
+            updateWxLegend();
             if (id === 'cyclone' && !on) clearCycloneMarkers();
         }
         async function toggleWxLayer(id) {
@@ -4335,6 +4713,7 @@
                 else if (id === 'cyclone' && wxCyclones.data && !wxCyclones.data.centers.length) showToast(currentLang === 'da' ? 'Ingen aktive tropiske cykloner i feedet' : 'No active tropical cyclones in feed');
                 if (id === 'sigmet' && wxSigmet.sample) showToast(currentLang === 'da' ? 'SIGMET live-feed utilgængeligt – viser EKSEMPLER' : 'SIGMET live feed unavailable – showing SAMPLE areas');
             } else setWxVisibility(id, false);
+            updateWxLegend();
             const def = WX_LAYER_DEFS.find(d => d.id === id);
             showToast(wxName(def) + (liveWeatherState[id] ? (currentLang === 'da' ? ' TIL' : ' ON') : (currentLang === 'da' ? ' FRA' : ' OFF')));
         }
@@ -4356,9 +4735,13 @@
         function initWxMenu() {
             const list = document.getElementById('wxMenuList');
             if (!list) return;
-            list.innerHTML = WX_LAYER_DEFS.map(d =>
-                '<div class="wx-row" data-wx="' + d.id + '"><span class="material-icons-outlined wx-row-icon">' + d.icon + '</span>' +
-                '<span class="wx-row-name"></span><label class="switch"><input type="checkbox" onchange="toggleWxLayer(\'' + d.id + '\')"><span class="slider"></span></label></div>').join('');
+            let last = null;
+            list.innerHTML = WX_LAYER_DEFS.map(d => {
+                const head = d.grp !== last ? '<div class="wx-grp" data-grp="' + d.grp + '"></div>' : ''; last = d.grp;
+                const lvl = d.id === 'flow' ? '<div class="wx-level" id="wxFlowLevel">' + WIND_LEVELS.map(l => '<button type="button" data-lv="' + l[0] + '" onclick="setFlowLevel(\'' + l[0] + '\')">' + l[1] + '</button>').join('') + '</div>' : '';
+                return head + '<div class="wx-row" data-wx="' + d.id + '"><span class="material-icons-outlined wx-row-icon">' + d.icon + '</span>' +
+                    '<span class="wx-row-name"></span><label class="switch"><input type="checkbox" onchange="toggleWxLayer(\'' + d.id + '\')"><span class="slider"></span></label></div>' + lvl;
+            }).join('');
             syncWxMenuUI(); setWxStatus();
         }
         function syncWxMenuUI() {
@@ -4368,6 +4751,9 @@
                 row.querySelector('input').checked = !!liveWeatherState[def.id];
                 row.classList.toggle('on', !!liveWeatherState[def.id]);
             });
+            document.querySelectorAll('#wxMenuList .wx-grp').forEach(g => { g.textContent = WX_GROUP_NAMES[g.dataset.grp][currentLang === 'da' ? 0 : 1]; });
+            const lv = document.getElementById('wxFlowLevel');
+            if (lv) { lv.classList.toggle('show', !!liveWeatherState.flow); lv.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.lv === flow.level)); }
         }
         function toggleWxMenu(force) {
             const m = document.getElementById('wx-menu'), b = document.getElementById('btn-wx-menu');
@@ -4712,6 +5098,7 @@
             updateTrackPill();
             if (typeof updateVerifyEmptyState === 'function') updateVerifyEmptyState();
             if (typeof updateRecent === 'function') updateRecent();
+            if (typeof updateWxLegend === 'function') updateWxLegend();
             if (document.body.classList.contains('manual-open') && typeof renderManual === 'function') renderManual();
             if (typeof saveGame === 'function') saveGame();
         }
@@ -5513,6 +5900,10 @@
                     [[1318.5, 0.55], [1046.5, 0.8]].forEach(([f, d]) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'sine';
                         o.frequency.setValueAtTime(f, now + d); o.connect(g); g.connect(masterGain); g.gain.setValueAtTime(0, now + d);
                         g.gain.linearRampToValueAtTime(0.22, now + d + 0.02); g.gain.exponentialRampToValueAtTime(0.001, now + d + 1.2); o.start(now + d); o.stop(now + d + 1.25); });
+                } else if (type === 'gadss-caution' || type === 'gadss-warning') {
+                    const warn = type === 'gadss-warning', notes = warn ? [[880, 0], [660, 0.22], [880, 0.44], [660, 0.66]] : [[740, 0], [988, 0.18]];
+                    notes.forEach(([f, t]) => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = warn ? 'square' : 'sine'; o.frequency.value = f; o.connect(g); g.connect(masterGain);
+                        g.gain.setValueAtTime(0, now + t); g.gain.linearRampToValueAtTime(warn ? 0.06 : 0.12, now + t + 0.015); g.gain.exponentialRampToValueAtTime(0.0008, now + t + 0.19); o.start(now + t); o.stop(now + t + 0.2); });
                 } else if (type === 'pop') {
                     // firework / balloon pop: filtered noise burst + a little crackle
                     const len = 0.35, buf = audioCtx.createBuffer(1, audioCtx.sampleRate * len, audioCtx.sampleRate), d = buf.getChannelData(0);
@@ -5661,6 +6052,32 @@
             return { depAirport, destAirport };
         }
 
+        // ---------- aircraft types (own icon set, chosen from the route length; stable per flight via the route seed) ----------
+        const AC_CATS = {
+            prop:  { da: 'To-motorers turboprop', en: 'Twin turboprop', size: 18, types: [['AT76', 'ATR 72-600'], ['DH8D', 'Dash 8-400'], ['AT45', 'ATR 42-500']], fl: [190, 250], spd: 280,
+                     svg: '<path d="M12 2.2c.8 0 1.3.8 1.3 1.8v5.6l8.9 1.2v1.9l-8.9-.4v5.6l2.6 1.6v1.5L12 20.3l-3.9.7v-1.5l2.6-1.6v-5.6l-8.9.4v-1.9l8.9-1.2V4c0-1 .5-1.8 1.3-1.8z"/><rect x="5.2" y="8" width="1.6" height="4.4" rx=".8"/><rect x="17.2" y="8" width="1.6" height="4.4" rx=".8"/><rect x="3.4" y="7.8" width="5.2" height=".9" rx=".45"/><rect x="15.4" y="7.8" width="5.2" height=".9" rx=".45"/>' },
+            rj:    { da: 'Regionaljet (motorer bagpå)', en: 'Regional jet (rear engines)', size: 18, types: [['E190', 'Embraer 190'], ['CRJ9', 'CRJ-900'], ['E75L', 'Embraer 175']], fl: [300, 360], spd: 440,
+                     svg: '<path d="M12 1.8c.8 0 1.3.8 1.3 1.9v6.1l8.4 3.4v1.8l-8.4-2v4.2l2.7 2v1.5L12 20l-4 .7v-1.5l2.7-2v-4.2l-8.4 2v-1.8l8.4-3.4V3.7c0-1.1.5-1.9 1.3-1.9z"/><rect x="8.2" y="13.6" width="1.6" height="3.4" rx=".8"/><rect x="14.2" y="13.6" width="1.6" height="3.4" rx=".8"/>' },
+            biz:   { da: 'Forretningsjet', en: 'Business jet', size: 16, types: [['GLEX', 'Global Express'], ['GLF6', 'Gulfstream G650'], ['C68A', 'Citation Latitude']], fl: [410, 450], spd: 470,
+                     svg: '<path d="M12 2.4c.7 0 1.1.7 1.1 1.7v6.4l7.6 4.3v1.6l-7.6-2.4v3.7l2.4 1.9v1.3L12 20.3l-3.5.6v-1.3l2.4-1.9v-3.7l-7.6 2.4v-1.6l7.6-4.3V4.1c0-1 .4-1.7 1.1-1.7z"/><rect x="8.6" y="13.2" width="1.4" height="3" rx=".7"/><rect x="14" y="13.2" width="1.4" height="3" rx=".7"/>' },
+            narrow:{ da: 'To-motorers mellemjet', en: 'Twin engine medium jet', size: 19, types: [['A320', 'Airbus A320'], ['A20N', 'Airbus A320neo'], ['B738', 'Boeing 737-800'], ['B38M', 'Boeing 737 MAX 8'], ['A321', 'Airbus A321']], fl: [330, 380], spd: 460,
+                     svg: '<path d="M12 1.5c.9 0 1.4.9 1.4 2v5.7l9.2 5.4v1.8l-9.2-2.9v5l2.8 2.1v1.5L12 21.2l-4.2.9v-1.5l2.8-2.1v-5l-9.2 2.9v-1.8l9.2-5.4V3.5c0-1.1.5-2 1.4-2z"/><ellipse cx="7.3" cy="11.9" rx=".95" ry="1.7"/><ellipse cx="16.7" cy="11.9" rx=".95" ry="1.7"/>' },
+            wide:  { da: 'To-motorers tungt fly', en: 'Twin engine heavy jet', size: 22, types: [['B789', 'Boeing 787-9'], ['A359', 'Airbus A350-900'], ['B77W', 'Boeing 777-300ER'], ['A333', 'Airbus A330-300']], fl: [350, 410], spd: 485,
+                     svg: '<path d="M12 .9c1 0 1.6 1 1.6 2.3v6l9.6 6v2l-9.6-3.2v5.2l3 2.2v1.6L12 22.1l-4.6.9v-1.6l3-2.2V14l-9.6 3.2v-2l9.6-6v-6C10.4 1.9 11 .9 12 .9z"/><ellipse cx="6.6" cy="12.7" rx="1.25" ry="2.1"/><ellipse cx="17.4" cy="12.7" rx="1.25" ry="2.1"/>' },
+            quad:  { da: 'Fire-motorers tungt fly', en: 'Four engine heavy jet', size: 23, types: [['A388', 'Airbus A380-800'], ['B748', 'Boeing 747-8'], ['B744', 'Boeing 747-400']], fl: [340, 390], spd: 490,
+                     svg: '<path d="M12 .8c1.1 0 1.7 1.1 1.7 2.4v6l9.6 6.1v2l-9.6-3.3v5.2l3 2.2v1.6L12 22.2l-4.7.9v-1.6l3-2.2V14L.7 17.3v-2l9.6-6.1v-6C10.3 1.9 10.9.8 12 .8z"/><ellipse cx="7.6" cy="12" rx="1" ry="1.8"/><ellipse cx="16.4" cy="12" rx="1" ry="1.8"/><ellipse cx="4.4" cy="14" rx="1" ry="1.7"/><ellipse cx="19.6" cy="14" rx="1" ry="1.7"/>' }
+        };
+        function pickAircraft(distNm, seed) {
+            const r = mulberry32((seed >>> 0) ^ 0x5bd1e995), x = r();
+            let cat;
+            if (distNm < 330) cat = x < 0.6 ? 'prop' : x < 0.92 ? 'rj' : 'biz';
+            else if (distNm < 1500) cat = x < 0.72 ? 'narrow' : x < 0.9 ? 'rj' : 'biz';
+            else if (distNm < 3800) cat = x < 0.45 ? 'narrow' : x < 0.93 ? 'wide' : 'biz';
+            else cat = x < 0.72 ? 'wide' : x < 0.95 ? 'quad' : 'biz';
+            const c = AC_CATS[cat], t = c.types[Math.floor(r() * c.types.length)];
+            const fl = Math.round((c.fl[0] + r() * (c.fl[1] - c.fl[0])) / 10) * 10;
+            return { cat, code: t[0], name: t[1], fl };
+        }
         function createFlightData(num, preset) {
             let depAirport, destAirport;
             if (preset) { depAirport = AIRPORT_DB.find(a => a.code === preset.dep); destAirport = AIRPORT_DB.find(a => a.code === preset.dest); }
@@ -5672,8 +6089,9 @@
 
             const route = buildRealisticRoute(depAirport, destAirport, routeSeed);
             const totalDistNm = Math.max(25, Math.round(route.total));
-            const fl = 320 + ((num % 7) * 10); // FL320 - FL380
-            const spd = CONSTANT_GROUND_SPEED_KT;
+            const ac = pickAircraft(gHav(depAirport.lat, depAirport.lon, destAirport.lat, destAirport.lon), routeSeed);
+            const fl = Math.min(ac.fl, flightProfile({ totalDistNm, fl: ac.fl }).peak / 100 || ac.fl);   // short hops cruise lower
+            const spd = AC_CATS[ac.cat].spd;                       // ground speed depends on the aircraft type
 
             const now = preset && preset.stdMs ? new Date(preset.stdMs) : new Date();
             const formatTime = (date) => date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -5704,6 +6122,8 @@
                 durMin: flightDurationMin,
                 route,
                 routeSeed,
+                ac,
+                nmps: CONSTANT_NM_PER_SECOND * spd / CONSTANT_GROUND_SPEED_KT,   // game speed scaled by the type's real speed
                 reg: preset && preset.reg ? preset.reg : makeRegistration(depAirport.code),
                 squawk: preset && preset.squawk ? preset.squawk : makeSquawk()
             };
@@ -5719,9 +6139,9 @@
             wrapper.id = 'plane-obj-' + flight.num;
             wrapper.innerHTML = `
                 <div class="plane-rotator" style="transform: rotate(${flight.headingDeg.toFixed(2)}deg)">
-                    <svg class="plane-icon" viewBox="0 0 24 24"><path d="M21,16V14L13,9V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V9L2,14V16L10,13.5V19L8,20.5V22L11.5,21L15,22V20.5L13,19V13.5L21,16Z" /></svg>
+                    <svg class="plane-icon ac-${flight.ac ? flight.ac.cat : 'narrow'}" viewBox="0 0 24 24" style="--ac-size:${flight.ac ? AC_CATS[flight.ac.cat].size : 19}px">${flight.ac ? AC_CATS[flight.ac.cat].svg : AC_CATS.narrow.svg}</svg>
                 </div>
-                <div class="plane-info-box">${flight.flightNo} FL${flight.fl} ${flight.spd}</div>
+                <div class="plane-info-box">${flight.flightNo} ${flight.ac ? flight.ac.code : ''} FL${flight.fl}</div>
             `;
 
             // anchor: 'center' + centreret .plane-rotator sikrer, at flyets midte ligger 100% oven på linjen
@@ -5833,18 +6253,42 @@
         }
         // Fly to where the aircraft WILL be when the animation ends, then hand over to frame-by-frame following.
         function flyToAircraft(p, zoom, duration, done) {
-            const lead = p.landed || !p.route ? 0 : CONSTANT_NM_PER_SECOND * duration / 1000;
+            const lead = p.landed || !p.route ? 0 : (p.nmps || CONSTANT_NM_PER_SECOND) * duration / 1000;
             const target = p.route ? routePosAt(p.route, Math.min(p.route.total, p.flownDistNm + lead)) : [p.lon, p.lat];
             map.stop();
             const started = Date.now();
-            map.flyTo({ center: target, zoom, duration, essential: true });
+            map.flyTo({ center: target, zoom, duration, essential: true, padding: focusPadding() });
             if (done) map.once('moveend', () => { if ((window._mapGrabAt || 0) < started) done(); });
         }
         // phones: start further out, so routes and weather around the airport are actually in view
         function defaultMapZoom() { return isMobileUI() ? 2.6 : 4.5; }
+        // free map area when the flight panel / profile is open: centre the aircraft there, not behind a panel
+        function focusPadding() {
+            const none = { top: 0, bottom: 0, left: 0, right: 0 };
+            if (!document.body.classList.contains('flight-focus-open')) return none;
+            const mapR = document.getElementById('realMap').getBoundingClientRect();
+            const pad = { ...none };
+            const ff = document.getElementById('flight-focus').getBoundingClientRect();
+            const prof = document.getElementById('flight-profile');
+            if (isMobileUI()) {
+                if (ff.left > mapR.left + mapR.width * 0.4) pad.right = Math.max(0, mapR.right - ff.left + 8);   // side panel (landscape)
+                else pad.bottom = Math.max(0, mapR.bottom - ff.top + 8);                                          // bottom sheet (portrait)
+            } else if (prof && getComputedStyle(prof).display !== 'none') {
+                pad.bottom = Math.max(0, mapR.bottom - prof.getBoundingClientRect().top + 8);
+            }
+            pad.top = 8;
+            return pad;
+        }
+        function applyFocusPadding(animate) {
+            if (!map) return;
+            const pad = focusPadding();
+            if (animate) map.easeTo({ padding: pad, duration: 300 }); else map.setPadding(pad);
+        }
+        window.addEventListener('resize', () => { if (focusedFlightNum !== null) setTimeout(() => applyFocusPadding(false), 50); });
         function zoomToDefaultView() {
             if (!map) return;
             map.resize();
+            map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
             if (isGlobeMode) map.flyTo({ center: [currentLon, 35], zoom: 2.1, pitch: 0, bearing: 0, duration: 1200 });
             else map.flyTo({ center: [currentLon, currentLat], zoom: defaultMapZoom(), pitch: 0, bearing: 0, duration: 1200 });
         }
@@ -5915,16 +6359,18 @@
             const chip = code => `<span class="ff-chip"><span class="ff-dot"></span>${code}</span>`;
             const item = (label, val, key, cls) => `<div class="ff-item"><span class="ff-label">${label}</span><span class="ff-val ${cls || ''}" ${key ? `data-ff="${key}"` : ''}>${val}</span></div>`;
             panel.innerHTML = `
-                <div class="ff-card ff-head">
+                <div class="ff-card ff-head" onclick="toggleFlightFocusExpand()">
                     <div class="ff-row"><span class="ff-route"><span class="material-icons-outlined">flight</span>${p.depAirport.code} – ${p.destAirport.code}</span><span class="ff-strong" data-ff="altHead">–</span></div>
                     <div class="ff-row ff-sub"><span>${p.flightNo} / ${p.reg} / ${p.std}</span><span><span data-ff="atdHead">${p.std}</span> / <span class="ff-accent">${hhmm(etaMs)}</span></span></div>
                     <div class="ff-progress"><div class="ff-progress-fill" data-ff="prog"></div></div>
                 </div>
+                <div class="ff-gadss" data-ff="gadss"></div>
                 <div class="ff-scroll">
                     <div class="ff-card">
                         <div class="ff-title">${L('Flyvning', 'Flight')}</div>
                         <div class="ff-grid">
                             ${item('ATC ID', p.flightNo)}${item(L('Registrering', 'Registration'), p.reg)}
+                            ${p.ac ? `<div class="ff-item ff-span"><span class="ff-label">${L('Flytype', 'Aircraft type')}</span><span class="ff-val ff-actype"><svg viewBox="0 0 24 24">${AC_CATS[p.ac.cat].svg}</svg>${p.ac.code} · ${p.ac.name}<small>${L(AC_CATS[p.ac.cat].da, AC_CATS[p.ac.cat].en)}</small></span></div>` : ''}
                             ${item(L('Dato', 'Date'), new Date(p.stdMs).toISOString().slice(0, 10))}${item('STD', p.std)}
                             ${item('DEP', chip(p.depAirport.code))}${item('DEST', chip(p.destAirport.code))}
                             ${item('ALT1', alts[0] ? chip(alts[0]) : '–')}${item('ALT2', alts[1] ? chip(alts[1]) : '–')}
@@ -5944,10 +6390,12 @@
                     </div>
                 </div>
                 <div class="ff-actions">
+                    <button class="ff-btn ff-more" onclick="toggleFlightFocusExpand()"><span class="material-icons-outlined">expand_less</span><span>${L('Detaljer', 'Details')}</span></button>
                     <button class="ff-btn" onclick="clearFlightSelection()">${L('Luk', 'Close')}</button>
                     <button class="ff-btn ff-primary" data-ff="followBtn" onclick="toggleFollowFocused()">${L('Følg fly', 'Follow aircraft')}</button>
                 </div>`;
             document.body.classList.add('flight-focus-open');
+            if (isMobileUI() && !panel.dataset.keep) panel.classList.remove('expanded');   // phones start with the compact card
             dockFabsInPanel(true);
             pushWindowsForFocus(true);
             panel.classList.add('open');
@@ -5956,8 +6404,15 @@
             renderProfileChart(p);
             updateFlightFocus();
         }
+        function toggleFlightFocusExpand() {
+            if (!isMobileUI()) return;
+            const panel = document.getElementById('flight-focus');
+            panel.classList.toggle('expanded');
+            setTimeout(() => applyFocusPadding(true), 260);
+        }
         function closeFlightFocus() {
             focusedFlightNum = null;
+            if (map && typeof map.setPadding === 'function') map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
             if (document.body.classList.contains('flight-focus-open')) pushWindowsForFocus(false);
             dockFabsInPanel(false);
             document.body.classList.remove('flight-focus-open');
@@ -6053,6 +6508,17 @@
             const fb = panel.querySelector('[data-ff="followBtn"]');
             if (fb) { fb.disabled = p.landed; fb.innerText = trackedFlightNum === p.num ? L('Følger…', 'Following…') : L('Følg fly', 'Follow aircraft'); fb.classList.toggle('on', trackedFlightNum === p.num); }
             updateProfileProgress(p, st);
+            const gb = panel.querySelector('[data-ff="gadss"]');
+            if (gb) {
+                const sig = p.gadss ? p.gadss.level + '|' + p.gadss.ack + '|' + gadssMinutes(p) + '|' + currentLang : '';
+                if (gb.dataset.sig === sig) { /* unchanged – keep the button clickable */ }
+                else if (p.gadss) {
+                    gb.dataset.sig = sig;
+                    gb.className = 'ff-gadss show ' + p.gadss.level + (p.gadss.ack ? ' ack' : '');
+                    gb.innerHTML = `<div><b>GADSS ${p.gadss.level === 'warning' ? L('advarsel', 'warning') : L('forsigtighed', 'caution')}</b><span>${gadssText(p)}</span></div>` +
+                        (p.gadss.ack ? `<em>${L('Kvitteret', 'Acknowledged')}</em>` : `<button type="button" onclick="event.stopPropagation(); ackGadss(${p.num})">${L('Kvittér', 'Acknowledge')}</button>`);
+                } else { gb.dataset.sig = ''; gb.className = 'ff-gadss'; gb.innerHTML = ''; }
+            }
         }
 
         // Vertical profile chart (single series: altitude over time). Planned = dashed, flown = solid, "now" = vertical line.
@@ -6163,7 +6629,7 @@
                 if (p.landed) continue;
 
                 anyMoved = true;
-                p.flownDistNm += CONSTANT_NM_PER_SECOND * dtSec;
+                p.flownDistNm += (p.nmps || CONSTANT_NM_PER_SECOND) * dtSec;
 
                 if (p.flownDistNm >= p.totalDistNm) {
                     p.flownDistNm = p.totalDistNm;
@@ -6196,18 +6662,18 @@
             if (trackedFlightNum !== null && map) {
                 const tp = activePlaneMarkers[trackedFlightNum];
                 if (!tp) releaseTracking(true);
-                else if (!map.isMoving()) map.jumpTo({ center: [tp.lon, tp.lat] });
+                else if (!map.isMoving()) { map.jumpTo({ center: [tp.lon, tp.lat] }); if (typeof map.redraw === 'function') map.redraw(); }   // draw the map in the SAME frame as the aircraft -> no wobble
             }
 
             // Opdater selve GeoJSON-rutelinjen og det åbne telemetri-kort ~8 gange i sekundet (eller straks ved landing)
-            if ((anyMoved && (now - lastRouteGeoJsonSync > 250)) || anyLandedThisFrame) {
+            if ((anyMoved && (now - lastRouteGeoJsonSync > (focusedFlightNum !== null ? 100 : 250))) || anyLandedThisFrame) {
                 lastRouteGeoJsonSync = now;
                 try { updateFlightRoutesLayer(anyLandedThisFrame); } catch (e) { /* never let a map hiccup stop the animation loop */ }
                 planes.forEach(p => {
                     if (p.landed) return;
                     syncFlightRowUI(p);
                     const ib = p.el && p.el.querySelector('.plane-info-box');
-                    if (ib) ib.innerText = `${p.flightNo} FL${String(Math.round(altAtNm(p, p.flownDistNm) / 100)).padStart(3, '0')} ${p.spd}`;
+                    if (ib) ib.innerText = `${p.flightNo} ${p.ac ? p.ac.code : ''} FL${String(Math.round(altAtNm(p, p.flownDistNm) / 100)).padStart(3, '0')}`;
                 });
                 if (focusedFlightNum !== null) updateFlightFocus();
             }
@@ -6288,6 +6754,7 @@
             const cell = document.getElementById('cell-' + removedNum); if (cell) cell.classList.remove('active', 'latest');
             if (trackedFlightNum === removedNum) releaseTracking(true);
             if (focusedFlightNum === removedNum) clearFlightSelection();
+            if (activePlaneMarkers[removedNum] && activePlaneMarkers[removedNum].gadss) activePlaneMarkers[removedNum].gadss = null;
             if (activePlaneMarkers[removedNum]) {
                 activePlaneMarkers[removedNum].marker.remove();
                 delete activePlaneMarkers[removedNum];
@@ -6382,6 +6849,7 @@
                 </td>
             `;
 
+            if (flight.gadss) row.classList.add('gadss-' + flight.gadss.level);
             const firstRow = tbody.firstChild;
             tbody.insertBefore(row, firstRow);
             tbody.insertBefore(detailRow, row.nextSibling);
@@ -6473,7 +6941,7 @@
                 const cell = document.getElementById('cell-' + n); if (cell) cell.classList.add('active');
                 const f = createFlightData(n, st.flights && st.flights[n]);
                 const saved = st.flights && st.flights[n];
-                if (saved && typeof saved.flown === 'number') f.flownDistNm = Math.min(f.totalDistNm, saved.flown + elapsedS * CONSTANT_NM_PER_SECOND);
+                if (saved && typeof saved.flown === 'number') f.flownDistNm = Math.min(f.totalDistNm, saved.flown + elapsedS * (f.nmps || CONSTANT_NM_PER_SECOND));
                 addRadarPlane(f);
                 updateLog(f);
             });
@@ -7360,6 +7828,7 @@
                   <li><b>Listen</b> viser fly, afgangstid (STD), afgang, destination og ankomst (ETA) med en lille fremdriftsbjælke. Landede fly bliver grå.</li>
                   <li><b>Klik på en række</b> for detaljer, og for at vælge flyet på kortet.</li>
                   <li><b>Søg</b> på flynummer, lufthavn eller by.</li>
+                  <li><b>Flytyper</b>: hvert fly får en type, der passer til ruten – turboprop og regionaljets på korte ture, mellemjets på mellemdistance og store to- og firemotorers fly på langdistance. Ikonet på kortet viser typen, og flyvehøjde og fart følger den.</li>
                   <li>${I('print')} printer en liste over de trukne tal med kaldenavne.</li>
                 </ul>` },
               en: { t: 'Active flights', h: `
@@ -7368,6 +7837,7 @@
                   <li><b>The list</b> shows flight, departure time (STD), origin, destination and arrival (ETA) with a small progress bar. Landed flights turn grey.</li>
                   <li><b>Click a row</b> for details and to select the aircraft on the map.</li>
                   <li><b>Search</b> by flight number, airport or city.</li>
+                  <li><b>Aircraft types</b>: every flight gets a type that suits the route – turboprops and regional jets on short hops, medium jets on medium range and big twin and four-engine aircraft on long haul. The map icon shows the type, and cruise level and speed follow it.</li>
                   <li>${I('print')} prints a list of the drawn numbers with their nicknames.</li>
                 </ul>` } },
             { id: 'map', icon: 'public',
@@ -7432,39 +7902,54 @@
                   <li><b>Close</b>, clicking the aircraft again, or clicking an empty spot deselects it and zooms back out.</li>
                 </ul>
                 <p class="note">The aircraft are fictional: registration, squawk, profile and fuel are simulated.</p>` } },
+            { id: 'gadss', icon: 'emergency_home',
+              da: { t: 'GADSS-advarsler', h: `
+                <p>GADSS er ICAO's system til at holde øje med fly, der holder op med at sende deres position. Bingo Watch simulerer det for sjov: engang imellem stopper et fly i marchhøjde med at rapportere.</p>
+                <ul>
+                  <li><b>Forsigtighed (gul)</b>: ingen positionsrapport i 10 minutter. Flyet får en pulserende gul glorie på kortet, og rækken i Aktive fly bliver gul.</li>
+                  <li><b>Advarsel (rød)</b>: ingen rapport i 15 minutter eller mere. Glorien bliver rød og pulserer hurtigere, og der lyder en kort alarm.</li>
+                  <li><b>Advarselsbjælken</b> øverst på kortet viser alle aktive advarsler. Klik på en for at vælge flyet, eller tryk ✓ for at kvittere.</li>
+                  <li>I <b>flypanelet</b> står advarslen øverst med en <b>Kvittér</b>-knap. Kvitterede advarsler pulserer roligere.</li>
+                  <li>Når flyet melder sig igen, forsvinder advarslen, og du får besked.</li>
+                </ul>
+                <p>Slå simuleringen fra under Indstillinger → Generelt (eller Mere på mobil). 1 minut i simuleringen svarer til ca. 3 sekunder.</p>` },
+              en: { t: 'GADSS warnings', h: `
+                <p>GADSS is ICAO's system for keeping track of aircraft that stop sending their position. Bingo Watch simulates it for fun: every now and then an aircraft in cruise stops reporting.</p>
+                <ul>
+                  <li><b>Caution (yellow)</b>: no position report for 10 minutes. The aircraft gets a pulsing yellow glow on the map and its row in Active Flights turns yellow.</li>
+                  <li><b>Warning (red)</b>: no report for 15 minutes or more. The glow turns red and pulses faster, and a short alert sounds.</li>
+                  <li>The <b>alert bar</b> at the top of the map lists every active alert. Click one to select the aircraft, or press ✓ to acknowledge.</li>
+                  <li>In the <b>flight panel</b> the alert is shown at the top with an <b>Acknowledge</b> button. Acknowledged alerts pulse more calmly.</li>
+                  <li>When the aircraft reports again, the alert disappears and you are told.</li>
+                </ul>
+                <p>Turn the simulation off under Settings → General (or More on mobile). One simulated minute is about 3 seconds.</p>` } },
             { id: 'weather', icon: 'cloud',
               da: { t: 'Vejr', h: `
                 <h4>Vejrvinduet</h4>
                 <p>Skriv en by eller en ICAO-kode (fx <i>Odense</i> eller <i>EKOD</i>) og tryk ${I('search')}. Du får vind, temperatur, sigtbarhed, QNH og den rå METAR. Vejret opdateres hvert 10. minut; ${I('refresh')} henter med det samme. Findes der ingen officiel METAR, vises modeldata fra Open-Meteo, tydeligt markeret.</p>
                 <h4>Vejrlag på kortet (${I('layers')})</h4>
+                <p>Lagene er delt i grupper i menuen. Farvelag får en lille forklaring nederst til venstre.</p>
                 <ul>
-                  <li><b>Jetstrømme</b> – de kraftigste vinde i højden med pile og fart.</li>
-                  <li><b>Vindfaner</b> – vindretning og -styrke ved jorden (slået fra som standard).</li>
-                  <li><b>Skyområder</b> – større sammenhængende skydække.</li>
-                  <li><b>CAT</b> – risiko for turbulens i klar luft.</li>
-                  <li><b>Tropopause</b> – højden på tropopausen.</li>
-                  <li><b>Isning</b> – områder med risiko for isning.</li>
-                  <li><b>Tropiske cykloner</b> – aktive storme (GDACS).</li>
-                  <li><b>Vulkaner</b> – en fast referenceliste, ikke live-udbrud.</li>
-                  <li><b>SIGMET</b> – officielle advarsler for luftfarten, internationale + USA.</li>
+                  <li><b>Vind og højde</b>: <i>Animerede vinde</i> (bevægelige strømlinjer, farvet efter fart – vælg niveau SFC, FL180, FL300 eller FL340), jetstrømme, vindfaner, turbulens i klar luft (CAT) og tropopause.</li>
+                  <li><b>Skyer og konvektion</b>: samlet skydække, CAPE og lifted index (hvor tordenvejr kan opstå), konvektive skytoppe (anslået højde) og satellitbillede (dagens sidste hele mosaik).</li>
+                  <li><b>Farer</b>: isdannelse under flyvning, isslag-sandsynlighed, tåge-sandsynlighed, sigtbarhed og støv.</li>
+                  <li><b>Jordoverflade</b>: lufttryk som isobarer med høj- og lavtryk (H/L), trykændring over 3 timer og temperatur 2 m over jorden.</li>
+                  <li><b>Advarsler</b>: tropiske cykloner, vulkaner og SIGMET.</li>
                 </ul>
-                <p class="note">De fleste lag bygger på et groft globalt net af live-data. Kan data ikke hentes, bruges en indbygget model; statuslinjen nederst i menuen fortæller hvilken.</p>` },
+                <p class="note">Data kommer fra et groft globalt net (Open-Meteo, NASA GIBS for satellit, Open-Meteo luftkvalitet for støv). Tåge, isslag og skytoppe er beregnet ud fra disse data og er kun vejledende. Kan data ikke hentes, bruges en indbygget model; statuslinjen nederst i menuen fortæller hvilken.</p>` },
               en: { t: 'Weather', h: `
                 <h4>The weather window</h4>
                 <p>Type a city or an ICAO code (e.g. <i>Odense</i> or <i>EKOD</i>) and press ${I('search')}. You get wind, temperature, visibility, QNH and the raw METAR. Weather refreshes every 10 minutes; ${I('refresh')} fetches now. If there is no official METAR, Open-Meteo model data is shown, clearly marked.</p>
                 <h4>Weather layers on the map (${I('layers')})</h4>
+                <p>The layers are grouped in the menu. Colour layers get a small legend bottom left.</p>
                 <ul>
-                  <li><b>Jetstreams</b> – the strongest winds aloft with arrows and speed.</li>
-                  <li><b>Wind barbs</b> – surface wind direction and strength (off by default).</li>
-                  <li><b>Cloud areas</b> – larger areas of cloud cover.</li>
-                  <li><b>CAT</b> – risk of clear-air turbulence.</li>
-                  <li><b>Tropopause</b> – the height of the tropopause.</li>
-                  <li><b>Icing</b> – areas at risk of icing.</li>
-                  <li><b>Tropical cyclones</b> – active storms (GDACS).</li>
-                  <li><b>Volcanoes</b> – a fixed reference list, not live eruptions.</li>
-                  <li><b>SIGMET</b> – official aviation warnings, international + US.</li>
+                  <li><b>Wind and altitude</b>: <i>Animated winds</i> (moving streamlines coloured by speed – choose level SFC, FL180, FL300 or FL340), jetstreams, wind barbs, clear air turbulence (CAT) and tropopause.</li>
+                  <li><b>Cloud and convection</b>: total cloud cover, CAPE and lifted index (where thunderstorms can develop), convective cloud tops (estimated height) and satellite imagery (latest complete daily mosaic).</li>
+                  <li><b>Hazards</b>: in-flight icing, freezing rain probability, fog probability, visibility and dust.</li>
+                  <li><b>Surface</b>: mean sea level pressure as isobars with highs and lows (H/L), 3-hour pressure tendency and temperature 2 m above ground.</li>
+                  <li><b>Warnings</b>: tropical cyclones, volcanoes and SIGMET.</li>
                 </ul>
-                <p class="note">Most layers use a coarse global grid of live data. If data cannot be fetched a built-in model is used; the status line at the bottom of the menu says which.</p>` } },
+                <p class="note">Data comes from a coarse global grid (Open-Meteo, NASA GIBS for satellite, Open-Meteo air quality for dust). Fog, freezing rain and cloud tops are derived from that data and are guidance only. If data cannot be fetched a built-in model is used; the status line at the bottom of the menu says which.</p>` } },
             { id: 'cards', icon: 'grid_view',
               da: { t: 'Bankoplader og Tjek plade', h: `
                 <h4>Pladegenerator</h4>
@@ -7685,13 +8170,18 @@
                 <span class="material-icons-outlined">${icon}</span><span class="mm-label">${label}</span><span class="mm-sw${on ? ' on' : ''}"><i></i></span></button>`;
             const go = (label, icon, action, sub) => `<button type="button" class="mm-row" onclick="${action}"><span class="material-icons-outlined">${icon}</span><span class="mm-label">${label}${sub ? `<small>${sub}</small>` : ''}</span><span class="mm-chev">›</span></button>`;
             const sec = (title, rows) => `<div class="mm-sec"><div class="mm-title">${title}</div>${rows.join('')}</div>`;
-            const wxRows = WX_LAYER_DEFS.map(d => sw(!!liveWeatherState[d.id], da ? d.da : d.en, d.icon, `toggleWxLayer('${d.id}')`));
+            const wxRows = [];
+            WX_LAYER_DEFS.forEach(d => {
+                wxRows.push(sw(!!liveWeatherState[d.id], da ? d.da : d.en, d.icon, `toggleWxLayer('${d.id}')`));
+                if (d.id === 'flow' && liveWeatherState.flow) wxRows.push(`<label class="mm-row"><span class="material-icons-outlined">height</span><span class="mm-label">${T('Niveau', 'Level')}</span><select class="mm-select" onchange="setFlowLevel(this.value)">${WIND_LEVELS.map(l => `<option value="${l[0]}"${flow.level === l[0] ? ' selected' : ''}>${l[1]}</option>`).join('')}</select></label>`);
+            });
             const seasonOpts = ['none', 'auto', 'xmas', 'newyear', 'easter', 'halloween', 'party'].map(id => `<option value="${id}"${seasonChoice === id ? ' selected' : ''}>${seasonLabel(id)}</option>`).join('');
             el.innerHTML = `<div class="mm-scroll">
                 ${sec(T('Spil', 'Game'), [
                     sw(!!autopilotInterval, 'Autopilot', 'smart_toy', 'toggleAutopilot()'),
                     sw(!isMuted, T('Lyd', 'Sound'), 'volume_up', 'toggleMute()'),
                     sw(manualMode, T('Manuel tilstand (klik på tal)', 'Manual mode (tap numbers)'), 'touch_app', 'toggleManualMode(!manualMode)'),
+                    sw(gadss.enabled, T('GADSS-simulering', 'GADSS simulation'), 'emergency_home', 'setGadssEnabled(!gadss.enabled)'),
                     go(T('Nyt spil', 'New game'), 'restart_alt', "mobileSetTab('map'); confirmNewGame()")])}
                 ${sec(T('Værktøjer', 'Tools'), [
                     go(T('Vejr', 'Weather'), 'cloud', "mobileSetTab('panel-metar')", currentICAO),
@@ -7717,6 +8207,86 @@
             renderMobileQuick();
         }
         setInterval(() => { if (isMobileUI()) renderMobileQuick(); }, 1000);
+
+        // =====================================================================
+        // GADSS (simulated): an aircraft stops sending position reports for a while.
+        // Caution (yellow) at 10 min without a report, warning (red) from 15 min.
+        // =====================================================================
+        const gadss = { enabled: true, timer: 0 };
+        try { gadss.enabled = localStorage.getItem('bingoGadss') !== '0'; } catch (e) {}
+        function setGadssEnabled(on) {
+            gadss.enabled = !!on;
+            try { localStorage.setItem('bingoGadss', on ? '1' : '0'); } catch (e) {}
+            document.querySelectorAll('.gadss-toggle').forEach(c => c.checked = gadss.enabled);
+            if (!gadss.enabled) Object.values(activePlaneMarkers).forEach(p => { if (p.gadss) endGadss(p, true); });
+        }
+        const rndIn = (a, b) => a + Math.random() * (b - a);
+        function gadssMinutes(p) { const g = p.gadss; return Math.floor((g.level === 'caution' ? 10 : 15) + (Date.now() - g.levelAt) / 3000); }   // 1 sim-minute ≈ 3 s
+        function startGadss(p) {
+            const now = Date.now(), resolvesEarly = Math.random() < 0.4;
+            p.gadss = { level: 'caution', levelAt: now, ack: false, escalateAt: resolvesEarly ? Infinity : now + rndIn(15000, 26000), resolveAt: resolvesEarly ? now + rndIn(9000, 16000) : Infinity };
+            playSound('gadss-caution');
+            showToast((currentLang === 'da' ? '⚠ GADSS – ' : '⚠ GADSS – ') + p.flightNo + (currentLang === 'da' ? ': positionsrapport forsinket' : ': position report overdue'));
+            applyGadssClass(p); renderGadssBar();
+        }
+        function escalateGadss(p) {
+            const now = Date.now();
+            Object.assign(p.gadss, { level: 'warning', levelAt: now, ack: false, escalateAt: Infinity, resolveAt: now + rndIn(25000, 45000) });
+            playSound('gadss-warning');
+            showToast('⛔ GADSS – ' + p.flightNo + (currentLang === 'da' ? ': tab af positionsrapportering' : ': loss of position reporting'));
+            applyGadssClass(p); renderGadssBar();
+        }
+        function endGadss(p, silent) {
+            p.gadss = null; applyGadssClass(p); renderGadssBar();
+            if (!silent) showToast('✓ ' + p.flightNo + (currentLang === 'da' ? ': position modtaget igen' : ': position report received'));
+            if (focusedFlightNum === p.num) updateFlightFocus();
+        }
+        function ackGadss(num) {
+            const p = activePlaneMarkers[num]; if (!p || !p.gadss) return;
+            p.gadss.ack = true; applyGadssClass(p); renderGadssBar();
+            if (focusedFlightNum === num) updateFlightFocus();
+        }
+        function applyGadssClass(p) {
+            const lv = p.gadss ? p.gadss.level : null;
+            if (p.el) { p.el.classList.toggle('gadss-caution', lv === 'caution'); p.el.classList.toggle('gadss-warning', lv === 'warning'); p.el.classList.toggle('gadss-ack', !!(p.gadss && p.gadss.ack)); }
+            const row = document.getElementById('log-entry-' + p.num);
+            if (row) { row.classList.toggle('gadss-caution', lv === 'caution'); row.classList.toggle('gadss-warning', lv === 'warning'); }
+        }
+        function gadssText(p) {
+            const da = currentLang === 'da', m = gadssMinutes(p);
+            return p.gadss.level === 'warning' ? (da ? `Tab af positionsrapportering (${m} min)` : `Loss of position reporting (${m} min)`)
+                                               : (da ? `Positionsrapport forsinket (${m} min)` : `Position report overdue (${m} min)`);
+        }
+        function renderGadssBar() {
+            let bar = document.getElementById('gadss-bar');
+            if (!bar) { bar = document.createElement('div'); bar.id = 'gadss-bar'; bar.setAttribute('aria-live', 'polite'); document.body.appendChild(bar); }
+            const list = Object.values(activePlaneMarkers).filter(p => p.gadss).sort((a, b) => (b.gadss.level === 'warning') - (a.gadss.level === 'warning'));
+            const sig = list.map(p => p.num + p.gadss.level + p.gadss.ack + gadssMinutes(p)).join() + currentLang;
+            if (bar.dataset.sig === sig) return;
+            bar.dataset.sig = sig;
+            bar.innerHTML = list.map(p => `<div class="gb-chip ${p.gadss.level}${p.gadss.ack ? ' ack' : ''}">
+                <button type="button" class="gb-main" onclick="focusFlightInLog(${p.num})"><span class="gb-dot"></span><b>${p.flightNo}</b><span>${gadssText(p)}</span></button>
+                ${p.gadss.ack ? '' : `<button type="button" class="gb-ack" onclick="ackGadss(${p.num})" title="${currentLang === 'da' ? 'Kvittér' : 'Acknowledge'}">✓</button>`}</div>`).join('');
+            bar.classList.toggle('show', list.length > 0);
+        }
+        function gadssTick() {
+            const now = Date.now(), planes = Object.values(activePlaneMarkers);
+            planes.forEach(p => {
+                if (!p.gadss) return;
+                if (p.landed || !gadss.enabled) return endGadss(p, true);
+                if (now >= p.gadss.resolveAt) return endGadss(p);
+                if (now >= p.gadss.escalateAt) escalateGadss(p);
+            });
+            if (gadss.enabled) {
+                const airborne = planes.filter(p => !p.landed && p.route && p.flownDistNm > 40 && p.totalDistNm - p.flownDistNm > 60);
+                const active = planes.filter(p => p.gadss).length;
+                if (airborne.length >= 2 && active < 2 && Math.random() < 0.035) {
+                    const c = airborne.filter(p => !p.gadss); if (c.length) startGadss(c[Math.floor(Math.random() * c.length)]);
+                }
+            }
+            renderGadssBar();
+        }
+        gadss.timer = setInterval(gadssTick, 1000);
 
         // ---- Smooth scrolling: mouse-wheel notches are eased; trackpads keep native (already smooth) scrolling ----
         (function () {
