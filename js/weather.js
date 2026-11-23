@@ -821,11 +821,22 @@ function flowCanvas() {
     if (!c) { c = document.createElement('canvas'); c.id = 'flowCanvas'; c.setAttribute('aria-hidden', 'true'); document.getElementById('radarLayer').appendChild(c); }
     return c;
 }
+// On the globe, a screen point is only "on Earth" if unproject → project lands on the same pixel
+// (outside the disc MapLibre clamps to the nearest point on the limb).
+function flowOnEarth(x, y) {
+    if (!isGlobeMode) return map.unproject([x, y]);
+    const ll = map.unproject([x, y]), q = map.project(ll);
+    return Math.abs(q.x - x) < 1.5 && Math.abs(q.y - y) < 1.5 ? ll : null;
+}
+function flowSpawn(p, w, h) {
+    for (let i = 0; i < 12; i++) { p.x = Math.random() * w; p.y = Math.random() * h; if (!map || flowOnEarth(p.x, p.y)) break; }
+    p.age = 0;
+}
 function flowReset() {
     const c = flowCanvas(), dpr = Math.min(2, window.devicePixelRatio || 1);
     c.width = Math.round(c.clientWidth * dpr); c.height = Math.round(c.clientHeight * dpr);
     const n = Math.round(Math.min(2200, c.clientWidth * c.clientHeight / 380) * (prefersReducedMotion() ? 0.3 : 1));
-    flow.parts = Array.from({ length: n }, () => ({ x: Math.random() * c.clientWidth, y: Math.random() * c.clientHeight, age: Math.random() * 80 }));
+    flow.parts = Array.from({ length: n }, () => { const p = { x: 0, y: 0, age: 0 }; flowSpawn(p, c.clientWidth, c.clientHeight); p.age = Math.random() * 80; return p; });
     const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, c.width, c.height);
 }
 function startFlow() {
@@ -840,15 +851,29 @@ function startFlow() {
         ctx.globalCompositeOperation = 'source-over';
         if (now - flow.moved > 120) {
             const pxPerKt = 0.022;                       // screen-space speed: 100 kt ≈ 2 px per frame
+            if (isGlobeMode) { const cc = map.getCenter(), a0 = map.project(cc), a1 = map.project([cc.lng, Math.min(89, cc.lat + 1)]); flow.pxPerDeg = Math.max(1e-3, Math.hypot(a1.x - a0.x, a1.y - a0.y)); }
             ctx.lineWidth = 1.2;
             for (const p of flow.parts) {
-                const ll = map.unproject([p.x, p.y]);
+                const ll = flowOnEarth(p.x, p.y);
+                if (!ll) { flowSpawn(p, w, h); continue; }
                 const a = sampleAtmos(ll.lat, ll.lng), u = a[lv[2]], v = a[lv[3]], sp = Math.hypot(u, v);
-                const nx = p.x + u * pxPerKt, ny = p.y - v * pxPerKt;
+                let nx = p.x + u * pxPerKt, ny = p.y - v * pxPerKt;
+                if (isGlobeMode) {
+                    // move along the Earth's surface: find the screen direction of "downwind" at this point
+                    if (sp < 0.01) { p.age++; if (p.age > 90) flowSpawn(p, w, h); continue; }
+                    const e = 0.05, cl = Math.max(0.05, Math.cos(ll.lat * Math.PI / 180));
+                    const q = map.project([ll.lng + (u / sp) * e / cl, Math.max(-89.9, Math.min(89.9, ll.lat + (v / sp) * e))]);
+                    const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
+                    if (!(d > 1e-6)) { flowSpawn(p, w, h); continue; }
+                    // foreshortening near the limb: d per degree shrinks, so the step shrinks too
+                    const step = sp * pxPerKt * Math.min(1, d / (e * flow.pxPerDeg));
+                    nx = p.x + dx / d * step; ny = p.y + dy / d * step;
+                    if (!flowOnEarth(nx, ny)) { flowSpawn(p, w, h); continue; }
+                }
                 ctx.strokeStyle = sp < 15 ? (dark ? 'rgba(180,200,230,0.5)' : 'rgba(90,110,140,0.45)') : sp < 40 ? (dark ? 'rgba(120,200,255,0.7)' : 'rgba(40,120,200,0.6)') : sp < 80 ? 'rgba(60,190,140,0.75)' : sp < 120 ? 'rgba(240,180,40,0.8)' : 'rgba(230,80,70,0.85)';
                 ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(nx, ny); ctx.stroke();
                 p.x = nx; p.y = ny; p.age++;
-                if (p.age > 90 || p.x < 0 || p.y < 0 || p.x > w || p.y > h) { p.x = Math.random() * w; p.y = Math.random() * h; p.age = 0; }
+                if (p.age > 90 || p.x < 0 || p.y < 0 || p.x > w || p.y > h) flowSpawn(p, w, h);
             }
         }
         flow.raf = requestAnimationFrame(tick);

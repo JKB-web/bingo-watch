@@ -116,6 +116,7 @@ function applyCurrentProjection() {
     if (!map) return;
     try {
         map.setProjection({ type: isGlobeMode ? 'globe' : 'mercator' });
+        if (typeof flow !== 'undefined' && flow.on) flowReset();   // respawn wind particles on the new projection
     } catch (e) {
         console.warn('Projection switch error:', e);
     }
