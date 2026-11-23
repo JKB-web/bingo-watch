@@ -1,29 +1,24 @@
 #!/usr/bin/env node
-// Bingo Watch end-to-end checks (49 checks: drawing, undo, manual mode, save/restore, cards,
-// verify, prizes, flights, map, weather layers, themes, big screen, seasons, layout, mobile).
-//   npm test                         -> tests index.html
+// Bingo Watch end-to-end checks (drawing, undo, manual mode, save/restore, cards, verify, prizes,
+// flights, map, weather layers with real recorded data, themes, big screen, seasons, layout, mobile).
+//   npm test                         -> tests index.html with the saved answers in tests/fixtures (no internet)
 //   node tests/run.js dist/bingo-watch.html
+//   NET=live npm test                -> use the real internet instead (counts against the free services' limits)
 // Needs: npm install (installs Playwright + MapLibre), then `npx playwright install chromium` once.
 const { chromium, devices } = require('playwright');
 const path = require('path'), fs = require('fs');
 const FILE = 'file://' + path.resolve(process.argv[2] || path.join(__dirname, '..', 'index.html'));
-// Use the local MapLibre copy if it is installed (works offline); otherwise the page loads it from the CDN.
-const LOCAL_ML = path.join(__dirname, '..', 'node_modules', 'maplibre-gl', 'dist');
-const HAVE_ML = fs.existsSync(path.join(LOCAL_ML, 'maplibre-gl.js'));
-const OFFLINE = !!process.env.OFFLINE;   // OFFLINE=1 blocks every other network request (deterministic CI-style run)
+const net = require('./net');   // replay saved answers (default), or NET=live / NET=offline
 const results = []; const errs = [];
 const check = (area, name, ok, info='') => results.push({ area, name, ok: !!ok, info: String(info).slice(0, 140) });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function setup(ctxOpts = { viewport: { width: 1440, height: 900 } }, label='desktop') {
   const ctx = await browser.newContext(ctxOpts);
+  await net.attach(ctx);
   const pg = await ctx.newPage();
   pg.on('pageerror', e => errs.push(`[${label}] PAGEERR ${e.message}`));
   pg.on('console', m => { if (m.type() === 'error' && !/ERR_FAILED|ERR_INTERNET|Failed to load resource|net::|smartWeatherSearch|Style is not done loading|Live atmosphere|CORS|fetch/i.test(m.text())) errs.push(`[${label}] CONSOLE ${m.text().slice(0, 200)}`); });
   pg.on('popup', async p => { await p.close().catch(()=>{}); });
-  await pg.route('**/*', r => { const u = r.request().url();
-    if (HAVE_ML && u.includes('maplibre-gl.js')) return r.fulfill({ path: path.join(LOCAL_ML, 'maplibre-gl.js'), contentType: 'application/javascript' });
-    if (HAVE_ML && u.includes('maplibre-gl.css')) return r.fulfill({ path: path.join(LOCAL_ML, 'maplibre-gl.css'), contentType: 'text/css' });
-    if (u.startsWith('file:') || u.startsWith('about:') || !OFFLINE) return r.continue(); return r.abort(); });
   return { ctx, pg };
 }
 let browser;
@@ -158,6 +153,30 @@ let browser;
     return out; });
   check('Kort', 'Alle 9 vejrlag + ringe, radar, sol, globus, zoom kan slås til/fra', layerErrs.length === 0, layerErrs.join('; '));
 
+  // ---------- weather with real (recorded) data ----------
+  if (net.MODE !== 'offline') {
+    for (let i = 0; i < 60 && await pg.evaluate(() => ATMO.fetching); i++) await sleep(1000);
+    // share of grid points whose jet-level wind differs from the built-in model = points that came from Open-Meteo
+    const atmo = await pg.evaluate(() => { const m = atmoModelNodes(), F = ATMO.F; let real = 0;
+      if (ATMO.useLive) for (let k = 0; k < ATMO.total; k++) if (Math.abs(ATMO.nodes[k * F + 2] - m[k * F + 2]) > 0.5) real++;
+      return { live: ATMO.useLive, real, total: ATMO.total }; });
+    check('Vejrdata', 'Live vind/vejr fra Open-Meteo indlæst', atmo.live && atmo.real >= atmo.total * 0.75, JSON.stringify(atmo));
+    const jet = await pg.evaluate(async () => {
+      if (!liveWeatherState.jet) await toggleWxLayer('jet');
+      const segs = buildJetsGeoJSON().features.filter(f => f.properties.kind === 'seg');
+      const maxJump = Math.max(0, ...segs.map(f => Math.abs(f.geometry.coordinates[1][1] - f.geometry.coordinates[0][1])));
+      await toggleWxLayer('jet'); return { segs: segs.length, maxJump: +maxJump.toFixed(2) }; });
+    check('Vejrdata', 'Jetstrømme er glatte med rigtige data (ingen spring)', jet.segs > 40 && jet.maxJump < 2.5, JSON.stringify(jet));
+    const radar = await pg.evaluate(async () => { if (!map.getLayer('layer-rainviewer-radar')) await loadRealRainViewerLayers(); return !!map.getLayer('layer-rainviewer-radar'); });
+    check('Vejrdata', 'RainViewer-radar lag oprettet', radar);
+    const metar = await pg.evaluate(async () => { await fetchWeatherData('EKCH'); return document.getElementById('metarRawText').innerText; });
+    check('Vejrdata', 'METAR for EKCH hentes og vises', /EKCH \d{6}Z/.test(metar), metar.slice(0, 80));
+    const tc = await pg.evaluate(async () => { await loadCyclones(true); return wxCyclones.data && { failed: !!wxCyclones.data.failed, n: wxCyclones.data.centers.length }; });
+    check('Vejrdata', 'Tropiske cykloner fra GDACS indlæst', tc && !tc.failed, JSON.stringify(tc));
+    const sig = await pg.evaluate(async () => { await loadSigmetData(); return { sample: !!wxSigmet.sample }; });
+    check('Vejrdata', 'SIGMET fra aviationweather (ikke eksempel)', !sig.sample, JSON.stringify(sig));
+  }
+
   // ---------- themes / settings / stage / xmas ----------
   for (const t of ['dark', 'matrix', 'default']) { await pg.evaluate(t => applyThemePreset(t), t); await sleep(1500); }
   check('Tema', 'Lys/mørk/matrix skifter uden fejl, fly kører videre', await pg.evaluate(() => Object.keys(activePlaneMarkers).length === 6));
@@ -201,6 +220,7 @@ let browser;
   await browser.close();
 
   const pass = results.filter(r => r.ok).length;
+  console.log('\n' + net.report());
   console.log(`\n${pass}/${results.length} passed`);
   results.forEach(r => console.log(`${r.ok ? 'PASS' : 'FAIL'} | ${r.area} | ${r.name}${r.ok ? '' : ' | ' + r.info}`));
   console.log('\nERRORS:\n' + (errs.length ? [...new Set(errs)].join('\n') : '(none)'));

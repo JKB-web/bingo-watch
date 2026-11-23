@@ -571,7 +571,7 @@ async function loadCyclones(force) {
     if (!force && wxCyclones.data && Date.now() - wxCyclones.t < 20 * 60000) return;
     const centers = [], feats = [];
     try {
-        const data = await wxFetchJson('https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP');
+        const data = await wxFetchJson('https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP?eventtype=TC');
         const byEvent = {};
         ((data && data.features) || []).forEach(f => {
             const p = f.properties || {};

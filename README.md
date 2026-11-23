@@ -38,7 +38,10 @@ js/                 almindelige scripts, indlæst i denne rækkefølge fra index
   gadss.js            simulerede GADSS-advarsler
   startup.js          blød scroll og velkomstvindue
 tools/build-single.js   samler alt til dist/bingo-watch.html
-tests/run.js            49 automatiske tests i en rigtig browser
+tests/run.js            55 automatiske tests i en rigtig browser
+tests/net.js            styrer netværket i testene (gemte svar / live / offline)
+tests/record.js         henter rigtige svar fra vejrtjenesterne og gemmer dem
+tests/fixtures/         de gemte svar (network.json)
 ```
 
 Filerne er bevidst **almindelige scripts uden build-trin**: de deler ét globalt navnerum og skal indlæses i den rækkefølge, de står i `index.html`.
@@ -48,9 +51,19 @@ Filerne er bevidst **almindelige scripts uden build-trin**: de deler ét globalt
 ```bash
 npm install
 npx playwright install chromium   # første gang
-npm test                          # kører de 49 tests mod index.html
+npm test                          # kører de 55 tests mod index.html – uden internet
 npm run build                     # laver dist/bingo-watch.html
 npm run test:single               # bygger og tester den samlede fil
+npm run record                    # henter manglende svar fra vejrtjenesterne (sjældent)
+npm run test:live                 # tester mod det rigtige internet
 ```
+
+### Testene og de gratis vejrtjenester
+
+Appen bruger gratis tjenester (Open-Meteo, RainViewer, aviationweather.gov, GDACS m.fl.), som har grænser for, hvor meget man må hente. Derfor går `npm test` **ikke** på internettet: den afspiller rigtige svar, som er gemt i `tests/fixtures/network.json`. Testene giver samme resultat hver gang og bruger ingen af tjenesternes kvote.
+
+- `npm run record` henter kun de svar, der mangler, og lægger dem til. Kør den, når en tjeneste har ændret sig, eller når der er brug for friske data (`NET_FRESH=1 npm run record` henter alt forfra). Rammer en tjeneste sin grænse, står det i udskriften – kør den bare igen senere.
+- `npm run test:live` tester mod det rigtige internet. Brug den sjældent, fx før en større udgivelse.
+- Kort-fliser (baggrundskort, radar- og satellitbilleder) gemmes ikke; de er store og skifter hele tiden.
 
 Husk at køre `npm run build` før commit, så `dist/bingo-watch.html` passer med koden.
