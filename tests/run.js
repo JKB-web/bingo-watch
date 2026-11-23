@@ -23,7 +23,7 @@ async function setup(ctxOpts = { viewport: { width: 1440, height: 900 } }, label
 }
 let browser;
 (async () => {
-  browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
+  browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
   let { ctx, pg } = await setup();
   let dialogAnswer = true; pg.on('dialog', d => dialogAnswer ? d.accept() : d.dismiss());
   await pg.goto(FILE); await sleep(3500);
@@ -216,6 +216,39 @@ let browser;
   await pg.evaluate(() => toggleXmas(false)); await sleep(300);
   check('Jul', 'Slå fra rydder op', await pg.evaluate(() => !document.querySelector('.santa-marker') && !snow.raf));
 
+  // ---------- v37: weather menu, airport card, followed aircraft ----------
+  await pg.evaluate(() => toggleWxMenu(true)); await sleep(300);
+  check('Kort', 'Vejrlag-menu har ingen vandret scroll', await pg.evaluate(() => { const m = document.getElementById('wx-menu'); return getComputedStyle(m).overflowX === 'hidden' || m.scrollWidth <= m.clientWidth; }));
+  await pg.evaluate(() => toggleWxMenu(false));
+  const apc = await pg.evaluate(async () => {
+    const p = Object.values(activePlaneMarkers).find(q => !q.landed); if (!p) return { err: 'no flight' };
+    const code = p.destAirport.code;
+    openAirportCard(code);
+    await new Promise(r => setTimeout(r, 100));
+    const card = document.getElementById('ap-card'), r = card.getBoundingClientRect();
+    const onTop = card.contains(document.elementFromPoint(r.left + r.width / 2, r.top + 30));
+    const row = [...card.querySelectorAll('.apc-flight-main b')].some(b => b.textContent === p.flightNo);
+    requestAssistance(p.num, 'med');
+    const chip = !!document.querySelector('#ap-card .apc-assist-chip') && p.el.classList.contains('has-assist');
+    editAirportContacts(true);
+    const f = document.querySelector('#ap-card .apc-form'); f.ops.value = '+45 12 34 56 78'; f.note.value = 'Stand 4';
+    f.requestSubmit();
+    const saved = JSON.parse(localStorage.getItem('bingoApContacts') || '{}')[code];
+    const tel = document.querySelector('#ap-card a.apc-contact');
+    apShowWeather(code);
+    const res = { code, onTop, row, chip, saved: !!saved && saved.ops === '+45 12 34 56 78' && saved.note === 'Stand 4', tel: tel && tel.getAttribute('href'), closed: !document.getElementById('ap-card'), wx: document.getElementById('wxSearchInput').value === code };
+    delete p.assist; p.el.classList.remove('has-assist'); localStorage.removeItem('bingoApContacts');
+    return res;
+  });
+  check('Lufthavn', 'Lufthavnskort ligger øverst og viser indgående fly', apc.onTop && apc.row, JSON.stringify(apc));
+  check('Lufthavn', 'Assistance ved landing markeres på flyet', apc.chip, JSON.stringify(apc));
+  check('Lufthavn', 'Kontakter gemmes og kan ringes op', apc.saved && apc.tel === 'tel:+4512345678', JSON.stringify(apc));
+  check('Lufthavn', '"Vejr her" lukker kortet og viser vejret', apc.closed && apc.wx, JSON.stringify(apc));
+  check('Fly', 'Valgt fly har tæt ring (sporet skinner ikke igennem)', await pg.evaluate(() => {
+    const p = Object.values(activePlaneMarkers).find(q => !q.landed); if (!p) return false;
+    p.el.classList.add('selected-plane'); const bg = getComputedStyle(p.el.querySelector('.plane-rotator')).backgroundImage + '|' + getComputedStyle(p.el.querySelector('.plane-rotator')).backgroundColor;
+    p.el.classList.remove('selected-plane'); return /gradient/.test(bg) && !/rgba\([^)]*, 0\.[0-8]\d*\)$/.test(bg.split('|')[1]); }));
+
   // ---------- layout ----------
   for (const vp of [[1280, 720], [1440, 900], [1920, 1080]]) {
     await pg.setViewportSize({ width: vp[0], height: vp[1] }); await pg.evaluate(() => resetPositions()); await sleep(400);
@@ -230,6 +263,7 @@ let browser;
   ({ ctx, pg } = await setup({ ...devices['iPhone 13'] }, 'mobile'));
   pg.on('dialog', d => d.accept());
   await pg.goto(FILE); await sleep(3500);
+  check('Mobil', 'Velkomstkort: START-knappen ses uden at scrolle', await pg.evaluate(() => { const b = document.querySelector('.start-btn').getBoundingClientRect(), c = document.querySelector('.briefing-card').getBoundingClientRect(); return b.bottom <= innerHeight && b.top >= 0 && c.height < innerHeight * 0.85; }));
   await pg.click('.start-btn'); await sleep(400);
   const m = {};
   for (const t of ['draw', 'grid', 'flights', 'more', 'map']) { await pg.tap(`#m-nav button[data-tab="${t}"]`); await sleep(250);

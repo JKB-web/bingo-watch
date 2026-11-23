@@ -29,6 +29,7 @@ js/                 almindelige scripts, indlæst i denne rækkefølge fra index
   metar.js            vejrsøgning og METAR
   ui.js               vinduer, sidemenu, taster, lyde, talgitter, konfetti
   flights.js          flytyper, flydata, flypanel, højdeprofil, animation, træk/fortryd
+  airport-card.js     lufthavnskortet: trafik, assistance ved landing, egne kontakter
   game.js             gem/gendan, runder, seneste tal, storskærm
   seasons.js          sæsontilstande og julemanden
   attract.js          attract mode
@@ -38,7 +39,7 @@ js/                 almindelige scripts, indlæst i denne rækkefølge fra index
   gadss.js            simulerede GADSS-advarsler
   startup.js          blød scroll og velkomstvindue
 tools/build-single.js   samler alt til dist/bingo-watch.html
-tests/run.js            57 automatiske tests i en rigtig browser
+tests/run.js            64 automatiske tests i en rigtig browser
 tests/net.js            styrer netværket i testene (gemte svar / live / offline)
 tests/record.js         henter rigtige svar fra vejrtjenesterne og gemmer dem
 tests/fixtures/         de gemte svar (network.json)
@@ -51,7 +52,7 @@ Filerne er bevidst **almindelige scripts uden build-trin**: de deler ét globalt
 ```bash
 npm install
 npx playwright install chromium   # første gang
-npm test                          # kører de 57 tests mod index.html – uden internet
+npm test                          # kører de 64 tests mod index.html – uden internet
 npm run build                     # laver dist/bingo-watch.html
 npm run test:single               # bygger og tester den samlede fil
 npm run record                    # henter manglende svar fra vejrtjenesterne (sjældent)

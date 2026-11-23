@@ -368,6 +368,7 @@ function openFlightFocus(num) {
             <div class="ff-progress"><div class="ff-progress-fill" data-ff="prog"></div></div>
         </div>
         <div class="ff-gadss" data-ff="gadss"></div>
+        <div class="ff-assist" data-ff="assist"></div>
         <div class="ff-scroll">
             <div class="ff-card">
                 <div class="ff-title">${L('Flyvning', 'Flight')}</div>
@@ -511,6 +512,17 @@ function updateFlightFocus() {
     const fb = panel.querySelector('[data-ff="followBtn"]');
     if (fb) { fb.disabled = p.landed; fb.innerText = trackedFlightNum === p.num ? L('Følger…', 'Following…') : L('Følg fly', 'Follow aircraft'); fb.classList.toggle('on', trackedFlightNum === p.num); }
     updateProfileProgress(p, st);
+    const ab = panel.querySelector('[data-ff="assist"]');
+    if (ab) {
+        const t = p.assist && typeof ASSIST_TYPES !== 'undefined' ? ASSIST_TYPES.find(a => a.k === p.assist.type) : null;
+        const sig = t ? t.k + '|' + p.landed + '|' + currentLang : '';
+        if (ab.dataset.sig !== sig) {
+            ab.dataset.sig = sig;
+            ab.classList.toggle('show', !!t);
+            ab.innerHTML = t ? `<span class="material-icons-outlined">${t.icon}</span><span>${p.landed ? L('Står klar', 'Standing by') : L('Bestilt ved landing', 'Requested on arrival')}: <b>${L(t.da, t.en)}</b> · ${p.destAirport.code}</span>
+                <button type="button" onclick="event.stopPropagation(); openAirportCard('${p.destAirport.code}')">${L('Lufthavn', 'Airport')}</button>` : '';
+        }
+    }
     const gb = panel.querySelector('[data-ff="gadss"]');
     if (gb) {
         const sig = p.gadss ? p.gadss.level + '|' + p.gadss.ack + '|' + gadssMinutes(p) + '|' + currentLang : '';
@@ -665,6 +677,7 @@ function animateActivePlanes(now) {
             const infoBox = p.el.querySelector('.plane-info-box');
             if (infoBox) infoBox.innerText = `${p.flightNo} LANDED`;
             syncFlightRowUI(p);
+            if (p.assist && typeof assistOnLanding === 'function') assistOnLanding(p);
             if (trackedFlightNum === p.num) releaseTracking(true);   // stay at the destination
             if (focusedFlightNum === p.num) setTimeout(updateFlightFocus, 0);
         } else {

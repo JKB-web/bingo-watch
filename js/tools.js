@@ -84,6 +84,7 @@ function setLanguage(lang) {
     const t = translations[lang];
     document.documentElement.lang = lang;
     applyLanguageTo(document);
+    if (typeof refreshAirportCard === 'function') refreshAirportCard();
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-set-lang') === lang));
     const sel = document.querySelector('#tab-general select.select-input'); if (sel) sel.value = lang;
     document.querySelector('.banko-text').innerText = t.bankoMsg;

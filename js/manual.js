@@ -124,7 +124,13 @@ const MANUAL = [
           <li><b>Klik på et fly</b> for at vælge det (se “Flypanel og højdeprofil”). Klik et tomt sted på kortet for at fravælge det igen.</li>
         </ul>
         <h4>Lufthavne</h4>
-        <p>De små prikker er lufthavne. <b>Hold musen over</b> en prik for navn, antal fly til og fra, og afstand fra den valgte lufthavn. <b>Klik</b> for at skifte til lufthavnen og se vejret derfra i vejrvinduet.</p>
+        <p>De små prikker er lufthavne. <b>Hold musen over</b> en prik for navn, antal fly til og fra, og afstand fra den valgte lufthavn. <b>Klik</b> (eller tryk på mobilen) for lufthavnskortet:</p>
+        <ul>
+          <li><b>Trafik</b>: fly i luften herfra, fly på vej hertil med ETA, og fly der er landet. Tryk på et fly for at vælge det.</li>
+          <li><b>Assistance ved landing</b>: tryk ${I('add_alert')} ud for et indgående fly og vælg ambulance, kørestol/PRM, brandberedskab, tekniker eller hurtig tankning. Flyet får et lille <b>+</b>, flypanelet viser bestillingen, og når flyet lander, får du besked om, at hjælpen står klar (simuleret).</li>
+          <li><b>Kontakter</b>: gem dine egne telefonnumre (OPS/handling, ambulance, brand & redning, brændstof) og en note for hver lufthavn. De gemmes kun i denne browser, og numrene kan ringes op direkte fra mobilen. <b>Find online</b> søger efter lufthavnens kontaktoplysninger.</li>
+          <li><b>Vejr her</b> skifter til lufthavnen og viser vejret i vejrvinduet.</li>
+        </ul>
         <h4>Værktøjslinjen til højre</h4>
         <ul>
           <li>${I('add_circle_outline')} ${I('remove_circle_outline')} zoom ind og ud.</li>
@@ -143,7 +149,13 @@ const MANUAL = [
           <li><b>Click an aircraft</b> to select it (see “Flight panel and profile”). Click an empty spot on the map to deselect.</li>
         </ul>
         <h4>Airports</h4>
-        <p>The small dots are airports. <b>Hover</b> a dot for its name, flights to and from it, and distance from the selected airport. <b>Click</b> to switch to that airport and see its weather in the weather window.</p>
+        <p>The small dots are airports. <b>Hover</b> a dot for its name, flights to and from it, and distance from the selected airport. <b>Click</b> (or tap on a phone) for the airport card:</p>
+        <ul>
+          <li><b>Traffic</b>: aircraft airborne from here, aircraft inbound with ETA, and aircraft that have landed. Tap a flight to select it.</li>
+          <li><b>Assistance on arrival</b>: tap ${I('add_alert')} next to an inbound flight and choose ambulance, wheelchair/PRM, fire standby, technician or quick refuel. The aircraft gets a small <b>+</b>, the flight panel shows the request, and when it lands you are told that help is standing by (simulated).</li>
+          <li><b>Contacts</b>: save your own phone numbers (OPS/handling, ambulance, fire & rescue, fuel) and a note for each airport. They are kept in this browser only, and the numbers can be called straight from a phone. <b>Look up</b> searches for the airport's contact details.</li>
+          <li><b>Weather here</b> switches to the airport and shows its weather in the weather window.</li>
+        </ul>
         <h4>Toolbar on the right</h4>
         <ul>
           <li>${I('add_circle_outline')} ${I('remove_circle_outline')} zoom in and out.</li>

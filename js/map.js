@@ -137,7 +137,7 @@ function airportInfoHtml(ap) {
         <div class="ap-tip-name">${ap.name}</div>
         <div class="ap-tip-grid"><span>${da ? 'Afgange i luften' : 'Departures airborne'}</span><b>${dep}</b><span>${da ? 'På vej hertil' : 'Inbound'}</span><b>${arr}</b></div>
         ${dist ? `<div class="ap-tip-sub">${dist}</div>` : ''}<div class="ap-tip-sub">${dms}</div>
-        <div class="ap-tip-hint">${home ? (da ? 'Vejret vises i vejrvinduet' : 'Weather is shown in the weather window') : (da ? 'Klik for at skifte hertil og se vejret' : 'Click to switch here and see the weather')}</div>`;
+        <div class="ap-tip-hint">${home ? (da ? 'Klik for trafik, kontakter og vejr' : 'Click for traffic, contacts and weather') : (da ? 'Klik for trafik, kontakter og vejr' : 'Click for traffic, contacts and weather')}</div>`;
 }
 function bindAirportInteraction() {
     if (apBound || !map) return;
@@ -151,7 +151,7 @@ function bindAirportInteraction() {
         const f = e.features && e.features[0]; if (!f) return;
         const code = f.properties.code, ap = AIRPORT_DB.find(a => a.code === code); if (!ap) return;
         map.getCanvas().style.cursor = 'pointer';
-        if (apHoverId !== code) {
+        if (apHoverId !== code && !(typeof apCard !== 'undefined' && apCard.code === code)) {
             if (apHoverId !== null) map.setFeatureState({ source: 'occ-tactical', id: apHoverId }, { hover: false });
             apHoverId = code; map.setFeatureState({ source: 'occ-tactical', id: code }, { hover: true });
             if (apTip) apTip.remove();
@@ -164,7 +164,7 @@ function bindAirportInteraction() {
         const f = e.features && e.features[0]; if (!f) return;
         if (e.originalEvent) e.originalEvent._airportClick = true;   // the general map click (deselect flight) must ignore this click
         clearHover();
-        selectAirport(f.properties.code);
+        openAirportCard(f.properties.code, e.point);   // v37: airport card (traffic, assistance, contacts, weather)
     });
 }
 function selectAirport(code) {

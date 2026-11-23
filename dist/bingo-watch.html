@@ -950,7 +950,8 @@
         .radar-plane:hover .plane-rotator { box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.25), 0 2px 8px rgba(0,0,0,0.18); }
         .plane-info-box { border: 1px solid var(--glass-border); border-left: 1px solid var(--glass-border); padding: 1px 8px; font-weight: 600;
                           box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-        .radar-plane.selected-plane .plane-rotator { background: rgba(var(--accent-rgb), 0.22) !important; border: 2px solid var(--accent-orange) !important; box-shadow: 0 0 0 5px rgba(var(--accent-rgb), 0.18), 0 0 18px rgba(var(--accent-rgb), 0.45); }
+        /* v37: SOLID fill – the flown track (map canvas, refreshed ~10x/s) used to show through the ring and made the aircraft look like it hopped */
+        .radar-plane.selected-plane .plane-rotator { background: linear-gradient(rgba(var(--accent-rgb), 0.22), rgba(var(--accent-rgb), 0.22)), var(--window-bg, #fff) !important; border: 2px solid var(--accent-orange) !important; box-shadow: 0 0 0 5px rgba(var(--accent-rgb), 0.18), 0 0 18px rgba(var(--accent-rgb), 0.45); }
         .radar-plane.selected-plane .plane-info-box { border-color: var(--accent-orange) !important; box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.35); }
         .radar-plane.selected-plane .plane-icon { fill: var(--accent-orange); }
 
@@ -1334,8 +1335,8 @@
 
         /* smoother animation: no blur work behind moving aircraft, lighter blur behind big surfaces */
         .plane-rotator, [data-theme="dark"] .plane-rotator, .plane-info-box { backdrop-filter: none !important; }
-        .plane-rotator { background: rgba(255,255,255,0.78); }
-        [data-theme="dark"] .plane-rotator { background: rgba(30,32,38,0.82); }
+        .plane-rotator { background: rgba(255,255,255,0.96); }
+        [data-theme="dark"] .plane-rotator { background: rgba(30,32,38,0.96); }
         .plane-info-box { background: var(--solid-surface); }
         .window, .sidebar-dock, #flight-focus, #flight-profile, header { --glass-blur: blur(12px) saturate(160%); }
         [data-theme="dark"] .window, [data-theme="dark"] .sidebar-dock, [data-theme="dark"] #flight-focus, [data-theme="dark"] #flight-profile, [data-theme="dark"] header { --glass-blur: blur(12px) saturate(150%) brightness(0.95); }
@@ -1791,7 +1792,7 @@
         }
 
         /* ===== v30 weather layers ===== */
-        .wx-menu { max-height: calc(100vh - var(--header-height) - 80px); overflow-y: auto; overscroll-behavior: contain; }
+        .wx-menu { max-height: calc(100vh - var(--header-height) - 80px); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }   /* v37: no sideways scroll */
         .wx-grp { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); padding: 10px 8px 3px; }
         .wx-level { display: none; gap: 3px; padding: 2px 8px 6px 42px; }
         .wx-level.show { display: flex; }
@@ -1894,7 +1895,107 @@
         svg.gadss-caution .pf-gadss-last, svg.gadss-warning .pf-gadss-last { display: inline; fill: var(--solid-surface); stroke: rgb(var(--gc)); stroke-width: 2; }
         svg.gadss-caution .pf-gadss-label, svg.gadss-warning .pf-gadss-label { display: inline; fill: rgb(var(--gc)); font-size: 10.5px; font-weight: 700; font-family: 'Inter', sans-serif; filter: brightness(0.85); }
         svg.gadss-caution .pf-dot, svg.gadss-warning .pf-dot { fill: rgb(var(--gc)); }
-    </style>
+    
+        /* ===== v37: compact welcome card on phones – the map stays visible and LAUNCH is always on screen ===== */
+        @media (max-width: 899px), (max-height: 520px) {
+            #start-overlay .briefing-card { display: flex; flex-direction: column; overflow: hidden !important; max-height: min(78vh, 620px); width: 560px; }
+            #start-overlay .briefing-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-top: 12px; padding-bottom: 10px; }
+            #start-overlay .briefing-header, #start-overlay .briefing-footer { flex: none; }
+            #start-overlay .briefing-header { padding-top: 12px; padding-bottom: 10px; gap: 8px; }
+            #start-overlay .briefing-title { font-size: 17px; }
+            #start-overlay .briefing-badge { display: none; }
+            #start-overlay .lang-btn { padding: 5px 10px; font-size: 12.5px; }
+            #start-overlay .briefing-section { margin-bottom: 12px; }
+            #start-overlay .briefing-p { font-size: 13px; line-height: 1.45; margin-bottom: 0; }
+            #start-overlay .briefing-more { display: none; }
+            #start-overlay .briefing-instr { grid-template-columns: 1fr 1fr !important; gap: 6px 10px !important; margin-bottom: 0 !important; }
+            #start-overlay .briefing-instr p { display: none; }
+            #start-overlay .briefing-instr strong { font-size: 11px !important; line-height: 1.3; }
+            #start-overlay .briefing-footer { padding-top: 10px; padding-bottom: 12px; gap: 10px; }
+            #start-overlay .briefing-status { font-size: 10px !important; }
+            #start-overlay .start-btn { padding: 11px 18px; white-space: nowrap; }
+        }
+        /* touch screens have no keyboard: the shortcut list is just noise there */
+        @media (hover: none) and (pointer: coarse) and (max-width: 1100px) {
+            #start-overlay .briefing-keys { display: none; }
+        }
+        /* phones held sideways: very little height – just the essentials */
+        @media (max-height: 520px) {
+            #start-overlay .briefing-card { max-height: calc(100vh - 20px); width: 620px; }
+            #start-overlay .briefing-instr { grid-template-columns: 1fr 1fr 1fr !important; }
+        }
+
+        /* ===== v37: airport card (click an airport) ===== */
+        .ap-card { position: fixed; z-index: 3450; border-radius: var(--r-lg); background: var(--window-bg); color: var(--text-main);
+            border: 1px solid var(--glass-border); box-shadow: 0 12px 36px rgba(0,0,0,0.24); font-family: 'Inter', sans-serif; animation: fadeIn 0.16s; }
+        .apc { width: 316px; max-width: calc(100vw - 24px); display: flex; flex-direction: column; max-height: min(560px, calc(100vh - 150px)); }
+        .apc-head { display: flex; align-items: center; gap: 8px; font-size: 16px; padding: 12px 10px 0 14px; }
+        .apc-x { margin-left: auto; border: none; background: transparent; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: var(--r-sm); display: flex; }
+        .apc-x:hover { background: rgba(127,127,127,0.12); color: var(--text-main); }
+        .apc-x .material-icons-outlined { font-size: 20px; }
+        .apc-name { font-size: 12.5px; color: var(--text-muted); padding: 1px 14px 10px; }
+        .apc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 0 14px; }
+        .apc-stats > div { background: var(--card-bg, rgba(127,127,127,0.08)); border: 1px solid var(--border-light); border-radius: var(--r-md); padding: 6px 8px; display: flex; flex-direction: column; }
+        .apc-stats b { font-size: 17px; font-variant-numeric: tabular-nums; }
+        .apc-stats span { font-size: 10.5px; color: var(--text-muted); line-height: 1.25; }
+        .apc-sub { font-size: 11px; color: var(--text-muted); padding: 8px 14px 4px; font-variant-numeric: tabular-nums; line-height: 1.45; }
+        .apc-scroll { overflow-y: auto; overscroll-behavior: contain; padding: 0 14px 6px; min-height: 0; flex: 1 1 auto; }
+        .apc-sec { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; margin: 10px 0 6px; padding-top: 9px; border-top: 1px solid var(--border-light); }
+        .apc-sec .material-icons-outlined { font-size: 17px; color: var(--accent-orange); }
+        .apc-sec small { margin-left: auto; font-weight: 500; color: var(--text-muted); font-size: 10.5px; }
+        .apc-muted { font-size: 12px; color: var(--text-muted); padding: 2px 0 4px; }
+        .apc-flight { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 3px 0; }
+        .apc-flight + .apc-flight { border-top: 1px dashed var(--border-light); }
+        .apc-flight-main { flex: 1; display: flex; align-items: baseline; gap: 8px; border: none; background: transparent; color: var(--text-main); font: inherit; font-size: 12.5px; padding: 5px 4px; cursor: pointer; border-radius: var(--r-sm); text-align: left; min-width: 0; }
+        .apc-flight-main:hover { background: rgba(127,127,127,0.1); }
+        .apc-flight-main b { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+        .apc-flight-main span { color: var(--text-muted); font-size: 11.5px; }
+        .apc-flight-main .apc-eta { margin-left: auto; color: var(--text-main); font-variant-numeric: tabular-nums; }
+        .apc-assist-btn { border: 1px solid var(--border-light); background: transparent; color: var(--text-muted); border-radius: var(--r-sm); padding: 4px 6px; cursor: pointer; display: flex; }
+        .apc-assist-btn .material-icons-outlined { font-size: 18px; }
+        .apc-assist-btn:hover, .apc-assist-btn.on { color: var(--accent-orange); border-color: var(--accent-orange); }
+        .apc-assist-chip { flex-basis: 100%; display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: #b45309; padding: 0 4px 3px; }
+        [data-theme="dark"] .apc-assist-chip { color: #fbbf24; }
+        .apc-assist-chip .material-icons-outlined { font-size: 15px; }
+        .apc-assist-pick { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 5px; padding: 3px 0 6px; }
+        .apc-assist-pick button { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border-light); background: var(--card-bg, transparent); color: var(--text-main); font: inherit; font-size: 11.5px; font-weight: 600; padding: 5px 8px; border-radius: 999px; cursor: pointer; }
+        .apc-assist-pick button .material-icons-outlined { font-size: 15px; color: var(--accent-orange); }
+        .apc-assist-pick button.on, .apc-assist-pick button:hover { border-color: var(--accent-orange); background: rgba(var(--accent-rgb), 0.1); }
+        .apc-assist-pick .apc-cancel .material-icons-outlined { color: var(--text-muted); }
+        .apc-contact { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 12.5px; color: var(--text-main); text-decoration: none; border-radius: var(--r-sm); }
+        .apc-contact:hover { background: rgba(127,127,127,0.1); }
+        .apc-contact .material-icons-outlined { font-size: 17px; color: var(--accent-orange); }
+        .apc-contact-l { color: var(--text-muted); flex: 1; }
+        .apc-contact b { font-variant-numeric: tabular-nums; }
+        .apc-note-txt { font-size: 12px; white-space: pre-wrap; background: rgba(127,127,127,0.08); border-radius: var(--r-sm); padding: 6px 8px; margin: 4px 0; user-select: text; }
+        .apc-contact-actions, .apc-form-btns { display: flex; gap: 6px; margin: 6px 0 2px; }
+        .apc-form-btns { justify-content: flex-end; }
+        .apc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--border-light); background: transparent; color: var(--text-main); font: inherit; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: var(--r-sm); cursor: pointer; text-decoration: none; }
+        .apc-btn .material-icons-outlined { font-size: 16px; }
+        .apc-btn:hover { border-color: var(--accent-orange); }
+        .apc-primary { background: var(--accent-orange); border-color: var(--accent-orange); color: var(--active-fg, #fff); }
+        .apc-form { display: flex; flex-direction: column; gap: 5px; }
+        .apc-form label { display: flex; align-items: center; gap: 7px; }
+        .apc-form label .material-icons-outlined { font-size: 17px; color: var(--accent-orange); flex: none; }
+        .apc-form input, .apc-form textarea { flex: 1; min-width: 0; border: 1px solid var(--border-light); background: var(--card-bg, transparent); color: var(--text-main); font: inherit; font-size: 13px; padding: 6px 8px; border-radius: var(--r-sm); resize: vertical; }
+        .apc-form input:focus, .apc-form textarea:focus { outline: none; border-color: var(--accent-orange); }
+        .apc-note { align-items: flex-start !important; } .apc-note .material-icons-outlined { margin-top: 6px; }
+        .apc-actions { display: flex; gap: 6px; padding: 10px 14px 12px; border-top: 1px solid var(--border-light); }
+        .apc-actions .apc-btn { flex: 1; padding: 8px 10px; }
+        /* phones: the card becomes a sheet above the tab bar */
+        @media (max-width: 768px), (max-height: 520px) and (max-width: 1100px) {
+            .ap-card { left: 8px; right: 8px; bottom: calc(var(--m-nav-h, 62px) + 8px); }
+            .apc { width: auto; max-width: none; max-height: calc(100vh - var(--m-nav-h, 62px) - var(--header-height, 50px) - 40px); }
+        }
+        @media (max-height: 520px) and (max-width: 1100px) { .ap-card { left: auto; width: 340px; top: calc(var(--header-height, 42px) + 8px); } }
+        /* assistance requested: small badge on the aircraft + line in the flight panel */
+        .radar-plane.has-assist::before { content: '+'; position: absolute; left: 6px; top: -19px; z-index: 3; width: 13px; height: 13px; border-radius: 50%; background: #d97706; color: #fff; font: 700 11px/13px 'Inter', sans-serif; text-align: center; box-shadow: 0 0 0 1.5px var(--window-bg); }
+        .ff-assist { display: none; }
+        .ff-assist.show { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 12px; border-radius: var(--r-md); border: 1px solid rgba(217,119,6,0.55); background: rgba(217,119,6,0.11); font-size: 12px; }
+        .ff-assist .material-icons-outlined { font-size: 18px; color: #d97706; }
+        .ff-assist > span:nth-child(2) { flex: 1; }
+        .ff-assist button { border: 1px solid rgba(217,119,6,0.55); background: transparent; color: inherit; font: inherit; font-size: 11.5px; font-weight: 600; padding: 4px 8px; border-radius: var(--r-sm); cursor: pointer; }
+</style>
 </head>
 <body>
     <!-- Liquid glass refraction map (used by backdrop-filter in Chromium) -->
@@ -1924,11 +2025,11 @@
                 <div class="briefing-section">
                     <div class="briefing-h3" data-lang="brWelcomeH">Welcome Controller</div>
                     <div class="briefing-p" data-lang-html="brWelcomeP1">You are now in command of <strong>BINGO WATCH</strong>. Your mission is to guide passengers safely through the airspace (numbers 1-90) until landing (BINGO).</div>
-                    <div class="briefing-p" data-lang-html="brWelcomeP2">The background features a monochrome <strong>OCC Tactical Radar Map</strong> (2D / 3D Globe, range rings, flight tracks and nine live weather layers: <strong>Jetstreams, Wind barbs, Cloud areas, CAT, Tropopause, Icing, Tropical cyclones, Volcanoes &amp; SIGMET</strong>, plus RainViewer radar).</div>
+                    <div class="briefing-p briefing-more" data-lang-html="brWelcomeP2">The background features a monochrome <strong>OCC Tactical Radar Map</strong> (2D / 3D Globe, range rings, flight tracks and nine live weather layers: <strong>Jetstreams, Wind barbs, Cloud areas, CAT, Tropopause, Icing, Tropical cyclones, Volcanoes &amp; SIGMET</strong>, plus RainViewer radar).</div>
                 </div>
                 <div class="briefing-section">
                     <div class="briefing-h3" data-lang="brInstrH">Instrument Overview</div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom:8px;">
+                    <div class="briefing-instr" style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom:8px;">
                         <div><strong style="color:var(--primary-blue); font-size:12px;" data-lang="brI1T">NAV GRID & LOG</strong><p style="font-size:11px; margin:2px 0 0 0; color:var(--text-muted);" data-lang="brI1P">Visual tracking of all drawn numbers and historical flight log.</p></div>
                         <div><strong style="color:var(--primary-blue); font-size:12px;" data-lang="brI2T">CARD GENERATOR</strong><p style="font-size:11px; margin:2px 0 0 0; color:var(--text-muted);" data-lang="brI2P">Print new flight plans (bingo cards) for the entire crew.</p></div>
                         <div><strong style="color:var(--primary-blue); font-size:12px;" data-lang="brI3T">VERIFY WIN (SCANNER)</strong><p style="font-size:11px; margin:2px 0 0 0; color:var(--text-muted);" data-lang="brI3P">Enter Card ID to automatically validate a claimed Bingo.</p></div>
@@ -1937,7 +2038,7 @@
                         <div><strong style="color:var(--primary-blue); font-size:12px;" data-lang="brI6T">CONFLICT RES.</strong><p style="font-size:11px; margin:2px 0 0 0; color:var(--text-muted);" data-lang="brI6P">Resolve "dead heat" tie-breaker situations between players.</p></div>
                     </div>
                 </div>
-                <div class="briefing-section" style="margin-bottom:0;">
+                <div class="briefing-section briefing-keys" style="margin-bottom:0;">
                     <div class="briefing-h3" data-lang="brKeysH">Cockpit Controls (Shortcuts)</div>
                     <div class="keys-grid">
                         <div class="key-row"><span class="key-box">Space</span>&nbsp;<span data-lang="brK1">Draw Next Number</span></div>
@@ -1950,7 +2051,7 @@
                 </div>
             </div>
             <div class="briefing-footer" style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase;"><span data-lang="brStatus">Local Mode & Live Weather:</span> <strong style="color:var(--success-green);">ONLINE</strong></span>
+                <span class="briefing-status" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;"><span data-lang="brStatus">Local Mode & Live Weather:</span> <strong style="color:var(--success-green);">ONLINE</strong></span>
                 <button class="start-btn" onclick="startMission()" data-lang="brLaunch">CONFIRM & LAUNCH</button>
             </div>
         </div>
@@ -2822,7 +2923,7 @@ function initRealMapAndWeather() {
     // Camera lock is released as soon as the user clicks or drags the map
     map.on('mousedown', () => { window._mapGrabAt = Date.now(); releaseTracking(false, true); if (santa.follow) toggleSantaFollow(false); });
     // Klik et tomt sted på kortet: fravælg flyet og fold dets kort i Active Flights sammen igen
-    map.on('click', (e) => { if (e.originalEvent && e.originalEvent._airportClick) return; clearFlightSelection(); });
+    map.on('click', (e) => { if (e.originalEvent && e.originalEvent._airportClick) return; if (typeof closeAirportCard === 'function') closeAirportCard(); clearFlightSelection(); });
     map.on('touchstart', () => releaseTracking(false, true));
     map.on('dragstart', () => releaseTracking(false, true));
 
@@ -3036,7 +3137,7 @@ function airportInfoHtml(ap) {
         <div class="ap-tip-name">${ap.name}</div>
         <div class="ap-tip-grid"><span>${da ? 'Afgange i luften' : 'Departures airborne'}</span><b>${dep}</b><span>${da ? 'På vej hertil' : 'Inbound'}</span><b>${arr}</b></div>
         ${dist ? `<div class="ap-tip-sub">${dist}</div>` : ''}<div class="ap-tip-sub">${dms}</div>
-        <div class="ap-tip-hint">${home ? (da ? 'Vejret vises i vejrvinduet' : 'Weather is shown in the weather window') : (da ? 'Klik for at skifte hertil og se vejret' : 'Click to switch here and see the weather')}</div>`;
+        <div class="ap-tip-hint">${home ? (da ? 'Klik for trafik, kontakter og vejr' : 'Click for traffic, contacts and weather') : (da ? 'Klik for trafik, kontakter og vejr' : 'Click for traffic, contacts and weather')}</div>`;
 }
 function bindAirportInteraction() {
     if (apBound || !map) return;
@@ -3050,7 +3151,7 @@ function bindAirportInteraction() {
         const f = e.features && e.features[0]; if (!f) return;
         const code = f.properties.code, ap = AIRPORT_DB.find(a => a.code === code); if (!ap) return;
         map.getCanvas().style.cursor = 'pointer';
-        if (apHoverId !== code) {
+        if (apHoverId !== code && !(typeof apCard !== 'undefined' && apCard.code === code)) {
             if (apHoverId !== null) map.setFeatureState({ source: 'occ-tactical', id: apHoverId }, { hover: false });
             apHoverId = code; map.setFeatureState({ source: 'occ-tactical', id: code }, { hover: true });
             if (apTip) apTip.remove();
@@ -3063,7 +3164,7 @@ function bindAirportInteraction() {
         const f = e.features && e.features[0]; if (!f) return;
         if (e.originalEvent) e.originalEvent._airportClick = true;   // the general map click (deselect flight) must ignore this click
         clearHover();
-        selectAirport(f.properties.code);
+        openAirportCard(f.properties.code, e.point);   // v37: airport card (traffic, assistance, contacts, weather)
     });
 }
 function selectAirport(code) {
@@ -4789,6 +4890,7 @@ function setLanguage(lang) {
     const t = translations[lang];
     document.documentElement.lang = lang;
     applyLanguageTo(document);
+    if (typeof refreshAirportCard === 'function') refreshAirportCard();
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-set-lang') === lang));
     const sel = document.querySelector('#tab-general select.select-input'); if (sel) sel.value = lang;
     document.querySelector('.banko-text').innerText = t.bankoMsg;
@@ -6088,6 +6190,7 @@ function openFlightFocus(num) {
             <div class="ff-progress"><div class="ff-progress-fill" data-ff="prog"></div></div>
         </div>
         <div class="ff-gadss" data-ff="gadss"></div>
+        <div class="ff-assist" data-ff="assist"></div>
         <div class="ff-scroll">
             <div class="ff-card">
                 <div class="ff-title">${L('Flyvning', 'Flight')}</div>
@@ -6231,6 +6334,17 @@ function updateFlightFocus() {
     const fb = panel.querySelector('[data-ff="followBtn"]');
     if (fb) { fb.disabled = p.landed; fb.innerText = trackedFlightNum === p.num ? L('Følger…', 'Following…') : L('Følg fly', 'Follow aircraft'); fb.classList.toggle('on', trackedFlightNum === p.num); }
     updateProfileProgress(p, st);
+    const ab = panel.querySelector('[data-ff="assist"]');
+    if (ab) {
+        const t = p.assist && typeof ASSIST_TYPES !== 'undefined' ? ASSIST_TYPES.find(a => a.k === p.assist.type) : null;
+        const sig = t ? t.k + '|' + p.landed + '|' + currentLang : '';
+        if (ab.dataset.sig !== sig) {
+            ab.dataset.sig = sig;
+            ab.classList.toggle('show', !!t);
+            ab.innerHTML = t ? `<span class="material-icons-outlined">${t.icon}</span><span>${p.landed ? L('Står klar', 'Standing by') : L('Bestilt ved landing', 'Requested on arrival')}: <b>${L(t.da, t.en)}</b> · ${p.destAirport.code}</span>
+                <button type="button" onclick="event.stopPropagation(); openAirportCard('${p.destAirport.code}')">${L('Lufthavn', 'Airport')}</button>` : '';
+        }
+    }
     const gb = panel.querySelector('[data-ff="gadss"]');
     if (gb) {
         const sig = p.gadss ? p.gadss.level + '|' + p.gadss.ack + '|' + gadssMinutes(p) + '|' + currentLang : '';
@@ -6385,6 +6499,7 @@ function animateActivePlanes(now) {
             const infoBox = p.el.querySelector('.plane-info-box');
             if (infoBox) infoBox.innerText = `${p.flightNo} LANDED`;
             syncFlightRowUI(p);
+            if (p.assist && typeof assistOnLanding === 'function') assistOnLanding(p);
             if (trackedFlightNum === p.num) releaseTracking(true);   // stay at the destination
             if (focusedFlightNum === p.num) setTimeout(updateFlightFocus, 0);
         } else {
@@ -6646,6 +6761,211 @@ function resetGame() {
     saveGame();
     showToast(currentLang === 'da' ? 'Nyt spil startet' : 'New game started');
 }
+</script>
+    <script>
+// Bingo Watch – airport-card.js
+// Plain script (not a module): all files share one global scope and are loaded in order from index.html.
+//
+// Tap / click an airport on the map -> an airport card:
+//   • traffic: aircraft airborne from here and inbound (with ETA) – tap a flight to select it
+//   • assistance on arrival: order ambulance, PRM / wheelchair, fire & rescue standby, technician or fuel
+//     for an inbound flight (simulated – shown on the flight and confirmed when it lands)
+//   • contacts: the controller's own phone numbers / notes per airport (saved in this browser only)
+//   • weather here (the old click behaviour) and a link to look the airport up online
+
+const AP_CONTACT_KEY = 'bingoApContacts';
+const AP_CONTACT_FIELDS = [
+    { k: 'ops', icon: 'support_agent', da: 'OPS / handling', en: 'OPS / handling' },
+    { k: 'med', icon: 'medical_services', da: 'Ambulance / læge', en: 'Ambulance / medical' },
+    { k: 'arff', icon: 'local_fire_department', da: 'Brand & redning', en: 'Fire & rescue' },
+    { k: 'fuel', icon: 'local_gas_station', da: 'Brændstof', en: 'Fuel' }
+];
+const ASSIST_TYPES = [
+    { k: 'med', icon: 'medical_services', da: 'Ambulance', en: 'Ambulance' },
+    { k: 'prm', icon: 'accessible', da: 'Kørestol / PRM', en: 'Wheelchair / PRM' },
+    { k: 'arff', icon: 'local_fire_department', da: 'Brandberedskab', en: 'Fire standby' },
+    { k: 'tech', icon: 'build', da: 'Tekniker', en: 'Technician' },
+    { k: 'fuel', icon: 'local_gas_station', da: 'Hurtig tankning', en: 'Quick refuel' }
+];
+let apContacts = {};
+try { apContacts = JSON.parse(localStorage.getItem(AP_CONTACT_KEY) || '{}') || {}; } catch (e) { apContacts = {}; }
+function saveApContacts() { try { localStorage.setItem(AP_CONTACT_KEY, JSON.stringify(apContacts)); } catch (e) {} }
+
+const apCard = { el: null, code: null, editing: false, assistFor: null, timer: 0 };
+const apEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const apTel = s => String(s || '').replace(/[^\d+]/g, '');
+const apL = (da, en) => currentLang === 'da' ? da : en;
+
+function apFlights(code) {
+    const all = Object.values(activePlaneMarkers);
+    const eta = p => p.stdMs + p.durMin * 60000;
+    return {
+        inbound: all.filter(p => !p.landed && p.destAirport.code === code).sort((a, b) => eta(a) - eta(b)),
+        outbound: all.filter(p => !p.landed && p.depAirport.code === code),
+        landed: all.filter(p => p.landed && p.destAirport.code === code).length,
+        eta
+    };
+}
+
+function airportCardHtml(ap) {
+    const da = currentLang === 'da';
+    const home = ap.code === currentICAO;
+    const cur = AIRPORT_DB.find(a => a.code === currentICAO);
+    const f = apFlights(ap.code);
+    const c = apContacts[ap.code] || {};
+    const dist = cur && !home ? `${Math.round(gHav(cur.lat, cur.lon, ap.lat, ap.lon))} NM ${apL('fra', 'from')} ${cur.code} · ${String(Math.round(gBearing(cur.lat, cur.lon, ap.lat, ap.lon))).padStart(3, '0')}°` : '';
+
+    // ---- inbound traffic + assistance ----
+    const assistName = k => { const t = ASSIST_TYPES.find(a => a.k === k); return t ? apL(t.da, t.en) : k; };
+    const rows = f.inbound.slice(0, 6).map(p => {
+        const remMin = Math.max(0, Math.round((p.totalDistNm - p.flownDistNm) / (p.nmps || CONSTANT_NM_PER_SECOND) / 60 * 10) / 10);
+        const asg = p.assist ? `<span class="apc-assist-chip"><span class="material-icons-outlined">${ASSIST_TYPES.find(a => a.k === p.assist.type).icon}</span>${apEsc(assistName(p.assist.type))}</span>` : '';
+        const picker = apCard.assistFor === p.num ? `<div class="apc-assist-pick">${ASSIST_TYPES.map(t =>
+            `<button type="button" class="${p.assist && p.assist.type === t.k ? 'on' : ''}" onclick="requestAssistance(${p.num}, '${t.k}')"><span class="material-icons-outlined">${t.icon}</span>${apL(t.da, t.en)}</button>`).join('')}
+            ${p.assist ? `<button type="button" class="apc-cancel" onclick="requestAssistance(${p.num}, null)"><span class="material-icons-outlined">close</span>${apL('Annullér', 'Cancel')}</button>` : ''}</div>` : '';
+        return `<div class="apc-flight">
+                <button type="button" class="apc-flight-main" onclick="apSelectFlight(${p.num})" title="${apL('Vælg flyet', 'Select the flight')}">
+                    <b>${p.flightNo}</b><span>${apL('fra', 'from')} ${p.depAirport.code}</span><span class="apc-eta">ETA ${hhmm(f.eta(p))}</span>
+                </button>
+                <button type="button" class="apc-assist-btn ${p.assist ? 'on' : ''}" onclick="toggleAssistPicker(${p.num})" title="${apL('Bestil assistance ved landing', 'Request assistance on arrival')}">
+                    <span class="material-icons-outlined">${p.assist ? 'check_circle' : 'add_alert'}</span>
+                </button>
+                ${asg}${picker}
+            </div>`;
+    }).join('');
+    const more = f.inbound.length > 6 ? `<div class="apc-muted">+ ${f.inbound.length - 6} ${apL('flere', 'more')}</div>` : '';
+
+    // ---- contacts ----
+    let contacts;
+    if (apCard.editing) {
+        contacts = `<form class="apc-form" onsubmit="saveAirportContacts(event)">
+            ${AP_CONTACT_FIELDS.map(fl => `<label><span class="material-icons-outlined">${fl.icon}</span><input type="tel" name="${fl.k}" value="${apEsc(c[fl.k])}" placeholder="${apL(fl.da, fl.en)}" autocomplete="off"></label>`).join('')}
+            <label class="apc-note"><span class="material-icons-outlined">sticky_note_2</span><textarea name="note" rows="2" placeholder="${apL('Note (fx frekvens, gate, kontaktperson)', 'Note (e.g. frequency, stand, contact person)')}">${apEsc(c.note)}</textarea></label>
+            <div class="apc-form-btns"><button type="button" class="apc-btn" onclick="editAirportContacts(false)">${apL('Fortryd', 'Cancel')}</button><button type="submit" class="apc-btn apc-primary">${apL('Gem', 'Save')}</button></div>
+        </form>`;
+    } else {
+        const list = AP_CONTACT_FIELDS.filter(fl => c[fl.k]).map(fl =>
+            `<a class="apc-contact" href="tel:${apEsc(apTel(c[fl.k]))}"><span class="material-icons-outlined">${fl.icon}</span><span class="apc-contact-l">${apL(fl.da, fl.en)}</span><b>${apEsc(c[fl.k])}</b></a>`).join('');
+        const note = c.note ? `<div class="apc-note-txt">${apEsc(c.note)}</div>` : '';
+        contacts = (list || note) ? list + note
+            : `<div class="apc-muted">${apL('Ingen kontakter gemt for denne lufthavn endnu.', 'No contacts saved for this airport yet.')}</div>`;
+        contacts += `<div class="apc-contact-actions">
+            <button type="button" class="apc-btn" onclick="editAirportContacts(true)"><span class="material-icons-outlined">edit</span>${(list || note) ? apL('Redigér', 'Edit') : apL('Tilføj kontakter', 'Add contacts')}</button>
+            <a class="apc-btn" target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent(ap.code + ' ' + ap.name + ' airport operations contact')}"><span class="material-icons-outlined">travel_explore</span>${apL('Find online', 'Look up')}</a>
+        </div>`;
+    }
+
+    return `<div class="apc">
+        <div class="apc-head"><b>${ap.code}</b>${home ? `<span class="ap-badge">${apL('Valgt', 'Selected')}</span>` : ''}<button type="button" class="apc-x" onclick="closeAirportCard()" aria-label="${apL('Luk', 'Close')}"><span class="material-icons-outlined">close</span></button></div>
+        <div class="apc-name">${apEsc(ap.name)}</div>
+        <div class="apc-stats">
+            <div><b>${f.outbound.length}</b><span>${apL('Afgået, i luften', 'Departed, airborne')}</span></div>
+            <div><b>${f.inbound.length}</b><span>${apL('På vej hertil', 'Inbound')}</span></div>
+            <div><b>${f.landed}</b><span>${apL('Landet her', 'Landed here')}</span></div>
+        </div>
+        <div class="apc-sub">${dist ? dist + '<br>' : ''}${formatDMS(ap.lat, ap.lon)}</div>
+        <div class="apc-scroll">
+            <div class="apc-sec"><span class="material-icons-outlined">flight_land</span>${apL('Indgående fly · assistance ved landing', 'Inbound · assistance on arrival')}</div>
+            ${rows || `<div class="apc-muted">${apL('Ingen fly på vej hertil lige nu.', 'No aircraft inbound right now.')}</div>`}${more}
+            <div class="apc-sec"><span class="material-icons-outlined">call</span>${apL('Kontakter', 'Contacts')}<small>${apL('gemt i denne browser', 'saved in this browser')}</small></div>
+            ${contacts}
+        </div>
+        <div class="apc-actions">
+            <button type="button" class="apc-btn apc-primary" onclick="apShowWeather('${ap.code}')"><span class="material-icons-outlined">cloud</span>${apL('Vejr her', 'Weather here')}</button>
+        </div>
+    </div>`;
+}
+
+function openAirportCard(code, at) {
+    const ap = AIRPORT_DB.find(a => a.code === code);
+    if (!ap || !map) return;
+    if (apCard.code !== code) { apCard.editing = false; apCard.assistFor = null; }
+    closeAirportCard(true);
+    apCard.code = code;
+    // A fixed panel on top of everything (a map popup would end up underneath the windows)
+    const el = document.createElement('div');
+    el.id = 'ap-card'; el.className = 'ap-card';
+    el.innerHTML = airportCardHtml(ap);
+    el.addEventListener('mousedown', e => e.stopPropagation());
+    document.body.appendChild(el);
+    apCard.el = el;
+    placeAirportCard(ap, at);
+    // traffic changes all the time: refresh the numbers (but never while the user is typing)
+    clearInterval(apCard.timer);
+    apCard.timer = setInterval(() => { if (!apCard.editing) refreshAirportCard(); }, 4000);
+}
+// desktop: next to the airport, kept inside the window; phones: a sheet above the tab bar (CSS)
+function placeAirportCard(ap, at) {
+    const el = apCard.el; if (!el || isMobileUI()) return;
+    const m = map.getContainer().getBoundingClientRect();
+    const pt = at || map.project([ap.lon, ap.lat]);
+    const x = m.left + pt.x, y = m.top + pt.y, w = el.offsetWidth, h = el.offsetHeight;
+    let left = x + 18, top = y - 40;
+    if (left + w > window.innerWidth - 60) left = x - w - 18;          // flip to the left of the airport
+    left = Math.max(8, Math.min(window.innerWidth - w - 8, left));
+    top = Math.max(m.top + 8, Math.min(window.innerHeight - h - 12, top));
+    el.style.left = left + 'px'; el.style.top = top + 'px';
+}
+function refreshAirportCard() {
+    if (!apCard.el || !apCard.code) return;
+    const ap = AIRPORT_DB.find(a => a.code === apCard.code); if (!ap) return;
+    const sc = apCard.el.querySelector('.apc-scroll'), top = sc ? sc.scrollTop : 0;
+    apCard.el.innerHTML = airportCardHtml(ap);
+    const sc2 = apCard.el.querySelector('.apc-scroll'); if (sc2) sc2.scrollTop = top;
+    keepAirportCardOnScreen();
+}
+function keepAirportCardOnScreen() {
+    const el = apCard.el; if (!el || isMobileUI()) return;
+    const r = el.getBoundingClientRect(), minTop = map.getContainer().getBoundingClientRect().top + 8;
+    if (r.bottom > window.innerHeight - 12) el.style.top = Math.max(minTop, window.innerHeight - r.height - 12) + 'px';
+}
+function closeAirportCard(silent) {
+    clearInterval(apCard.timer); apCard.timer = 0;
+    if (apCard.el) { apCard.el.remove(); apCard.el = null; }
+    if (!silent) { apCard.code = null; apCard.editing = false; apCard.assistFor = null; }
+}
+function editAirportContacts(on) {
+    apCard.editing = !!on; refreshAirportCard();
+    if (on) setTimeout(() => { const i = apCard.el && apCard.el.querySelector('.apc-form input'); if (i && !isMobileUI()) i.focus(); }, 30);
+}
+function saveAirportContacts(e) {
+    e.preventDefault();
+    const fd = new FormData(e.target), rec = {};
+    AP_CONTACT_FIELDS.forEach(fl => { const v = String(fd.get(fl.k) || '').trim().slice(0, 40); if (v) rec[fl.k] = v; });
+    const note = String(fd.get('note') || '').trim().slice(0, 300); if (note) rec.note = note;
+    if (Object.keys(rec).length) apContacts[apCard.code] = rec; else delete apContacts[apCard.code];
+    saveApContacts();
+    apCard.editing = false; refreshAirportCard();
+    showToast(apL('Kontakter gemt for ', 'Contacts saved for ') + apCard.code);
+}
+function toggleAssistPicker(num) { apCard.assistFor = apCard.assistFor === num ? null : num; refreshAirportCard(); }
+function requestAssistance(num, type) {
+    const p = activePlaneMarkers[num]; if (!p) return;
+    const t = ASSIST_TYPES.find(a => a.k === type);
+    if (!t) {
+        delete p.assist;
+        showToast(apL(`Assistance til ${p.flightNo} annulleret`, `Assistance for ${p.flightNo} cancelled`));
+    } else {
+        p.assist = { type, at: p.destAirport.code };
+        const c = apContacts[p.destAirport.code] || {}, phone = c[type] || c.ops;
+        showToast(apL(`${p.destAirport.code}: ${t.da} bestilt til ${p.flightNo} ved landing`, `${p.destAirport.code}: ${t.en} requested for ${p.flightNo} on arrival`) + (phone ? ` · ☎ ${phone}` : ''));
+    }
+    if (p.el) p.el.classList.toggle('has-assist', !!p.assist);
+    apCard.assistFor = null;
+    refreshAirportCard();
+    if (focusedFlightNum === num && typeof updateFlightFocus === 'function') updateFlightFocus();
+}
+// called from the animation loop when a flight lands
+function assistOnLanding(p) {
+    if (!p.assist) return;
+    const t = ASSIST_TYPES.find(a => a.k === p.assist.type);
+    showToast(apL(`${p.flightNo} er landet i ${p.destAirport.code} – ${t.da.toLowerCase()} står klar`, `${p.flightNo} landed at ${p.destAirport.code} – ${t.en.toLowerCase()} standing by`));
+    if (apCard.code === p.destAirport.code) refreshAirportCard();
+}
+function apSelectFlight(num) { closeAirportCard(); if (typeof focusFlightInLog === 'function') focusFlightInLog(num); }
+function apShowWeather(code) { closeAirportCard(); selectAirport(code); }
+// Escape closes the card; switching language redraws it
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && apCard.el) closeAirportCard(); });
 </script>
     <script>
 // Bingo Watch – game.js
@@ -7611,7 +7931,13 @@ const MANUAL = [
           <li><b>Klik på et fly</b> for at vælge det (se “Flypanel og højdeprofil”). Klik et tomt sted på kortet for at fravælge det igen.</li>
         </ul>
         <h4>Lufthavne</h4>
-        <p>De små prikker er lufthavne. <b>Hold musen over</b> en prik for navn, antal fly til og fra, og afstand fra den valgte lufthavn. <b>Klik</b> for at skifte til lufthavnen og se vejret derfra i vejrvinduet.</p>
+        <p>De små prikker er lufthavne. <b>Hold musen over</b> en prik for navn, antal fly til og fra, og afstand fra den valgte lufthavn. <b>Klik</b> (eller tryk på mobilen) for lufthavnskortet:</p>
+        <ul>
+          <li><b>Trafik</b>: fly i luften herfra, fly på vej hertil med ETA, og fly der er landet. Tryk på et fly for at vælge det.</li>
+          <li><b>Assistance ved landing</b>: tryk ${I('add_alert')} ud for et indgående fly og vælg ambulance, kørestol/PRM, brandberedskab, tekniker eller hurtig tankning. Flyet får et lille <b>+</b>, flypanelet viser bestillingen, og når flyet lander, får du besked om, at hjælpen står klar (simuleret).</li>
+          <li><b>Kontakter</b>: gem dine egne telefonnumre (OPS/handling, ambulance, brand & redning, brændstof) og en note for hver lufthavn. De gemmes kun i denne browser, og numrene kan ringes op direkte fra mobilen. <b>Find online</b> søger efter lufthavnens kontaktoplysninger.</li>
+          <li><b>Vejr her</b> skifter til lufthavnen og viser vejret i vejrvinduet.</li>
+        </ul>
         <h4>Værktøjslinjen til højre</h4>
         <ul>
           <li>${I('add_circle_outline')} ${I('remove_circle_outline')} zoom ind og ud.</li>
@@ -7630,7 +7956,13 @@ const MANUAL = [
           <li><b>Click an aircraft</b> to select it (see “Flight panel and profile”). Click an empty spot on the map to deselect.</li>
         </ul>
         <h4>Airports</h4>
-        <p>The small dots are airports. <b>Hover</b> a dot for its name, flights to and from it, and distance from the selected airport. <b>Click</b> to switch to that airport and see its weather in the weather window.</p>
+        <p>The small dots are airports. <b>Hover</b> a dot for its name, flights to and from it, and distance from the selected airport. <b>Click</b> (or tap on a phone) for the airport card:</p>
+        <ul>
+          <li><b>Traffic</b>: aircraft airborne from here, aircraft inbound with ETA, and aircraft that have landed. Tap a flight to select it.</li>
+          <li><b>Assistance on arrival</b>: tap ${I('add_alert')} next to an inbound flight and choose ambulance, wheelchair/PRM, fire standby, technician or quick refuel. The aircraft gets a small <b>+</b>, the flight panel shows the request, and when it lands you are told that help is standing by (simulated).</li>
+          <li><b>Contacts</b>: save your own phone numbers (OPS/handling, ambulance, fire & rescue, fuel) and a note for each airport. They are kept in this browser only, and the numbers can be called straight from a phone. <b>Look up</b> searches for the airport's contact details.</li>
+          <li><b>Weather here</b> switches to the airport and shows its weather in the weather window.</li>
+        </ul>
         <h4>Toolbar on the right</h4>
         <ul>
           <li>${I('add_circle_outline')} ${I('remove_circle_outline')} zoom in and out.</li>

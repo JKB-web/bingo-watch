@@ -61,7 +61,7 @@ function initRealMapAndWeather() {
     // Camera lock is released as soon as the user clicks or drags the map
     map.on('mousedown', () => { window._mapGrabAt = Date.now(); releaseTracking(false, true); if (santa.follow) toggleSantaFollow(false); });
     // Klik et tomt sted på kortet: fravælg flyet og fold dets kort i Active Flights sammen igen
-    map.on('click', (e) => { if (e.originalEvent && e.originalEvent._airportClick) return; clearFlightSelection(); });
+    map.on('click', (e) => { if (e.originalEvent && e.originalEvent._airportClick) return; if (typeof closeAirportCard === 'function') closeAirportCard(); clearFlightSelection(); });
     map.on('touchstart', () => releaseTracking(false, true));
     map.on('dragstart', () => releaseTracking(false, true));
 

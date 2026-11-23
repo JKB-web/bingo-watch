@@ -43,11 +43,11 @@
                 <div class="briefing-section">
                     <div class="briefing-h3" data-lang="brWelcomeH">Welcome Controller</div>
                     <div class="briefing-p" data-lang-html="brWelcomeP1">You are now in command of <strong>BINGO WATCH</strong>. Your mission is to guide passengers safely through the airspace (numbers 1-90) until landing (BINGO).</div>
-                    <div class="briefing-p" data-lang-html="brWelcomeP2">The background features a monochrome <strong>OCC Tactical Radar Map</strong> (2D / 3D Globe, range rings, flight tracks and nine live weather layers: <strong>Jetstreams, Wind barbs, Cloud areas, CAT, Tropopause, Icing, Tropical cyclones, Volcanoes &amp; SIGMET</strong>, plus RainViewer radar).</div>
+                    <div class="briefing-p briefing-more" data-lang-html="brWelcomeP2">The background features a monochrome <strong>OCC Tactical Radar Map</strong> (2D / 3D Globe, range rings, flight tracks and nine live weather layers: <strong>Jetstreams, Wind barbs, Cloud areas, CAT, Tropopause, Icing, Tropical cyclones, Volcanoes &amp; SIGMET</strong>, plus RainViewer radar).</div>
                 </div>
                 <div class="briefing-section">
                     <div class="briefing-h3" data-lang="brInstrH">Instrument Overview</div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom:8px;">
+                    <div class="briefing-instr" style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom:8px;">
                         <div><strong style="color:var(--primary-blue); font-size:12px;" data-lang="brI1T">NAV GRID & LOG</strong><p style="font-size:11px; margin:2px 0 0 0; color:var(--text-muted);" data-lang="brI1P">Visual tracking of all drawn numbers and historical flight log.</p></div>
                         <div><strong style="color:var(--primary-blue); font-size:12px;" data-lang="brI2T">CARD GENERATOR</strong><p style="font-size:11px; margin:2px 0 0 0; color:var(--text-muted);" data-lang="brI2P">Print new flight plans (bingo cards) for the entire crew.</p></div>
                         <div><strong style="color:var(--primary-blue); font-size:12px;" data-lang="brI3T">VERIFY WIN (SCANNER)</strong><p style="font-size:11px; margin:2px 0 0 0; color:var(--text-muted);" data-lang="brI3P">Enter Card ID to automatically validate a claimed Bingo.</p></div>
@@ -56,7 +56,7 @@
                         <div><strong style="color:var(--primary-blue); font-size:12px;" data-lang="brI6T">CONFLICT RES.</strong><p style="font-size:11px; margin:2px 0 0 0; color:var(--text-muted);" data-lang="brI6P">Resolve "dead heat" tie-breaker situations between players.</p></div>
                     </div>
                 </div>
-                <div class="briefing-section" style="margin-bottom:0;">
+                <div class="briefing-section briefing-keys" style="margin-bottom:0;">
                     <div class="briefing-h3" data-lang="brKeysH">Cockpit Controls (Shortcuts)</div>
                     <div class="keys-grid">
                         <div class="key-row"><span class="key-box">Space</span>&nbsp;<span data-lang="brK1">Draw Next Number</span></div>
@@ -69,7 +69,7 @@
                 </div>
             </div>
             <div class="briefing-footer" style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase;"><span data-lang="brStatus">Local Mode & Live Weather:</span> <strong style="color:var(--success-green);">ONLINE</strong></span>
+                <span class="briefing-status" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;"><span data-lang="brStatus">Local Mode & Live Weather:</span> <strong style="color:var(--success-green);">ONLINE</strong></span>
                 <button class="start-btn" onclick="startMission()" data-lang="brLaunch">CONFIRM & LAUNCH</button>
             </div>
         </div>
@@ -530,6 +530,7 @@
     <script src="js/metar.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/flights.js"></script>
+    <script src="js/airport-card.js"></script>
     <script src="js/game.js"></script>
     <script src="js/seasons.js"></script>
     <script src="js/attract.js"></script>
