@@ -124,7 +124,7 @@ async function toggleLiveLayer(type) {
         } else if (map && map.getLayer('layer-rainviewer-radar')) {
             map.setLayoutProperty('layer-rainviewer-radar', 'visibility', isVis);
         }
-        document.getElementById('btn-wx-radar').classList.toggle('active', liveWeatherState.radar);
+        syncWxMenuUI();
         showToast(liveWeatherState.radar ? (da ? 'Live nedbørsradar TIL' : 'Live Precipitation Radar ON') : (da ? 'Nedbørsradar FRA' : 'Precipitation Radar OFF'));
     }
 }

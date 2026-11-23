@@ -294,6 +294,7 @@ const WX_LAYER_DEFS = [
     { id: 'barbs',   grp: 'wind', icon: 'flag',            en: 'Wind barbs',              da: 'Vindfaner' },
     { id: 'cat',     grp: 'wind', icon: 'waves',           en: 'Clear air turbulence',    da: 'Turbulens i klar luft (CAT)' },
     { id: 'trop',    grp: 'wind', icon: 'layers',          en: 'Tropopause',              da: 'Tropopause' },
+    { id: 'radar',   grp: 'cloud', icon: 'radar',          en: 'Precipitation radar (RainViewer)', da: 'Nedbørsradar (RainViewer)' },
     { id: 'cloud',   grp: 'cloud', icon: 'cloud',          en: 'Cloud cover total',       da: 'Samlet skydække' },
     { id: 'cape',    grp: 'cloud', icon: 'thunderstorm',   en: 'CAPE and lifted index',   da: 'CAPE og lifted index' },
     { id: 'conv',    grp: 'cloud', icon: 'filter_drama',   en: 'Convective cloud tops',   da: 'Konvektive skytoppe' },
@@ -315,6 +316,7 @@ const WX_GROUP_NAMES = { wind: ['Vind og højde', 'Wind and altitude'], cloud: [
 const WX_LAYER_GROUPS = {
     jet:     ['wx-jet-band', 'wx-jet-core', 'wx-jet-arrows', 'wx-jet-labels'],
     barbs:   ['wx-barbs'],
+    radar:   ['layer-rainviewer-radar'],   // RainViewer tiles, loaded by loadRealRainViewerLayers()
     cloud:   ['wx-f-cloud'],
     cape:    ['wx-f-cape', 'wx-li-line'], conv: ['wx-f-conv'], dust: ['wx-f-dust'], fog: ['wx-f-fog'], frz: ['wx-f-frz'],
     ptend:   ['wx-f-ptend'], t2m: ['wx-f-t2m'], vis: ['wx-f-vis'], sat: ['wx-sat'], flow: [],

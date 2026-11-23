@@ -2255,10 +2255,6 @@
                 <span class="material-icons-outlined">track_changes</span>
             </button>
 
-            <!-- LIVE PRECIPITATION RADAR -->
-            <button class="right-tool-btn active" id="btn-wx-radar" onclick="toggleLiveLayer('radar')" data-tip="Live Precipitation Radar (RainViewer)" data-lang-tip="tipRadar">
-                <span class="material-icons-outlined">radar</span>
-            </button>
             <!-- WEATHER LAYERS MENU (9 OpsControl layers) -->
             <button class="right-tool-btn" id="btn-wx-menu" onclick="toggleWxMenu()" data-tip="Weather Layers" data-lang-tip="tipWxMenu">
                 <span class="material-icons-outlined">layers</span>
@@ -3396,6 +3392,7 @@ const WX_LAYER_DEFS = [
     { id: 'barbs',   grp: 'wind', icon: 'flag',            en: 'Wind barbs',              da: 'Vindfaner' },
     { id: 'cat',     grp: 'wind', icon: 'waves',           en: 'Clear air turbulence',    da: 'Turbulens i klar luft (CAT)' },
     { id: 'trop',    grp: 'wind', icon: 'layers',          en: 'Tropopause',              da: 'Tropopause' },
+    { id: 'radar',   grp: 'cloud', icon: 'radar',          en: 'Precipitation radar (RainViewer)', da: 'Nedbørsradar (RainViewer)' },
     { id: 'cloud',   grp: 'cloud', icon: 'cloud',          en: 'Cloud cover total',       da: 'Samlet skydække' },
     { id: 'cape',    grp: 'cloud', icon: 'thunderstorm',   en: 'CAPE and lifted index',   da: 'CAPE og lifted index' },
     { id: 'conv',    grp: 'cloud', icon: 'filter_drama',   en: 'Convective cloud tops',   da: 'Konvektive skytoppe' },
@@ -3417,6 +3414,7 @@ const WX_GROUP_NAMES = { wind: ['Vind og højde', 'Wind and altitude'], cloud: [
 const WX_LAYER_GROUPS = {
     jet:     ['wx-jet-band', 'wx-jet-core', 'wx-jet-arrows', 'wx-jet-labels'],
     barbs:   ['wx-barbs'],
+    radar:   ['layer-rainviewer-radar'],   // RainViewer tiles, loaded by loadRealRainViewerLayers()
     cloud:   ['wx-f-cloud'],
     cape:    ['wx-f-cape', 'wx-li-line'], conv: ['wx-f-conv'], dust: ['wx-f-dust'], fog: ['wx-f-fog'], frz: ['wx-f-frz'],
     ptend:   ['wx-f-ptend'], t2m: ['wx-f-t2m'], vis: ['wx-f-vis'], sat: ['wx-sat'], flow: [],
@@ -3721,33 +3719,45 @@ function fc(features) { return { type: 'FeatureCollection', features }; }
 
 // ---- LAYER DATA BUILDERS --------------------------------------------------
 function buildJetsGeoJSON() {
-    const feats = [];
+    // The live wind grid is coarse (9° x 12°), so the single fastest latitude jumps from grid row to grid row.
+    // Instead we take the speed-weighted centre of the fast core, keep the line continuous (no jumps > 4°/step),
+    // and smooth it along the jet before drawing.
+    const feats = [], STEP = 2;
     const bands = [[15, 36], [37, 76], [-36, -15], [-76, -37]];
+    const smooth = (arr, k, passes) => { let a = arr; for (let n = 0; n < passes; n++) a = a.map((p, i) => {
+        const q = a[Math.max(0, i - 1)], r = a[Math.min(a.length - 1, i + 1)], o = p.slice(); o[k] = (q[k] + 2 * p[k] + r[k]) / 4; return o; }); return a; };
     function emit(run) {
-        const sm = run.map((p, i) => {
-            const a = run[Math.max(0, i - 1)], b = run[Math.min(run.length - 1, i + 1)];
-            return [p[0], (a[1] + p[1] * 2 + b[1]) / 4, p[2]];
-        });
+        let sm = smooth(smooth(run, 1, 6), 2, 3);
         for (let i = 0; i < sm.length - 1; i++) feats.push({ type: 'Feature', properties: { kind: 'seg', spd: (sm[i][2] + sm[i + 1][2]) / 2 },
             geometry: { type: 'LineString', coordinates: [[sm[i][0], sm[i][1]], [sm[i + 1][0], sm[i + 1][1]]] } });
-        for (let i = 2; i < sm.length - 2; i += 4) {
+        for (let i = 3; i < sm.length - 3; i += 6) {
             const a = sm[i - 1], b = sm[i + 1];
             const brg = (Math.atan2((b[0] - a[0]) * Math.cos(sm[i][1] * D2R), b[1] - a[1]) / D2R + 360) % 360;
             feats.push({ type: 'Feature', properties: { kind: 'arrow', bearing: brg }, geometry: { type: 'Point', coordinates: [sm[i][0], sm[i][1]] } });
         }
-        for (let i = 4; i < sm.length - 3; i += 10) feats.push({ type: 'Feature', properties: { kind: 'label', label: Math.round(sm[i][2]) + ' KT' },
+        for (let i = 6; i < sm.length - 4; i += 15) feats.push({ type: 'Feature', properties: { kind: 'label', label: Math.round(sm[i][2]) + ' KT' },
             geometry: { type: 'Point', coordinates: [sm[i][0], sm[i][1]] } });
     }
     bands.forEach(([lo, hi]) => {
         let run = [];
-        const flush = () => { if (run.length >= 4) emit(run); run = []; };
-        for (let lon = -180; lon <= 180; lon += 3) {
-            let best = -1, bl = lo;
-            for (let lat = lo; lat <= hi; lat += 1) {
-                const a = sampleAtmos(lat, lon), s = Math.hypot(a.u250, a.v250);
-                if (s > best) { best = s; bl = lat; }
+        const flush = () => { if (run.length >= 6) emit(run); run = []; };
+        for (let lon = -180; lon <= 180; lon += STEP) {
+            const prof = [];
+            let best = -1, bi = 0;
+            for (let lat = lo - 6; lat <= hi + 6; lat += 1) {
+                const a = sampleAtmos(lat, lon), sp = Math.hypot(a.u250, a.v250);
+                prof.push([lat, sp]);
+                if (lat >= lo && lat <= hi && sp > best) { best = sp; bi = prof.length - 1; }
             }
-            if (best >= 62) run.push([lon, bl, best]); else flush();
+            // centre of mass of the part of the profile within 15% of the peak (±12°)
+            let sw = 0, sl = 0;
+            for (let i = Math.max(0, bi - 12); i <= Math.min(prof.length - 1, bi + 12); i++) {
+                const wgt = Math.max(0, prof[i][1] - 0.85 * best); sw += wgt * wgt; sl += wgt * wgt * prof[i][0];
+            }
+            const lat = sw > 0 ? Math.max(lo, Math.min(hi, sl / sw)) : prof[bi][0];
+            const live = run.length ? best >= 55 : best >= 62;           // hysteresis: fewer broken fragments
+            if (live && run.length && Math.abs(lat - run[run.length - 1][1]) > 4) flush();
+            if (live) run.push([lon, lat, best]); else flush();
         }
         flush();
     });
@@ -4371,7 +4381,7 @@ function bringOccToTop() {
 function rebuildWxLayers(force) {
     if (!map) return;
     ensureWxIcons();
-    WX_LAYER_DEFS.forEach(d => { if (liveWeatherState[d.id]) renderWxLayer(d.id, !!force && wxBuilt[d.id] !== undefined); });
+    WX_LAYER_DEFS.forEach(d => { if (d.id !== 'radar' && liveWeatherState[d.id]) renderWxLayer(d.id, !!force && wxBuilt[d.id] !== undefined); });
 }
 function setWxVisibility(id, on) {
     (WX_LAYER_GROUPS[id] || []).forEach(lid => { if (map.getLayer(lid)) map.setLayoutProperty(lid, 'visibility', on ? 'visible' : 'none'); });
@@ -4380,6 +4390,7 @@ function setWxVisibility(id, on) {
     if (id === 'cyclone' && !on) clearCycloneMarkers();
 }
 async function toggleWxLayer(id) {
+    if (id === 'radar') return toggleLiveLayer('radar');   // RainViewer has its own loader
     liveWeatherState[id] = !liveWeatherState[id];
     syncWxMenuUI();
     if (!map) return;
@@ -4571,7 +4582,7 @@ async function toggleLiveLayer(type) {
         } else if (map && map.getLayer('layer-rainviewer-radar')) {
             map.setLayoutProperty('layer-rainviewer-radar', 'visibility', isVis);
         }
-        document.getElementById('btn-wx-radar').classList.toggle('active', liveWeatherState.radar);
+        syncWxMenuUI();
         showToast(liveWeatherState.radar ? (da ? 'Live nedbørsradar TIL' : 'Live Precipitation Radar ON') : (da ? 'Nedbørsradar FRA' : 'Precipitation Radar OFF'));
     }
 }
@@ -7599,7 +7610,6 @@ const MANUAL = [
           <li>${I('my_location')} centrér på den valgte lufthavn.</li>
           <li>${I('public')} skift mellem 2D-kort og 3D-globus.</li>
           <li>${I('track_changes')} rækkeviddecirkler og lufthavne.</li>
-          <li>${I('radar')} nedbørsradar (fra jordbaserede radarer – dækker ikke hele verden, fx næsten ikke Afrika).</li>
           <li>${I('layers')} vejrlag (se “Vejr”).</li>
           <li>${I('wb_sunny')} sol og dag/nat-grænse.</li>
         </ul>
@@ -7619,7 +7629,6 @@ const MANUAL = [
           <li>${I('my_location')} centre on the selected airport.</li>
           <li>${I('public')} switch between the 2D map and the 3D globe.</li>
           <li>${I('track_changes')} range rings and airports.</li>
-          <li>${I('radar')} precipitation radar (from ground radars – does not cover the whole world, e.g. hardly any of Africa).</li>
           <li>${I('layers')} weather layers (see “Weather”).</li>
           <li>${I('wb_sunny')} sun and day/night line.</li>
         </ul>
@@ -7676,7 +7685,7 @@ const MANUAL = [
         <p>Lagene er delt i grupper i menuen. Farvelag får en lille forklaring nederst til venstre.</p>
         <ul>
           <li><b>Vind og højde</b>: <i>Animerede vinde</i> (bevægelige strømlinjer, farvet efter fart – vælg niveau SFC, FL180, FL300 eller FL340), jetstrømme, vindfaner, turbulens i klar luft (CAT) og tropopause.</li>
-          <li><b>Skyer og konvektion</b>: samlet skydække, CAPE og lifted index (hvor tordenvejr kan opstå), konvektive skytoppe (anslået højde) og satellitbillede (dagens sidste hele mosaik).</li>
+          <li><b>Skyer og konvektion</b>: nedbørsradar fra RainViewer (jordbaserede radarer – dækker ikke hele verden, fx næsten ikke Afrika), samlet skydække, CAPE og lifted index (hvor tordenvejr kan opstå), konvektive skytoppe (anslået højde) og satellitbillede (dagens sidste hele mosaik).</li>
           <li><b>Farer</b>: isdannelse under flyvning, isslag-sandsynlighed, tåge-sandsynlighed, sigtbarhed og støv.</li>
           <li><b>Jordoverflade</b>: lufttryk som isobarer med høj- og lavtryk (H/L), trykændring over 3 timer og temperatur 2 m over jorden.</li>
           <li><b>Advarsler</b>: tropiske cykloner, vulkaner og SIGMET.</li>
@@ -7689,7 +7698,7 @@ const MANUAL = [
         <p>The layers are grouped in the menu. Colour layers get a small legend bottom left.</p>
         <ul>
           <li><b>Wind and altitude</b>: <i>Animated winds</i> (moving streamlines coloured by speed – choose level SFC, FL180, FL300 or FL340), jetstreams, wind barbs, clear air turbulence (CAT) and tropopause.</li>
-          <li><b>Cloud and convection</b>: total cloud cover, CAPE and lifted index (where thunderstorms can develop), convective cloud tops (estimated height) and satellite imagery (latest complete daily mosaic).</li>
+          <li><b>Cloud and convection</b>: precipitation radar from RainViewer (ground radars – does not cover the whole world, e.g. hardly any of Africa), total cloud cover, CAPE and lifted index (where thunderstorms can develop), convective cloud tops (estimated height) and satellite imagery (latest complete daily mosaic).</li>
           <li><b>Hazards</b>: in-flight icing, freezing rain probability, fog probability, visibility and dust.</li>
           <li><b>Surface</b>: mean sea level pressure as isobars with highs and lows (H/L), 3-hour pressure tendency and temperature 2 m above ground.</li>
           <li><b>Warnings</b>: tropical cyclones, volcanoes and SIGMET.</li>
@@ -7912,10 +7921,16 @@ function closeManual() { document.body.classList.remove('manual-open'); }
 function renderMobileQuick() {
     const b = document.getElementById('mQuickAuto'); if (b) b.classList.toggle('on', !!autopilotInterval);
 }
+// Flip the switch at once so the tap feels instant; the list is re-rendered a moment later with the real state.
+function mmFlip(btn) {
+    const on = btn.getAttribute('aria-checked') !== 'true';
+    btn.setAttribute('aria-checked', on); const s = btn.querySelector('.mm-sw'); if (s) s.classList.toggle('on', on);
+}
 function renderMobileMore() {
     const el = document.getElementById('m-more'); if (!el) return;
+    const oldScroll = el.querySelector('.mm-scroll'), keepTop = oldScroll ? oldScroll.scrollTop : 0;   // re-rendering must not jump to the top
     const da = currentLang === 'da', T = (d, e) => da ? d : e;
-    const sw = (on, label, icon, action) => `<button type="button" class="mm-row" role="switch" aria-checked="${on}" onclick="${action}; setTimeout(renderMobileMore, 250);">
+    const sw = (on, label, icon, action) => `<button type="button" class="mm-row" role="switch" aria-checked="${on}" onclick="mmFlip(this); ${action}; setTimeout(renderMobileMore, 250);">
         <span class="material-icons-outlined">${icon}</span><span class="mm-label">${label}</span><span class="mm-sw${on ? ' on' : ''}"><i></i></span></button>`;
     const go = (label, icon, action, sub) => `<button type="button" class="mm-row" onclick="${action}"><span class="material-icons-outlined">${icon}</span><span class="mm-label">${label}${sub ? `<small>${sub}</small>` : ''}</span><span class="mm-chev">›</span></button>`;
     const sec = (title, rows) => `<div class="mm-sec"><div class="mm-title">${title}</div>${rows.join('')}</div>`;
@@ -7940,7 +7955,6 @@ function renderMobileMore() {
             go(T('Pladegenerator', 'Card generator'), 'grid_view', "mobileSetTab('panel-gen')")])}
         ${sec(T('Kort', 'Map'), [
             sw(liveWeatherState.rings, T('Rækkeviddecirkler og lufthavne', 'Range rings and airports'), 'track_changes', "toggleLiveLayer('rings')"),
-            sw(liveWeatherState.radar, T('Nedbørsradar', 'Precipitation radar'), 'radar', "toggleLiveLayer('radar')"),
             sw(!!liveWeatherState.sun, T('Sol og dag/nat', 'Sun and day/night'), 'wb_sunny', 'toggleSun()'),
             sw(isGlobeMode, T('3D-globus', '3D globe'), 'public', 'toggleGlobeProjection()'),
             go(T('Centrér på lufthavn', 'Centre on airport'), 'my_location', "mobileSetTab('map'); centerMapOnAirport()")])}
@@ -7953,6 +7967,7 @@ function renderMobileMore() {
             go('Manual', 'menu_book', "mobileSetTab('map'); openManual()"),
             go(T('Alle indstillinger', 'All settings'), 'settings', "mobileSetTab('panel-settings')")])}
     </div>`;
+    const newScroll = el.querySelector('.mm-scroll'); if (newScroll && keepTop) newScroll.scrollTop = keepTop;
     renderMobileQuick();
 }
 setInterval(() => { if (isMobileUI()) renderMobileQuick(); }, 1000);

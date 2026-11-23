@@ -280,33 +280,45 @@ function fc(features) { return { type: 'FeatureCollection', features }; }
 
 // ---- LAYER DATA BUILDERS --------------------------------------------------
 function buildJetsGeoJSON() {
-    const feats = [];
+    // The live wind grid is coarse (9° x 12°), so the single fastest latitude jumps from grid row to grid row.
+    // Instead we take the speed-weighted centre of the fast core, keep the line continuous (no jumps > 4°/step),
+    // and smooth it along the jet before drawing.
+    const feats = [], STEP = 2;
     const bands = [[15, 36], [37, 76], [-36, -15], [-76, -37]];
+    const smooth = (arr, k, passes) => { let a = arr; for (let n = 0; n < passes; n++) a = a.map((p, i) => {
+        const q = a[Math.max(0, i - 1)], r = a[Math.min(a.length - 1, i + 1)], o = p.slice(); o[k] = (q[k] + 2 * p[k] + r[k]) / 4; return o; }); return a; };
     function emit(run) {
-        const sm = run.map((p, i) => {
-            const a = run[Math.max(0, i - 1)], b = run[Math.min(run.length - 1, i + 1)];
-            return [p[0], (a[1] + p[1] * 2 + b[1]) / 4, p[2]];
-        });
+        let sm = smooth(smooth(run, 1, 6), 2, 3);
         for (let i = 0; i < sm.length - 1; i++) feats.push({ type: 'Feature', properties: { kind: 'seg', spd: (sm[i][2] + sm[i + 1][2]) / 2 },
             geometry: { type: 'LineString', coordinates: [[sm[i][0], sm[i][1]], [sm[i + 1][0], sm[i + 1][1]]] } });
-        for (let i = 2; i < sm.length - 2; i += 4) {
+        for (let i = 3; i < sm.length - 3; i += 6) {
             const a = sm[i - 1], b = sm[i + 1];
             const brg = (Math.atan2((b[0] - a[0]) * Math.cos(sm[i][1] * D2R), b[1] - a[1]) / D2R + 360) % 360;
             feats.push({ type: 'Feature', properties: { kind: 'arrow', bearing: brg }, geometry: { type: 'Point', coordinates: [sm[i][0], sm[i][1]] } });
         }
-        for (let i = 4; i < sm.length - 3; i += 10) feats.push({ type: 'Feature', properties: { kind: 'label', label: Math.round(sm[i][2]) + ' KT' },
+        for (let i = 6; i < sm.length - 4; i += 15) feats.push({ type: 'Feature', properties: { kind: 'label', label: Math.round(sm[i][2]) + ' KT' },
             geometry: { type: 'Point', coordinates: [sm[i][0], sm[i][1]] } });
     }
     bands.forEach(([lo, hi]) => {
         let run = [];
-        const flush = () => { if (run.length >= 4) emit(run); run = []; };
-        for (let lon = -180; lon <= 180; lon += 3) {
-            let best = -1, bl = lo;
-            for (let lat = lo; lat <= hi; lat += 1) {
-                const a = sampleAtmos(lat, lon), s = Math.hypot(a.u250, a.v250);
-                if (s > best) { best = s; bl = lat; }
+        const flush = () => { if (run.length >= 6) emit(run); run = []; };
+        for (let lon = -180; lon <= 180; lon += STEP) {
+            const prof = [];
+            let best = -1, bi = 0;
+            for (let lat = lo - 6; lat <= hi + 6; lat += 1) {
+                const a = sampleAtmos(lat, lon), sp = Math.hypot(a.u250, a.v250);
+                prof.push([lat, sp]);
+                if (lat >= lo && lat <= hi && sp > best) { best = sp; bi = prof.length - 1; }
             }
-            if (best >= 62) run.push([lon, bl, best]); else flush();
+            // centre of mass of the part of the profile within 15% of the peak (±12°)
+            let sw = 0, sl = 0;
+            for (let i = Math.max(0, bi - 12); i <= Math.min(prof.length - 1, bi + 12); i++) {
+                const wgt = Math.max(0, prof[i][1] - 0.85 * best); sw += wgt * wgt; sl += wgt * wgt * prof[i][0];
+            }
+            const lat = sw > 0 ? Math.max(lo, Math.min(hi, sl / sw)) : prof[bi][0];
+            const live = run.length ? best >= 55 : best >= 62;           // hysteresis: fewer broken fragments
+            if (live && run.length && Math.abs(lat - run[run.length - 1][1]) > 4) flush();
+            if (live) run.push([lon, lat, best]); else flush();
         }
         flush();
     });
@@ -930,7 +942,7 @@ function bringOccToTop() {
 function rebuildWxLayers(force) {
     if (!map) return;
     ensureWxIcons();
-    WX_LAYER_DEFS.forEach(d => { if (liveWeatherState[d.id]) renderWxLayer(d.id, !!force && wxBuilt[d.id] !== undefined); });
+    WX_LAYER_DEFS.forEach(d => { if (d.id !== 'radar' && liveWeatherState[d.id]) renderWxLayer(d.id, !!force && wxBuilt[d.id] !== undefined); });
 }
 function setWxVisibility(id, on) {
     (WX_LAYER_GROUPS[id] || []).forEach(lid => { if (map.getLayer(lid)) map.setLayoutProperty(lid, 'visibility', on ? 'visible' : 'none'); });
@@ -939,6 +951,7 @@ function setWxVisibility(id, on) {
     if (id === 'cyclone' && !on) clearCycloneMarkers();
 }
 async function toggleWxLayer(id) {
+    if (id === 'radar') return toggleLiveLayer('radar');   // RainViewer has its own loader
     liveWeatherState[id] = !liveWeatherState[id];
     syncWxMenuUI();
     if (!map) return;

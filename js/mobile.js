@@ -7,10 +7,16 @@
 function renderMobileQuick() {
     const b = document.getElementById('mQuickAuto'); if (b) b.classList.toggle('on', !!autopilotInterval);
 }
+// Flip the switch at once so the tap feels instant; the list is re-rendered a moment later with the real state.
+function mmFlip(btn) {
+    const on = btn.getAttribute('aria-checked') !== 'true';
+    btn.setAttribute('aria-checked', on); const s = btn.querySelector('.mm-sw'); if (s) s.classList.toggle('on', on);
+}
 function renderMobileMore() {
     const el = document.getElementById('m-more'); if (!el) return;
+    const oldScroll = el.querySelector('.mm-scroll'), keepTop = oldScroll ? oldScroll.scrollTop : 0;   // re-rendering must not jump to the top
     const da = currentLang === 'da', T = (d, e) => da ? d : e;
-    const sw = (on, label, icon, action) => `<button type="button" class="mm-row" role="switch" aria-checked="${on}" onclick="${action}; setTimeout(renderMobileMore, 250);">
+    const sw = (on, label, icon, action) => `<button type="button" class="mm-row" role="switch" aria-checked="${on}" onclick="mmFlip(this); ${action}; setTimeout(renderMobileMore, 250);">
         <span class="material-icons-outlined">${icon}</span><span class="mm-label">${label}</span><span class="mm-sw${on ? ' on' : ''}"><i></i></span></button>`;
     const go = (label, icon, action, sub) => `<button type="button" class="mm-row" onclick="${action}"><span class="material-icons-outlined">${icon}</span><span class="mm-label">${label}${sub ? `<small>${sub}</small>` : ''}</span><span class="mm-chev">›</span></button>`;
     const sec = (title, rows) => `<div class="mm-sec"><div class="mm-title">${title}</div>${rows.join('')}</div>`;
@@ -35,7 +41,6 @@ function renderMobileMore() {
             go(T('Pladegenerator', 'Card generator'), 'grid_view', "mobileSetTab('panel-gen')")])}
         ${sec(T('Kort', 'Map'), [
             sw(liveWeatherState.rings, T('Rækkeviddecirkler og lufthavne', 'Range rings and airports'), 'track_changes', "toggleLiveLayer('rings')"),
-            sw(liveWeatherState.radar, T('Nedbørsradar', 'Precipitation radar'), 'radar', "toggleLiveLayer('radar')"),
             sw(!!liveWeatherState.sun, T('Sol og dag/nat', 'Sun and day/night'), 'wb_sunny', 'toggleSun()'),
             sw(isGlobeMode, T('3D-globus', '3D globe'), 'public', 'toggleGlobeProjection()'),
             go(T('Centrér på lufthavn', 'Centre on airport'), 'my_location', "mobileSetTab('map'); centerMapOnAirport()")])}
@@ -48,6 +53,7 @@ function renderMobileMore() {
             go('Manual', 'menu_book', "mobileSetTab('map'); openManual()"),
             go(T('Alle indstillinger', 'All settings'), 'settings', "mobileSetTab('panel-settings')")])}
     </div>`;
+    const newScroll = el.querySelector('.mm-scroll'); if (newScroll && keepTop) newScroll.scrollTop = keepTop;
     renderMobileQuick();
 }
 setInterval(() => { if (isMobileUI()) renderMobileQuick(); }, 1000);

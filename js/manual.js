@@ -131,7 +131,6 @@ const MANUAL = [
           <li>${I('my_location')} centrér på den valgte lufthavn.</li>
           <li>${I('public')} skift mellem 2D-kort og 3D-globus.</li>
           <li>${I('track_changes')} rækkeviddecirkler og lufthavne.</li>
-          <li>${I('radar')} nedbørsradar (fra jordbaserede radarer – dækker ikke hele verden, fx næsten ikke Afrika).</li>
           <li>${I('layers')} vejrlag (se “Vejr”).</li>
           <li>${I('wb_sunny')} sol og dag/nat-grænse.</li>
         </ul>
@@ -151,7 +150,6 @@ const MANUAL = [
           <li>${I('my_location')} centre on the selected airport.</li>
           <li>${I('public')} switch between the 2D map and the 3D globe.</li>
           <li>${I('track_changes')} range rings and airports.</li>
-          <li>${I('radar')} precipitation radar (from ground radars – does not cover the whole world, e.g. hardly any of Africa).</li>
           <li>${I('layers')} weather layers (see “Weather”).</li>
           <li>${I('wb_sunny')} sun and day/night line.</li>
         </ul>
@@ -208,7 +206,7 @@ const MANUAL = [
         <p>Lagene er delt i grupper i menuen. Farvelag får en lille forklaring nederst til venstre.</p>
         <ul>
           <li><b>Vind og højde</b>: <i>Animerede vinde</i> (bevægelige strømlinjer, farvet efter fart – vælg niveau SFC, FL180, FL300 eller FL340), jetstrømme, vindfaner, turbulens i klar luft (CAT) og tropopause.</li>
-          <li><b>Skyer og konvektion</b>: samlet skydække, CAPE og lifted index (hvor tordenvejr kan opstå), konvektive skytoppe (anslået højde) og satellitbillede (dagens sidste hele mosaik).</li>
+          <li><b>Skyer og konvektion</b>: nedbørsradar fra RainViewer (jordbaserede radarer – dækker ikke hele verden, fx næsten ikke Afrika), samlet skydække, CAPE og lifted index (hvor tordenvejr kan opstå), konvektive skytoppe (anslået højde) og satellitbillede (dagens sidste hele mosaik).</li>
           <li><b>Farer</b>: isdannelse under flyvning, isslag-sandsynlighed, tåge-sandsynlighed, sigtbarhed og støv.</li>
           <li><b>Jordoverflade</b>: lufttryk som isobarer med høj- og lavtryk (H/L), trykændring over 3 timer og temperatur 2 m over jorden.</li>
           <li><b>Advarsler</b>: tropiske cykloner, vulkaner og SIGMET.</li>
@@ -221,7 +219,7 @@ const MANUAL = [
         <p>The layers are grouped in the menu. Colour layers get a small legend bottom left.</p>
         <ul>
           <li><b>Wind and altitude</b>: <i>Animated winds</i> (moving streamlines coloured by speed – choose level SFC, FL180, FL300 or FL340), jetstreams, wind barbs, clear air turbulence (CAT) and tropopause.</li>
-          <li><b>Cloud and convection</b>: total cloud cover, CAPE and lifted index (where thunderstorms can develop), convective cloud tops (estimated height) and satellite imagery (latest complete daily mosaic).</li>
+          <li><b>Cloud and convection</b>: precipitation radar from RainViewer (ground radars – does not cover the whole world, e.g. hardly any of Africa), total cloud cover, CAPE and lifted index (where thunderstorms can develop), convective cloud tops (estimated height) and satellite imagery (latest complete daily mosaic).</li>
           <li><b>Hazards</b>: in-flight icing, freezing rain probability, fog probability, visibility and dust.</li>
           <li><b>Surface</b>: mean sea level pressure as isobars with highs and lows (H/L), 3-hour pressure tendency and temperature 2 m above ground.</li>
           <li><b>Warnings</b>: tropical cyclones, volcanoes and SIGMET.</li>
