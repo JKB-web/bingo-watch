@@ -31,7 +31,7 @@ function renderMobileMore() {
             sw(!!autopilotInterval, 'Autopilot', 'smart_toy', 'toggleAutopilot()'),
             sw(!isMuted, T('Lyd', 'Sound'), 'volume_up', 'toggleMute()'),
             sw(manualMode, T('Manuel tilstand (klik på tal)', 'Manual mode (tap numbers)'), 'touch_app', 'toggleManualMode(!manualMode)'),
-            sw(gadss.enabled, T('GADSS-simulering', 'GADSS simulation'), 'emergency_home', 'setGadssEnabled(!gadss.enabled)'),
+            sw(gadss.enabled, T('GADSS-simulering', 'GADSS simulation'), 'crisis_alert', 'setGadssEnabled(!gadss.enabled)'),
             go(T('Nyt spil', 'New game'), 'restart_alt', "mobileSetTab('map'); confirmNewGame()")])}
         ${sec(T('Værktøjer', 'Tools'), [
             go(T('Vejr', 'Weather'), 'cloud', "mobileSetTab('panel-metar')", currentICAO),

@@ -38,7 +38,7 @@ js/                 almindelige scripts, indlæst i denne rækkefølge fra index
   gadss.js            simulerede GADSS-advarsler
   startup.js          blød scroll og velkomstvindue
 tools/build-single.js   samler alt til dist/bingo-watch.html
-tests/run.js            55 automatiske tests i en rigtig browser
+tests/run.js            57 automatiske tests i en rigtig browser
 tests/net.js            styrer netværket i testene (gemte svar / live / offline)
 tests/record.js         henter rigtige svar fra vejrtjenesterne og gemmer dem
 tests/fixtures/         de gemte svar (network.json)
@@ -51,7 +51,7 @@ Filerne er bevidst **almindelige scripts uden build-trin**: de deler ét globalt
 ```bash
 npm install
 npx playwright install chromium   # første gang
-npm test                          # kører de 55 tests mod index.html – uden internet
+npm test                          # kører de 57 tests mod index.html – uden internet
 npm run build                     # laver dist/bingo-watch.html
 npm run test:single               # bygger og tester den samlede fil
 npm run record                    # henter manglende svar fra vejrtjenesterne (sjældent)

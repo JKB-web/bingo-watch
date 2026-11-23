@@ -615,11 +615,18 @@ function renderCyclone() {
     wxPutLayer({ id: 'wx-tc-track', type: 'line', source: 'wx-tc-src', filter: ['==', ['get', 'kind'], 'track'], paint: { 'line-color': mag, 'line-width': 2, 'line-dasharray': [2, 2] } }, 'cyclone');
     wxPutLayer({ id: 'wx-tc-label', type: 'symbol', source: 'wx-tc-src', filter: ['==', ['get', 'kind'], 'center'],
         layout: wxLabelLayout({ 'text-offset': [0, 2.1], 'text-size': 11.5 }), paint: { 'text-color': T.color, 'text-halo-color': T.halo, 'text-halo-width': 1.8 } }, 'cyclone');
+    renderCycloneMarkers();
+}
+// The spinning DOM markers are separate from the map layers, so they are re-created every time the layer is shown.
+function renderCycloneMarkers() {
+    const d = wxCyclones.data || { centers: [] };
     clearCycloneMarkers();
-    if (liveWeatherState.cyclone) d.centers.forEach(c => {
+    if (liveWeatherState.cyclone && map) d.centers.forEach(c => {
         const el = document.createElement('div');
+        // MapLibre positions the marker with `transform` on this element, so the spin must live on a child
+        // (an animation on the element itself overrides MapLibre's position and the icon jumps around the map).
         el.className = 'tc-marker' + (c.lat < 0 ? ' south' : '');
-        el.innerHTML = '<svg viewBox="0 0 48 48"><path d="M24 24 m0 -5 a5 5 0 1 1 -5 5 M24 24 m0 -10 a10 10 0 1 1 -10 10 M24 24 m0 -15 a15 15 0 1 1 -15 15 M24 24 m0 -20 a20 20 0 0 1 20 20" fill="none" stroke="#d946ef" stroke-width="3.2" stroke-linecap="round"/><circle cx="24" cy="24" r="3.4" fill="#fff" stroke="#d946ef" stroke-width="2"/></svg>';
+        el.innerHTML = '<div class="tc-spin"><svg viewBox="0 0 48 48"><path d="M24 24 m0 -5 a5 5 0 1 1 -5 5 M24 24 m0 -10 a10 10 0 1 1 -10 10 M24 24 m0 -15 a15 15 0 1 1 -15 15 M24 24 m0 -20 a20 20 0 0 1 20 20" fill="none" stroke="#d946ef" stroke-width="3.2" stroke-linecap="round"/><circle cx="24" cy="24" r="3.4" fill="#fff" stroke="#d946ef" stroke-width="2"/></svg></div>';
         wxCyclones.markers.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([c.lon, c.lat]).addTo(map));
     });
 }
@@ -948,7 +955,7 @@ function setWxVisibility(id, on) {
     (WX_LAYER_GROUPS[id] || []).forEach(lid => { if (map.getLayer(lid)) map.setLayoutProperty(lid, 'visibility', on ? 'visible' : 'none'); });
     if (id === 'flow') { if (on) startFlow(); else stopFlow(); }
     updateWxLegend();
-    if (id === 'cyclone' && !on) clearCycloneMarkers();
+    if (id === 'cyclone') { if (on) renderCycloneMarkers(); else clearCycloneMarkers(); }
 }
 async function toggleWxLayer(id) {
     if (id === 'radar') return toggleLiveLayer('radar');   // RainViewer has its own loader

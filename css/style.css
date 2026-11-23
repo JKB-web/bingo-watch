@@ -733,12 +733,13 @@
         #track-pill button { border: none; color: var(--text-main); width: 20px; height: 20px; font-size: 12px; line-height: 1; }
 
         /* tropical cyclone marker */
-        .tc-marker { width: 38px; height: 38px; animation: tcSpin 5s linear infinite; filter: drop-shadow(0 0 6px rgba(217,70,239,0.55)); pointer-events: none; }
-        .tc-marker.south { animation-name: tcSpinRev; }
-        .tc-marker svg { width: 100%; height: 100%; }
+        .tc-marker { width: 38px; height: 38px; pointer-events: none; }   /* MapLibre owns this element's transform */
+        .tc-spin { width: 100%; height: 100%; animation: tcSpin 5s linear infinite; filter: drop-shadow(0 0 6px rgba(217,70,239,0.55)); }
+        .tc-marker.south .tc-spin { animation-name: tcSpinRev; }
+        .tc-spin svg { width: 100%; height: 100%; display: block; }
         @keyframes tcSpin { to { transform: rotate(-360deg); } }
         @keyframes tcSpinRev { to { transform: rotate(360deg); } }
-        @media (prefers-reduced-motion: reduce) { .tc-marker { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .tc-spin { animation: none; } }
 
         /* =====================================================================
            V6 — MINIMAL LIQUID GLASS

@@ -301,7 +301,7 @@ const WX_LAYER_DEFS = [
     { id: 'sat',     grp: 'cloud', icon: 'satellite_alt',  en: 'Satellite',               da: 'Satellit' },
     { id: 'icing',   grp: 'hazard', icon: 'ac_unit',       en: 'In-flight icing',         da: 'Isdannelse under flyvning' },
     { id: 'frz',     grp: 'hazard', icon: 'severe_cold',   en: 'Freezing rain probability', da: 'Isslag-sandsynlighed' },
-    { id: 'fog',     grp: 'hazard', icon: 'foggy',         en: 'Fog probability',         da: 'Tåge-sandsynlighed' },
+    { id: 'fog',     grp: 'hazard', icon: 'dehaze',        en: 'Fog probability',         da: 'Tåge-sandsynlighed' },
     { id: 'vis',     grp: 'hazard', icon: 'visibility',    en: 'Visibility',              da: 'Sigtbarhed' },
     { id: 'dust',    grp: 'hazard', icon: 'grain',         en: 'Dust',                    da: 'Støv' },
     { id: 'mslp',    grp: 'surface', icon: 'speed',        en: 'Mean sea level pressure', da: 'Lufttryk (isobarer)' },

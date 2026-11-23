@@ -749,12 +749,13 @@
         #track-pill button { border: none; color: var(--text-main); width: 20px; height: 20px; font-size: 12px; line-height: 1; }
 
         /* tropical cyclone marker */
-        .tc-marker { width: 38px; height: 38px; animation: tcSpin 5s linear infinite; filter: drop-shadow(0 0 6px rgba(217,70,239,0.55)); pointer-events: none; }
-        .tc-marker.south { animation-name: tcSpinRev; }
-        .tc-marker svg { width: 100%; height: 100%; }
+        .tc-marker { width: 38px; height: 38px; pointer-events: none; }   /* MapLibre owns this element's transform */
+        .tc-spin { width: 100%; height: 100%; animation: tcSpin 5s linear infinite; filter: drop-shadow(0 0 6px rgba(217,70,239,0.55)); }
+        .tc-marker.south .tc-spin { animation-name: tcSpinRev; }
+        .tc-spin svg { width: 100%; height: 100%; display: block; }
         @keyframes tcSpin { to { transform: rotate(-360deg); } }
         @keyframes tcSpinRev { to { transform: rotate(360deg); } }
-        @media (prefers-reduced-motion: reduce) { .tc-marker { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .tc-spin { animation: none; } }
 
         /* =====================================================================
            V6 — MINIMAL LIQUID GLASS
@@ -3399,7 +3400,7 @@ const WX_LAYER_DEFS = [
     { id: 'sat',     grp: 'cloud', icon: 'satellite_alt',  en: 'Satellite',               da: 'Satellit' },
     { id: 'icing',   grp: 'hazard', icon: 'ac_unit',       en: 'In-flight icing',         da: 'Isdannelse under flyvning' },
     { id: 'frz',     grp: 'hazard', icon: 'severe_cold',   en: 'Freezing rain probability', da: 'Isslag-sandsynlighed' },
-    { id: 'fog',     grp: 'hazard', icon: 'foggy',         en: 'Fog probability',         da: 'Tåge-sandsynlighed' },
+    { id: 'fog',     grp: 'hazard', icon: 'dehaze',        en: 'Fog probability',         da: 'Tåge-sandsynlighed' },
     { id: 'vis',     grp: 'hazard', icon: 'visibility',    en: 'Visibility',              da: 'Sigtbarhed' },
     { id: 'dust',    grp: 'hazard', icon: 'grain',         en: 'Dust',                    da: 'Støv' },
     { id: 'mslp',    grp: 'surface', icon: 'speed',        en: 'Mean sea level pressure', da: 'Lufttryk (isobarer)' },
@@ -4054,11 +4055,18 @@ function renderCyclone() {
     wxPutLayer({ id: 'wx-tc-track', type: 'line', source: 'wx-tc-src', filter: ['==', ['get', 'kind'], 'track'], paint: { 'line-color': mag, 'line-width': 2, 'line-dasharray': [2, 2] } }, 'cyclone');
     wxPutLayer({ id: 'wx-tc-label', type: 'symbol', source: 'wx-tc-src', filter: ['==', ['get', 'kind'], 'center'],
         layout: wxLabelLayout({ 'text-offset': [0, 2.1], 'text-size': 11.5 }), paint: { 'text-color': T.color, 'text-halo-color': T.halo, 'text-halo-width': 1.8 } }, 'cyclone');
+    renderCycloneMarkers();
+}
+// The spinning DOM markers are separate from the map layers, so they are re-created every time the layer is shown.
+function renderCycloneMarkers() {
+    const d = wxCyclones.data || { centers: [] };
     clearCycloneMarkers();
-    if (liveWeatherState.cyclone) d.centers.forEach(c => {
+    if (liveWeatherState.cyclone && map) d.centers.forEach(c => {
         const el = document.createElement('div');
+        // MapLibre positions the marker with `transform` on this element, so the spin must live on a child
+        // (an animation on the element itself overrides MapLibre's position and the icon jumps around the map).
         el.className = 'tc-marker' + (c.lat < 0 ? ' south' : '');
-        el.innerHTML = '<svg viewBox="0 0 48 48"><path d="M24 24 m0 -5 a5 5 0 1 1 -5 5 M24 24 m0 -10 a10 10 0 1 1 -10 10 M24 24 m0 -15 a15 15 0 1 1 -15 15 M24 24 m0 -20 a20 20 0 0 1 20 20" fill="none" stroke="#d946ef" stroke-width="3.2" stroke-linecap="round"/><circle cx="24" cy="24" r="3.4" fill="#fff" stroke="#d946ef" stroke-width="2"/></svg>';
+        el.innerHTML = '<div class="tc-spin"><svg viewBox="0 0 48 48"><path d="M24 24 m0 -5 a5 5 0 1 1 -5 5 M24 24 m0 -10 a10 10 0 1 1 -10 10 M24 24 m0 -15 a15 15 0 1 1 -15 15 M24 24 m0 -20 a20 20 0 0 1 20 20" fill="none" stroke="#d946ef" stroke-width="3.2" stroke-linecap="round"/><circle cx="24" cy="24" r="3.4" fill="#fff" stroke="#d946ef" stroke-width="2"/></svg></div>';
         wxCyclones.markers.push(new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([c.lon, c.lat]).addTo(map));
     });
 }
@@ -4387,7 +4395,7 @@ function setWxVisibility(id, on) {
     (WX_LAYER_GROUPS[id] || []).forEach(lid => { if (map.getLayer(lid)) map.setLayoutProperty(lid, 'visibility', on ? 'visible' : 'none'); });
     if (id === 'flow') { if (on) startFlow(); else stopFlow(); }
     updateWxLegend();
-    if (id === 'cyclone' && !on) clearCycloneMarkers();
+    if (id === 'cyclone') { if (on) renderCycloneMarkers(); else clearCycloneMarkers(); }
 }
 async function toggleWxLayer(id) {
     if (id === 'radar') return toggleLiveLayer('radar');   // RainViewer has its own loader
@@ -7654,7 +7662,7 @@ const MANUAL = [
           <li><b>Close</b>, clicking the aircraft again, or clicking an empty spot deselects it and zooms back out.</li>
         </ul>
         <p class="note">The aircraft are fictional: registration, squawk, profile and fuel are simulated.</p>` } },
-    { id: 'gadss', icon: 'emergency_home',
+    { id: 'gadss', icon: 'crisis_alert',
       da: { t: 'GADSS-advarsler', h: `
         <p>GADSS er ICAO's system til at holde øje med fly, der holder op med at sende deres position. Bingo Watch simulerer det for sjov – sjældent og stille, så det ikke forstyrrer spillet: ca. én gang hvert 4.–5. minut stopper et fly i marchhøjde med at rapportere, og der er aldrig mere end én advarsel ad gangen.</p>
         <ul>
@@ -7945,7 +7953,7 @@ function renderMobileMore() {
             sw(!!autopilotInterval, 'Autopilot', 'smart_toy', 'toggleAutopilot()'),
             sw(!isMuted, T('Lyd', 'Sound'), 'volume_up', 'toggleMute()'),
             sw(manualMode, T('Manuel tilstand (klik på tal)', 'Manual mode (tap numbers)'), 'touch_app', 'toggleManualMode(!manualMode)'),
-            sw(gadss.enabled, T('GADSS-simulering', 'GADSS simulation'), 'emergency_home', 'setGadssEnabled(!gadss.enabled)'),
+            sw(gadss.enabled, T('GADSS-simulering', 'GADSS simulation'), 'crisis_alert', 'setGadssEnabled(!gadss.enabled)'),
             go(T('Nyt spil', 'New game'), 'restart_alt', "mobileSetTab('map'); confirmNewGame()")])}
         ${sec(T('Værktøjer', 'Tools'), [
             go(T('Vejr', 'Weather'), 'cloud', "mobileSetTab('panel-metar')", currentICAO),

@@ -153,6 +153,18 @@ let browser;
     return out; });
   check('Kort', 'Alle 9 vejrlag + ringe, radar, sol, globus, zoom kan slås til/fra', layerErrs.length === 0, layerErrs.join('; '));
 
+  // ---------- icons: every icon name used must exist in the Material Icons font ----------
+  if (net.MODE !== 'offline') {
+    const src = ['index.html', ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)].map(f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8')).join('\n');
+    const names = new Set();
+    for (const re of [/icon: '([a-z0-9_]+)'/g, /material-icons(?:-outlined)?[^>]*>([a-z0-9_]+)</g, /I\('([a-z0-9_]+)'\)/g]) for (const mm of src.matchAll(re)) names.add(mm[1]);
+    const missingIcons = await pg.evaluate(async (names) => { await document.fonts.ready; const out = [];
+      for (const n of names) for (const cls of ['material-icons', 'material-icons-outlined']) { const s = document.createElement('span'); s.className = cls; s.textContent = n; s.style.fontSize = '24px'; document.body.appendChild(s);
+        const w = s.getBoundingClientRect().width; s.remove(); if (w > 30) out.push(cls.replace('material-icons', 'mi') + ':' + n); }
+      return out; }, [...names]);
+    check('Ikoner', `Alle ${names.size} ikonnavne findes i ikon-skrifttypen`, missingIcons.length === 0, missingIcons.join(', '));
+  }
+
   // ---------- weather with real (recorded) data ----------
   if (net.MODE !== 'offline') {
     for (let i = 0; i < 60 && await pg.evaluate(() => ATMO.fetching); i++) await sleep(1000);
@@ -173,6 +185,16 @@ let browser;
     check('Vejrdata', 'METAR for EKCH hentes og vises', /EKCH \d{6}Z/.test(metar), metar.slice(0, 80));
     const tc = await pg.evaluate(async () => { await loadCyclones(true); return wxCyclones.data && { failed: !!wxCyclones.data.failed, n: wxCyclones.data.centers.length }; });
     check('Vejrdata', 'Tropiske cykloner fra GDACS indlæst', tc && !tc.failed, JSON.stringify(tc));
+    if (tc && tc.n) {
+      // the spinning marker must sit on the cyclone (and stay there) – not jump around the map
+      await pg.evaluate(async () => { if (!liveWeatherState.cyclone) await toggleWxLayer('cyclone'); const c = wxCyclones.data.centers[0]; map.jumpTo({ center: [c.lon, c.lat], zoom: 2.5 }); });
+      let worst = 0;
+      for (let i = 0; i < 5; i++) { await sleep(700); worst = Math.max(worst, await pg.evaluate(() => { const c = wxCyclones.data.centers[0], m = wxCyclones.markers[0];
+        if (!m) return 999; const r = m.getElement().getBoundingClientRect(), mr = map.getContainer().getBoundingClientRect(), p = map.project([c.lon, c.lat]);
+        return Math.hypot(r.left + r.width / 2 - mr.left - p.x, r.top + r.height / 2 - mr.top - p.y); })); }
+      await pg.evaluate(() => toggleWxLayer('cyclone'));
+      check('Vejrdata', 'Cyklon-markøren står fast på cyklonen', worst < 4, 'max ' + Math.round(worst) + ' px fra cyklonen');
+    }
     const sig = await pg.evaluate(async () => { await loadSigmetData(); return { sample: !!wxSigmet.sample }; });
     check('Vejrdata', 'SIGMET fra aviationweather (ikke eksempel)', !sig.sample, JSON.stringify(sig));
   }

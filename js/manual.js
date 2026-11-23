@@ -175,7 +175,7 @@ const MANUAL = [
           <li><b>Close</b>, clicking the aircraft again, or clicking an empty spot deselects it and zooms back out.</li>
         </ul>
         <p class="note">The aircraft are fictional: registration, squawk, profile and fuel are simulated.</p>` } },
-    { id: 'gadss', icon: 'emergency_home',
+    { id: 'gadss', icon: 'crisis_alert',
       da: { t: 'GADSS-advarsler', h: `
         <p>GADSS er ICAO's system til at holde øje med fly, der holder op med at sende deres position. Bingo Watch simulerer det for sjov – sjældent og stille, så det ikke forstyrrer spillet: ca. én gang hvert 4.–5. minut stopper et fly i marchhøjde med at rapportere, og der er aldrig mere end én advarsel ad gangen.</p>
         <ul>
