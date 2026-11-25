@@ -1998,7 +1998,7 @@
 </style>
     <style>
 /* =====================================================================
-   UNSLOP LAYER (mockup) — loaded after style.css
+   UNSLOP LAYER — loaded after style.css
    Direction: ops control room on night shift. Quiet chrome, one navy
    accent, the drawn number and the map carry the moment.
    Method: unslop by Damir Sokolovsky (@heydamir), CC BY 4.0
@@ -2044,8 +2044,9 @@
 .btn-draw:hover, .btn-action:hover, .start-btn:hover {
     background: #17305c; opacity: 1; box-shadow: none; transform: none;
 }
+/* dark: a solid light button (the translucent --active-bg made the main buttons look disabled) */
 [data-theme="dark"] .btn-draw, [data-theme="dark"] .btn-action, [data-theme="dark"] .start-btn {
-    background: var(--active-bg); color: var(--active-fg);
+    background: #e9ecf1; color: #0c0d10;
 }
 [data-theme="dark"] .btn-draw:hover, [data-theme="dark"] .btn-action:hover, [data-theme="dark"] .start-btn:hover { background: #ffffff; }
 .btn-draw:active, .btn-action:active, .start-btn:active, .tool-btn:active { transform: scale(0.98); }
@@ -2057,7 +2058,8 @@
 [data-theme="dark"] .banko-btn, [data-theme="dark"] .banko-btn:hover {
     background: var(--accent); color: #fff; border-color: transparent; box-shadow: none;
 }
-[data-theme="dark"] .banko-btn { background: var(--active-bg); color: var(--active-fg); }
+[data-theme="dark"] .banko-btn { background: #e9ecf1; color: #0c0d10; }
+[data-theme="dark"] .banko-btn:hover { background: #ffffff; }
 .new-game-btn, .new-game-btn:hover { color: var(--text-main); }   /* red is for errors and undo, not a normal action */
 
 .dock-btn.active, .right-tool-btn.active { background: var(--active-bg); color: var(--active-fg); box-shadow: none; }
@@ -2882,7 +2884,7 @@ const AIRPORT_DB = [
 // --- TRANSLATION DATA ---
 const translations = {
     da: {
-        flightDeck: "Flight Deck-kontrol", systemReady: "System online. Klar.", drawBtn: "Træk nummer", settings: "Indstillinger",
+        flightDeck: "Flight Deck-kontrol", systemReady: "Klar til første træk", drawBtn: "Træk nummer", settings: "Indstillinger",
         tabGeneral: "Generelt", tabAudio: "Lyd", tabVisual: "Udseende", tabShortcuts: "Genveje",
         language: "Sprog", manualMode: "Manuel tilstand (klik på tal)", apInterval: "Autopilot-interval (sek.)", resetLayout: "Nulstil vindueslayout",
         volume: "Lydstyrke", soundClick: "Kliklyd", soundChime: "Ding-dong", soundFanfare: "Bankofanfare", soundTcas: "TCAS-alarm",

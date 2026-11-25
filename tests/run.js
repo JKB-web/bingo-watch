@@ -33,7 +33,7 @@ let browser;
   check('Start', 'Velkomstkort vises', await pg.isVisible('.briefing-card'));
   check('Start', 'Ingen scroll i velkomstkort (desktop)', await pg.evaluate(() => { const c = document.querySelector('.briefing-card'); return getComputedStyle(c).overflowY === 'hidden' || c.scrollHeight <= c.clientHeight + 1; }));
   await pg.click('.lang-btn[data-set-lang="da"]').catch(async () => pg.evaluate(() => setLanguage('da')));
-  check('Sprog', 'Dansk valgt', await pg.evaluate(() => currentLang === 'da' && document.querySelector('[data-lang="drawBtn"]').innerText.includes('TRÆK')));
+  check('Sprog', 'Dansk valgt', await pg.evaluate(() => currentLang === 'da' && document.querySelector('[data-lang="drawBtn"]').innerText.toUpperCase().includes('TRÆK')));
   await pg.click('.start-btn'); await sleep(500);
   check('Start', 'Velkomst lukker', !(await pg.isVisible('.briefing-card')));
   check('Kort', 'MapLibre-kort oprettet', await pg.evaluate(() => !!map && map.loaded !== undefined));

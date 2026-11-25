@@ -4,7 +4,7 @@
 // --- TRANSLATION DATA ---
 const translations = {
     da: {
-        flightDeck: "Flight Deck-kontrol", systemReady: "System online. Klar.", drawBtn: "Træk nummer", settings: "Indstillinger",
+        flightDeck: "Flight Deck-kontrol", systemReady: "Klar til første træk", drawBtn: "Træk nummer", settings: "Indstillinger",
         tabGeneral: "Generelt", tabAudio: "Lyd", tabVisual: "Udseende", tabShortcuts: "Genveje",
         language: "Sprog", manualMode: "Manuel tilstand (klik på tal)", apInterval: "Autopilot-interval (sek.)", resetLayout: "Nulstil vindueslayout",
         volume: "Lydstyrke", soundClick: "Kliklyd", soundChime: "Ding-dong", soundFanfare: "Bankofanfare", soundTcas: "TCAS-alarm",
