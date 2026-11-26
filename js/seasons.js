@@ -414,14 +414,14 @@ function startSanta() {
         }
         santa.el.classList.toggle('delivering', !!st.delivering);
         santa.lastPos = [st.lon, st.lat];
-        if (santa.follow && !map.isMoving()) map.jumpTo({ center: [st.lon, st.lat] });
+        if (santa.follow) followCamera(st.lon, st.lat);   // smooth on the flat map too (see followCamera)
         if (now - santa.lastUi > 400) { santa.lastUi = now; updateSantaUi(st); }
         santa.raf = requestAnimationFrame(loop);
     };
     santa.raf = requestAnimationFrame(loop);
 }
 function stopSanta() {
-    cancelAnimationFrame(santa.raf); santa.raf = 0; santa.follow = false;
+    cancelAnimationFrame(santa.raf); santa.raf = 0; if (santa.follow) endFollowCamera(); santa.follow = false;
     if (santa.marker) santa.marker.remove();
     document.getElementById('santa-pill').classList.remove('show');
     if (map && map.getLayer('santa-gifts')) { map.removeLayer('santa-gifts'); map.removeLayer('santa-trail'); }
@@ -460,6 +460,7 @@ function updateSantaUi(st) {
 }
 function toggleSantaFollow(on) {
     santa.follow = on === undefined ? !santa.follow : !!on;
+    if (!santa.follow) endFollowCamera();
     if (santa.follow) {
         releaseTracking(true);
         const st = santaState();

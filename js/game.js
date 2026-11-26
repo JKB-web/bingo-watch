@@ -15,7 +15,7 @@ function saveGame() {
     if (gameRestoring || !gameLoaded) return;   // don't overwrite a saved game before it is restored
     try {
         const flights = {};
-        drawnNumbers.forEach(n => { const p = activePlaneMarkers[n]; if (p) flights[n] = { dep: p.depAirport.code, dest: p.destAirport.code, seed: p.routeSeed, stdMs: p.stdMs, reg: p.reg, squawk: p.squawk, flown: p.flownDistNm }; });
+        drawnNumbers.forEach(n => { const p = activePlaneMarkers[n]; if (p) flights[n] = { dep: p.depAirport.code, dest: p.divert ? p.divert.from : p.destAirport.code, diverts: p.diverts || undefined, seed: p.routeSeed, stdMs: p.stdMs, reg: p.reg, squawk: p.squawk, flown: p.flownDistNm, gadssLog: p.gadssLog || undefined }; });
         localStorage.setItem(GAME_KEY, JSON.stringify({ v: 1, t: Date.now(), drawn: drawnNumbers, startMs: startTime ? startTime.getTime() : null,
             round: currentRound, lang: currentLang, flights }));
     } catch (e) {}
@@ -37,9 +37,12 @@ function restoreGame() {
         const cell = document.getElementById('cell-' + n); if (cell) cell.classList.add('active');
         const f = createFlightData(n, st.flights && st.flights[n]);
         const saved = st.flights && st.flights[n];
+        if (saved && Array.isArray(saved.diverts)) saved.diverts.forEach(d => applyDivert(f, d.to, d.atNm, d.seed));   // same diversions again
         if (saved && typeof saved.flown === 'number') f.flownDistNm = Math.min(f.totalDistNm, saved.flown + elapsedS * (f.nmps || CONSTANT_NM_PER_SECOND));
+        if (saved && Array.isArray(saved.gadssLog)) f.gadssLog = saved.gadssLog;
         addRadarPlane(f);
         updateLog(f);
+        if (f.divert) refreshDivertedRow(f);
     });
     if (st.startMs) { startTime = new Date(st.startMs); clearInterval(statsInterval); statsInterval = setInterval(updateStats, 1000); updateStats(); }
     showCurrentNumber();

@@ -44,6 +44,32 @@ const draw = (pg, n) => pg.evaluate(n => { for (let i = 0; i < n; i++) finalize(
 
 // one function per update id; each returns a PNG buffer
 const SCENES = {
+  '2026-11-27.3': async (b) => {
+    const { ctx, pg } = await open(b, DESK);
+    await start(pg); await draw(pg, 10); await sleep(1500);
+    await pg.evaluate(() => { ['panel-control', 'panel-grid'].forEach(id => { const w = document.getElementById(id); if (w) w.style.display = 'none'; });
+      const p = Object.values(activePlaneMarkers).filter(q => q.route.total > 1200).sort((a, b) => b.route.total - a.route.total)[0];
+      p.flownDistNm = p.route.total * 0.55; window.__p = p; selectFlightFromLog(p.num); });
+    await sleep(2500);
+    await pg.evaluate(() => { const p = window.__p, alts = nearestAlternates(p); applyDivert(p, alts[0], p.flownDistNm, 4242); openFlightFocus(p.num); renderProfileChart(p); updateFlightRoutesLayer(true);
+      askDivert(p.num, nearestAlternates(p)[1]); });              // shows the ACARS question for the next alternate
+    await sleep(2500);
+    const png = await pg.screenshot(); await ctx.close(); return png;
+  },
+  '2026-11-27.2': async (b) => {
+    const { ctx, pg } = await open(b, DESK);
+    await start(pg); await draw(pg, 6); await sleep(1500);
+    await pg.evaluate(() => { ['panel-control', 'panel-grid'].forEach(id => { const w = document.getElementById(id); if (w) w.style.display = 'none'; });
+      const p = Object.values(activePlaneMarkers).filter(q => !q.landed).sort((a, b) => b.route.total - a.route.total)[0]; window.__p = p; p.nmps *= 40; selectFlightFromLog(p.num); });
+    await sleep(2500);
+    const ep = async (warn, end) => { await pg.evaluate(() => { const p = window.__p; startGadss(p); p.gadss.resolveAt = p.gadss.escalateAt = Infinity; }); await sleep(1300);
+      if (warn) { await pg.evaluate(() => { const p = window.__p; escalateGadss(p); p.gadss.resolveAt = Infinity; }); await sleep(1500); }
+      if (end) { await pg.evaluate(() => endGadss(window.__p)); await sleep(1200); } };
+    await ep(false, true); await ep(true, true); await ep(true, false);       // two episodes over, one red warning now
+    await pg.evaluate(() => { window.__p.nmps /= 40; });
+    await sleep(500);
+    const png = await pg.screenshot(); await ctx.close(); return png;
+  },
   '2026-11-27.1': async (b) => {
     const { ctx, pg } = await open(b, DESK);
     await start(pg);

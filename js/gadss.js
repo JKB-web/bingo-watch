@@ -15,19 +15,25 @@ function setGadssEnabled(on) {
 }
 const rndIn = (a, b) => a + Math.random() * (b - a);
 function gadssMinutes(p) { const g = p.gadss; return Math.floor((g.level === 'caution' ? 10 : 15) + (Date.now() - g.levelAt) / 3000); }   // 1 sim-minute ≈ 3 s
+// simulated clock of a flight (the same as the flight panel and the vertical profile use)
+function gadssSimNow(p) { return p.stdMs + Math.min(1, (p.flownDistNm || 0) / (p.totalDistNm || 1)) * p.durMin * 60000; }
 function startGadss(p) {
     // most alerts clear again while still yellow; only about one in four turns red
     const now = Date.now(), resolvesEarly = Math.random() < 0.75;
-    p.gadss = { level: 'caution', levelAt: now, ack: false, escalateAt: resolvesEarly ? Infinity : now + rndIn(15000, 22000), resolveAt: resolvesEarly ? now + rndIn(8000, 14000) : Infinity };
+    p.gadss = { level: 'caution', levelAt: now, ack: false, escalateAt: resolvesEarly ? Infinity : now + rndIn(15000, 22000), resolveAt: resolvesEarly ? now + rndIn(8000, 14000) : Infinity,
+        simFrom: gadssSimNow(p) - 10 * 60000 };          // the last position report was 10 (sim) minutes ago
     applyGadssClass(p); renderGadssBar();                 // quiet: no sound and no pop-up for a caution
 }
 function escalateGadss(p) {
     const now = Date.now();
-    Object.assign(p.gadss, { level: 'warning', levelAt: now, ack: false, escalateAt: Infinity, resolveAt: now + rndIn(15000, 25000) });
+    Object.assign(p.gadss, { level: 'warning', levelAt: now, ack: false, escalateAt: Infinity, resolveAt: now + rndIn(15000, 25000), simWarn: gadssSimNow(p) });
     playSound('gadss-warning');                           // one soft two-tone chime, no pop-up
     applyGadssClass(p); renderGadssBar();
 }
 function endGadss(p, silent) {
+    // keep the episode, so the vertical profile still shows where the aircraft was without reports
+    const g = p.gadss;
+    if (g && g.simFrom != null) (p.gadssLog = p.gadssLog || []).push({ from: g.simFrom, warn: g.simWarn || null, to: gadssSimNow(p) });
     p.gadss = null; gadss.lastEnd = Date.now(); applyGadssClass(p); renderGadssBar();
     // resolved silently: the alert simply disappears
     if (focusedFlightNum === p.num) updateFlightFocus();

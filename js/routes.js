@@ -61,11 +61,13 @@ function chaikin(pts, iters) {                           // rounds every corner,
     return p;
 }
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function buildRealisticRoute(dep, dest, seed) {
+// opts.fromAir = { hdg }: the route starts in the air at 'dep' (a position, not an airport) on that heading – used
+// when an aircraft is diverted; no departure procedure then.
+function buildRealisticRoute(dep, dest, seed, opts) {
     // exceptions such as 'arrivals and departures in the Gulf' apply to the whole route of this flight
-    return typeof withAirspaceContext === 'function' ? withAirspaceContext(dep, dest, () => buildRouteInner(dep, dest, seed)) : buildRouteInner(dep, dest, seed);
+    return typeof withAirspaceContext === 'function' ? withAirspaceContext(dep, dest, () => buildRouteInner(dep, dest, seed, opts)) : buildRouteInner(dep, dest, seed, opts);
 }
-function buildRouteInner(dep, dest, seed) {
+function buildRouteInner(dep, dest, seed, opts) {
     const rand = mulberry32(seed == null ? Math.floor(Math.random() * 2 ** 31) : seed);
     const rnd = (a, b) => a + rand() * (b - a);
     // The route follows a corridor that stays out of closed / high-risk airspace (js/airspace.js).
@@ -77,8 +79,9 @@ function buildRouteInner(dep, dest, seed) {
     const crsIn = gBearing(nearEnd[0], nearEnd[1], dest.lat, dest.lon);
     const legsClear = pts => pts.every((q, i) => i === 0 || clear(pts[i - 1], q));
     // --- departure: climb out on runway heading, turn towards the route (a runway whose climb-out stays clear)
-    let rwyDep, depPts;
-    for (let t = 0; t < 8; t++) {
+    let rwyDep = null, depPts;
+    if (opts && opts.fromAir) depPts = [gDest(dep.lat, dep.lon, opts.fromAir.hdg, 6)];   // keep flying ahead while turning
+    else for (let t = 0; t < 8; t++) {
         rwyDep = (Math.round((crsOut + rnd(-80, 80) * (t < 4 ? 1 : 2)) / 10) * 10 + 360) % 360;
         const co = gDest(dep.lat, dep.lon, rwyDep, Math.min(7, D * 0.08));
         depPts = [co];
@@ -231,7 +234,7 @@ function updateStaticRoutes() {
     Object.values(activePlaneMarkers).forEach(p => {
         if (!p.route) return;
         // the dashed line is always the flight plan – the same whether or not the flight is selected
-        if (!p.landed || p.num === focusedFlightNum)
+        if (p.num === focusedFlightNum)                     // routes are only shown for the selected flight
             feats.push({ type: 'Feature', properties: { kind: 'planned', num: p.num }, geometry: { type: 'LineString', coordinates: p.route.planned } });
     });
     const gj = { type: 'FeatureCollection', features: feats };
@@ -257,7 +260,10 @@ function updateFlightRoutesLayer(full) {
     if (!map || !map.style || !map.style._loaded) return;   // style is being (re)built, e.g. after a theme switch
     if (full !== false || !map.getSource('occ-routes-static')) updateStaticRoutes();
     const feats = [];
-    Object.values(activePlaneMarkers).forEach(p => { const f = trackFeatures(p); for (let i = 0; i < f.length; i++) feats.push(f[i]); });
+    Object.values(activePlaneMarkers).forEach(p => {
+        if (p.num !== focusedFlightNum) return;                 // tracks are only shown for the selected flight (90 would be a tangle)
+        const f = trackFeatures(p); for (let i = 0; i < f.length; i++) feats.push(f[i]);
+    });
     const geojson = { type: 'FeatureCollection', features: feats };
     if (!map.getSource('occ-flight-routes')) map.addSource('occ-flight-routes', { type: 'geojson', data: geojson, tolerance: 0.3 });
     else map.getSource('occ-flight-routes').setData(geojson);

@@ -124,7 +124,7 @@ const MANUAL = [
         <ul>
           <li>Den <b>stiplede linje</b> er flyets planlagte rute. Flyet følger den i lige stykker med bløde sving. Indimellem får det en genvej direkte til et punkt længere fremme, eller det flyver en kort omvej uden om vejr – som et rigtigt fly.</li>
           <li>Ruterne går <b>uden om lukket luftrum</b> efter EU-luftfartsmyndigheden EASA’s konfliktzone-advarsler (CZIB) og forbuddene i Rusland og Belarus. Spillets fly opfører sig som et europæisk flyselskab, så fly mellem Europa og Asien flyver via Kaukasus og Centralasien eller syd om. Slå zonerne til under ${I('layers')} Vejrlag → Advarsler → <i>Lukkede luftrum (EASA)</i>: <b>rød</b> er lukket (ruterne går uden om), <b>gul</b> er en advarsel, fx når et område kun er lukket under en vis højde – der må flyene krydse i marchhøjde. Klik på en zone for EASA’s advarsel, nummer og dato. Zonerne opdateres automatisk, når EASA ændrer deres liste.</li>
-          <li>Det <b>farvede spor</b> bag flyet viser, hvor det har fløjet. Farven viser højden: lyseblå tæt ved jorden, mørkegrøn i marchhøjde.</li>
+          <li>Det <b>farvede spor</b> bag flyet viser, hvor det har fløjet. Farven viser højden: lyseblå tæt ved jorden, mørkegrøn i marchhøjde. Ruten og sporet vises kun for det <b>valgte fly</b> – med 90 fly ville kortet ellers blive et virvar.</li>
           <li><b>Klik på et fly</b> for at vælge det (se “Flypanel og højdeprofil”). Klik et tomt sted på kortet for at fravælge det igen.</li>
         </ul>
         <h4>Lufthavne</h4>
@@ -150,7 +150,7 @@ const MANUAL = [
         <ul>
           <li>The <b>dashed line</b> is the planned route. The aircraft follows it in straight legs with smooth turns. Now and then it gets a shortcut direct to a fix further ahead, or flies a short detour round weather – like a real aircraft.</li>
           <li>Routes keep <b>out of closed airspace</b> according to the conflict zone bulletins (CZIB) of the EU aviation agency EASA and the Russian and Belarusian bans. The game’s aircraft behave like a European airline, so flights between Europe and Asia go via the Caucasus and Central Asia or further south. Show the zones under ${I('layers')} Weather layers → Warnings → <i>Closed airspace (EASA)</i>: <b>red</b> is closed (routes go round it), <b>amber</b> is caution, e.g. when an area is only closed below a certain level – aircraft may cross it at cruise level. Click a zone for EASA’s bulletin, number and date. The zones are updated automatically when EASA changes its list.</li>
-          <li>The <b>coloured track</b> behind the aircraft shows where it has flown. The colour shows altitude: light blue near the ground, dark green at cruise.</li>
+          <li>The <b>coloured track</b> behind the aircraft shows where it has flown. The colour shows altitude: light blue near the ground, dark green at cruise. The route and track are only shown for the <b>selected flight</b> – with 90 aircraft the map would otherwise be a tangle.</li>
           <li><b>Click an aircraft</b> to select it (see “Flight panel and profile”). Click an empty spot on the map to deselect.</li>
         </ul>
         <h4>Airports</h4>
@@ -175,7 +175,8 @@ const MANUAL = [
       da: { t: 'Flypanel og højdeprofil', h: `
         <p>Når du vælger et fly, åbner et panel i højre side, og en <b>højdeprofil</b> vises i bunden. Kortet og vinduerne rykker til side, så intet dækker hinanden.</p>
         <ul>
-          <li><b>Flyvning</b>: ATC ID, registrering, dato, STD, afgang, destination, to alternative lufthavne (ALT1/ALT2) og ruten.</li>
+          <li><b>Flyvning</b>: ATC ID, registrering, dato, STD, afgang, destination, to alternative lufthavne (ALT1/ALT2) og ruten. Tryk på en lufthavn for at åbne lufthavnskortet.</li>
+          <li><b>Omdirigér</b> ved ALT1/ALT2: bekræft, og der sendes en ACARS-besked til flyet (”DIVERT …”). Besætningen svarer WILCO efter et øjeblik, og flyet drejer mod den alternative lufthavn med ny rute (uden om lukket luftrum), ny ETA og nedstigning dertil. Den oprindelige destination står i panelet og i Aktive fly (↪).</li>
           <li><b>Live</b>: fase (stiger, marchhøjde, daler, landet), afgang, landing, højde, vertikal hastighed, kurs, hastighed, anslået brændstof, squawk, sim-tid, distance tilbage og position.</li>
           <li><b>Højdeprofilen</b>: den stiplede kurve er planen, den farvede er det fløjne. Hold musen over grafen for tid, højde og distance.</li>
           <li><b>Følg fly</b> får kameraet til at følge flyet. Træk i kortet for at slippe det.</li>
@@ -185,7 +186,8 @@ const MANUAL = [
       en: { t: 'Flight panel and profile', h: `
         <p>When you select an aircraft, a panel opens on the right and a <b>vertical profile</b> appears at the bottom. The map and windows move aside so nothing covers anything else.</p>
         <ul>
-          <li><b>Flight</b>: ATC ID, registration, date, STD, origin, destination, two alternates (ALT1/ALT2) and the route.</li>
+          <li><b>Flight</b>: ATC ID, registration, date, STD, origin, destination, two alternates (ALT1/ALT2) and the route. Tap an airport to open the airport card.</li>
+          <li><b>Divert</b> next to ALT1/ALT2: confirm, and an ACARS message is sent to the aircraft (“DIVERT …”). The crew answers WILCO after a moment, and the aircraft turns towards the alternate with a new route (round closed airspace), new ETA and descent there. The original destination is shown in the panel and in Active Flights (↪).</li>
           <li><b>Live</b>: phase (climbing, cruise, descending, landed), takeoff, landing, altitude, vertical speed, track, speed, estimated fuel, squawk, sim time, distance remaining and position.</li>
           <li><b>Vertical profile</b>: the dashed curve is the plan, the coloured one is what has been flown. Hover the chart for time, altitude and distance.</li>
           <li><b>Follow aircraft</b> makes the camera follow it. Drag the map to let go.</li>
@@ -197,8 +199,8 @@ const MANUAL = [
         <p>GADSS er ICAO's system til at holde øje med fly, der holder op med at sende deres position. Bingo Watch simulerer det for sjov – sjældent og stille, så det ikke forstyrrer spillet: ca. én gang hvert 4.–5. minut stopper et fly i marchhøjde med at rapportere, og der er aldrig mere end én advarsel ad gangen.</p>
         <ul>
           <li><b>Forsigtighed (gul)</b>: ingen positionsrapport i 10 minutter. Flyet får en svag gul glorie på kortet, og rækken i Aktive fly bliver gul. Ingen lyd. De fleste forsvinder igen her.</li>
-          <li><b>Advarsel (rød)</b>: ingen rapport i 15 minutter eller mere. Glorien bliver rød, og der lyder et enkelt blødt signal.</li>
-          <li>I <b>højdeprofilen</b> er strækningen siden sidste positionsrapport farvet gul eller rød, og sidste rapport er markeret med en prik.</li>
+          <li><b>Advarsel (rød)</b>: ingen rapport i 15 minutter eller mere. Glorien bliver rød, en rød ring pulserer ud fra cirklen om flyet, og der lyder et enkelt blødt signal.</li>
+          <li>I <b>højdeprofilen</b> er strækningen siden sidste positionsrapport farvet gul eller rød, og sidste rapport er markeret med en prik. Når advarslen er overstået, bliver strækningen stående: gul, hvor rapporten var forsinket, og rød, hvor det var en advarsel.</li>
           <li><b>Advarselsbjælken</b> øverst på kortet viser alle aktive advarsler. Klik på en for at vælge flyet, eller tryk ✓ for at kvittere.</li>
           <li>I <b>flypanelet</b> står advarslen øverst med en <b>Kvittér</b>-knap. Kvitterede advarsler pulserer roligere.</li>
           <li>Når flyet melder sig igen, forsvinder advarslen stille.</li>
@@ -208,8 +210,8 @@ const MANUAL = [
         <p>GADSS is ICAO's system for keeping track of aircraft that stop sending their position. Bingo Watch simulates it for fun – rarely and quietly, so it does not disturb the game: about once every 4–5 minutes an aircraft in cruise stops reporting, and there is never more than one alert at a time.</p>
         <ul>
           <li><b>Caution (yellow)</b>: no position report for 10 minutes. The aircraft gets a soft yellow glow on the map and its row in Active Flights turns yellow. No sound. Most clear again at this stage.</li>
-          <li><b>Warning (red)</b>: no report for 15 minutes or more. The glow turns red and a single soft chime sounds.</li>
-          <li>In the <b>vertical profile</b> the stretch since the last position report is shaded yellow or red, and the last report is marked with a dot.</li>
+          <li><b>Warning (red)</b>: no report for 15 minutes or more. The glow turns red, a red ring pulses out from the circle round the aircraft and a single soft chime sounds.</li>
+          <li>In the <b>vertical profile</b> the stretch since the last position report is shaded yellow or red, and the last report is marked with a dot. When the alert is over the stretch stays: yellow where the report was overdue, red where it was a warning.</li>
           <li>The <b>alert bar</b> at the top of the map lists every active alert. Click one to select the aircraft, or press ✓ to acknowledge.</li>
           <li>In the <b>flight panel</b> the alert is shown at the top with an <b>Acknowledge</b> button. Acknowledged alerts pulse more calmly.</li>
           <li>When the aircraft reports again, the alert quietly disappears.</li>

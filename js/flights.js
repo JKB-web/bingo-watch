@@ -332,6 +332,14 @@ function flightProfile(p) {
 }
 function altAtNm(p, nm) {
     const pr = flightProfile(p);
+    if (p.divert && nm >= p.divert.atNm) {               // diverted: keep the height of the turn, then descend into the alternate
+        const a0 = p.divert.alt0, D = pr.D;
+        if (nm >= D) return 0;
+        const start = Math.max(p.divert.atNm, D - Math.max(1, a0 / 1000 * 3));
+        if (nm < start) return a0;
+        const x = (D - nm) / Math.max(1e-6, D - start);
+        return a0 * (x * (2 - x)) * 0.85 + a0 * 0.15 * x;
+    }
     if (nm <= 0 || nm >= pr.D) return 0;
     if (nm < pr.climb) { const x = nm / pr.climb; return pr.peak * (1 - (1 - x) * (1 - x)); }
     if (nm > pr.D - pr.desc) { const x = (pr.D - nm) / pr.desc; return pr.peak * (x * (2 - x)) * 0.85 + pr.peak * 0.15 * x; }
@@ -360,6 +368,10 @@ function openFlightFocus(num) {
     const alts = nearestAlternates(p);
     const etaMs = p.stdMs + p.durMin * 60000;
     const chip = code => `<span class="ff-chip"><span class="ff-dot"></span>${code}</span>`;
+    // airports: tap to open the airport card; alternates: tap to divert the aircraft there (via ACARS)
+    const apBtn = code => `<button type="button" class="ff-chip ff-ap" onclick="event.stopPropagation(); openAirportCard('${code}')" title="${L('Vis lufthavn', 'Show airport')}"><span class="ff-dot"></span>${code}</button>`;
+    const altBtn = code => p.landed ? apBtn(code) : `<span class="ff-alt"><button type="button" class="ff-chip ff-ap" onclick="event.stopPropagation(); openAirportCard('${code}')" title="${L('Vis lufthavn', 'Show airport')}"><span class="ff-dot"></span>${code}</button>` +
+        `<button type="button" class="ff-divert" onclick="event.stopPropagation(); askDivert(${p.num}, '${code}')" title="${L('Omdirigér hertil (ACARS)', 'Divert here (ACARS)')}"><span class="material-icons-outlined">alt_route</span>${L('Omdirigér', 'Divert')}</button></span>`;
     const item = (label, val, key, cls) => `<div class="ff-item"><span class="ff-label">${label}</span><span class="ff-val ${cls || ''}" ${key ? `data-ff="${key}"` : ''}>${val}</span></div>`;
     panel.innerHTML = `
         <div class="ff-card ff-head" onclick="toggleFlightFocusExpand()">
@@ -368,6 +380,7 @@ function openFlightFocus(num) {
             <div class="ff-progress"><div class="ff-progress-fill" data-ff="prog"></div></div>
         </div>
         <div class="ff-gadss" data-ff="gadss"></div>
+        <div class="ff-acars" data-ff="acars">${typeof acarsBox === 'function' ? acarsBox(p) : ''}</div>
         <div class="ff-assist" data-ff="assist"></div>
         <div class="ff-scroll">
             <div class="ff-card">
@@ -376,9 +389,9 @@ function openFlightFocus(num) {
                     ${item('ATC ID', p.flightNo)}${item(L('Registrering', 'Registration'), p.reg)}
                     ${p.ac ? `<div class="ff-item ff-span"><span class="ff-label">${L('Flytype', 'Aircraft type')}</span><span class="ff-val ff-actype"><svg viewBox="0 0 24 24">${AC_CATS[p.ac.cat].svg}</svg>${p.ac.code} · ${p.ac.name}<small>${L(AC_CATS[p.ac.cat].da, AC_CATS[p.ac.cat].en)}</small></span></div>` : ''}
                     ${item(L('Dato', 'Date'), new Date(p.stdMs).toISOString().slice(0, 10))}${item('STD', p.std)}
-                    ${item('DEP', chip(p.depAirport.code))}${item('DEST', chip(p.destAirport.code))}
-                    ${item('ALT1', alts[0] ? chip(alts[0]) : '–')}${item('ALT2', alts[1] ? chip(alts[1]) : '–')}
-                    <div class="ff-item ff-span"><span class="ff-label">${L('Rute', 'Route')}</span><span class="ff-val">${p.depAirport.name} → ${p.destAirport.name} · ${p.totalDistNm} NM</span></div>
+                    ${item('DEP', apBtn(p.depAirport.code))}${item('DEST' + (p.divert ? ' ↪' : ''), apBtn(p.destAirport.code))}
+                    ${item('ALT1', alts[0] ? altBtn(alts[0]) : '–')}${item('ALT2', alts[1] ? altBtn(alts[1]) : '–')}
+                    <div class="ff-item ff-span"><span class="ff-label">${L('Rute', 'Route')}</span><span class="ff-val">${p.depAirport.name} → ${p.destAirport.name} · ${p.totalDistNm} NM${p.divert ? ` <em class="ff-diverted">${L('omdirigeret fra', 'diverted from')} ${p.divert.from}</em>` : ''}</span></div>
                 </div>
             </div>
             <div class="ff-card">
@@ -572,6 +585,7 @@ function renderProfileChart(p) {
         <rect class="pf-future" x="0" y="${m.t}" width="0" height="${H - m.t - m.b}"/>
         <path class="pf-planned" d="${path(pts)}"/>
         <path class="pf-flown" d=""/>
+        <g class="pf-gadss-hist"></g>
         <rect class="pf-gadss" x="0" y="${m.t}" width="0" height="${H - m.t - m.b}"/>
         <line class="pf-gadss-edge" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}"/>
         <circle class="pf-gadss-last" r="4" cx="-10" cy="-10"/>
@@ -611,6 +625,19 @@ function updateProfileProgress(p, st) {
     const now = svg.querySelector('.pf-now'); now.setAttribute('x1', nx); now.setAttribute('x2', nx);
     const dot = svg.querySelector('.pf-dot'); dot.setAttribute('cx', nx); dot.setAttribute('cy', ny);
     const fut = svg.querySelector('.pf-future'); fut.setAttribute('x', nx); fut.setAttribute('width', Math.max(0, g.W - g.m.r - nx));
+    // GADSS episodes that are over stay on the profile: yellow while the report was overdue, red where it was a warning
+    const hist = svg.querySelector('.pf-gadss-hist'), log = p.gadssLog || [];
+    if (hist && hist.dataset.n !== String(log.length)) {
+        hist.dataset.n = String(log.length);
+        const top = g.m.t, h = g.H - g.m.t - g.m.b, X = t => Math.max(g.m.l, Math.min(g.W - g.m.r, g.x(t)));
+        hist.innerHTML = log.map(e => {
+            const xa = X(e.from), xw = e.warn ? X(e.warn) : null, xb = X(e.to);
+            return `<rect class="pf-gh caution" x="${xa}" y="${top}" width="${Math.max(0, (xw || xb) - xa)}" height="${h}"/>` +
+                (xw != null ? `<rect class="pf-gh warning" x="${xw}" y="${top}" width="${Math.max(0, xb - xw)}" height="${h}"/>` : '') +
+                `<line class="pf-gh-edge ${e.warn ? 'warning' : 'caution'}" x1="${xa}" x2="${xa}" y1="${top}" y2="${top + h}"/>` +
+                `<text class="pf-gh-label ${e.warn ? 'warning' : 'caution'}" x="${xa + 3}" y="${top + h - 4}">GADSS</text>`;
+        }).join('');
+    }
     // GADSS: shade the stretch since the last position report and mark that report
     const gr = svg.querySelector('.pf-gadss'), ge = svg.querySelector('.pf-gadss-edge'), gl = svg.querySelector('.pf-gadss-last'), gt = svg.querySelector('.pf-gadss-label');
     if (gr) {
@@ -636,8 +663,22 @@ function updateTrackPill() {
     pill.classList.toggle('show', !!p);
     if (p) document.getElementById('trackPillText').innerText = `${translations[currentLang].tracking} ${p.flightNo}`;
 }
+// Camera that follows an aircraft (or Santa): one small jumpTo per frame. MapLibre snaps the raster basemap to
+// whole pixels whenever it thinks the map is standing still, and a jumpTo does not count as moving – so on the
+// flat map the ground moved in 1-pixel jerks under the aircraft (the globe has no snapping). While following we
+// therefore tell MapLibre that the map is moving; a fly-to or the user's own dragging still has priority.
+function followCamera(lon, lat) {
+    if (!map || map.isEasing() || (map.handlers && map.handlers.isMoving())) return;
+    map._moving = true;
+    map.jumpTo({ center: [lon, lat] });
+    if (typeof map.redraw === 'function') map.redraw();
+}
+function endFollowCamera() {
+    if (map && map._moving && !map.isEasing()) { map._moving = false; map.triggerRepaint(); }   // last frame pixel-sharp again
+}
 function releaseTracking(silent, keepCard) {
     if (trackedFlightNum === null) return;
+    endFollowCamera();
     const p = activePlaneMarkers[trackedFlightNum];
     if (p && p.el) p.el.classList.remove('selected-plane');
     trackedFlightNum = null;
@@ -697,7 +738,7 @@ function animateActivePlanes(now) {
     if (trackedFlightNum !== null && map) {
         const tp = activePlaneMarkers[trackedFlightNum];
         if (!tp) releaseTracking(true);
-        else if (!map.isMoving()) { map.jumpTo({ center: [tp.lon, tp.lat] }); if (typeof map.redraw === 'function') map.redraw(); }   // draw the map in the SAME frame as the aircraft -> no wobble
+        else followCamera(tp.lon, tp.lat);   // draws the map in the SAME frame as the aircraft -> no wobble
     }
 
     // Opdater selve GeoJSON-rutelinjen og det åbne telemetri-kort ~8 gange i sekundet (eller straks ved landing)

@@ -141,11 +141,48 @@ let browser;
   const fl = await pg.evaluate(async () => {
     const n = drawnNumbers[0]; selectFlightFromLog(n); await new Promise(r => setTimeout(r, 1500));
     const o = { focus: focusedFlightNum === n, panel: document.getElementById('flight-focus').classList.contains('open'), chart: !!document.querySelector('#flight-profile-chart svg .pf-flown'),
-                tracked: trackedFlightNum === n, pushed: document.body.classList.contains('flight-focus-open') };
+                tracked: trackedFlightNum === n, pushed: document.body.classList.contains('flight-focus-open'), smooth: !!(map.painter && map.painter.options.moving) };
     clearFlightSelection(); await new Promise(r => setTimeout(r, 1500));
     o.closed = focusedFlightNum === null && !document.getElementById('flight-focus').classList.contains('open'); o.zoom = map.getZoom().toFixed(1);
     return o; });
   check('Fly', 'Vælg fly åbner panel, graf og følger', fl.focus && fl.panel && fl.chart && fl.tracked && fl.pushed, JSON.stringify(fl));
+  check('Fly', 'Kortet tegnes "i bevægelse" mens et fly følges (ingen pixel-ryk på det flade kort)', fl.smooth, JSON.stringify(fl));
+  // GADSS: an episode that is over stays on the vertical profile; a warning pulses; landed tracks hidden unless selected
+  const gd = await pg.evaluate(async () => { const w = ms => new Promise(r => setTimeout(r, ms));
+    const p = Object.values(activePlaneMarkers).find(q => !q.landed); selectFlightFromLog(p.num); await w(1600);
+    startGadss(p); p.gadss.resolveAt = p.gadss.escalateAt = Infinity; await w(300); escalateGadss(p); p.gadss.resolveAt = Infinity; await w(300);
+    const pulse = getComputedStyle(p.el.querySelector('.plane-rotator')).animationName;
+    endGadss(p); await w(400);
+    const kept = (p.gadssLog || []).length === 1 && !!p.gadssLog[0].warn, drawn = document.querySelectorAll('#flight-profile-chart .pf-gh.warning').length;
+    const q = Object.values(activePlaneMarkers).find(x => x !== p && !x.landed); q.flownDistNm = q.totalDistNm; await w(400);
+    const onMap = n => map.getSource('occ-flight-routes')._data.features.some(f => f.properties.num === n);
+    const hidden = !onMap(q.num); selectFlightFromLog(q.num); await w(400); const shownSel = onMap(q.num);
+    clearFlightSelection(); await w(300); p.gadssLog = []; return { pulse, kept, drawn, hidden, shownSel }; });
+  check('GADSS', 'Advarsel giver pulserende ring om flyet', gd.pulse === 'gadssRing', JSON.stringify(gd));
+  check('GADSS', 'Afsluttet advarsel bliver stående i højdeprofilen', gd.kept && gd.drawn === 1, JSON.stringify(gd));
+  check('Fly', 'Landede fly viser ikke deres spor (kun når de er valgt)', gd.hidden && gd.shownSel, JSON.stringify(gd));
+  // only the selected flight shows its route; airports in the flight panel open the airport card; divert via ACARS
+  const dv = await pg.evaluate(async () => { const w = ms => new Promise(r => setTimeout(r, ms));
+    const p = Object.values(activePlaneMarkers).filter(q => !q.landed && q.route.total > 800)[0] || Object.values(activePlaneMarkers).find(q => !q.landed);
+    p.flownDistNm = Math.min(p.route.total * 0.4, p.route.total - 200); clearFlightSelection(); await w(300);
+    const numsOnMap = () => [...new Set(map.getSource('occ-routes-static')._data.features.concat(map.getSource('occ-flight-routes')._data.features).map(f => f.properties.num))];
+    const noneUnselected = numsOnMap().length === 0;
+    selectFlightFromLog(p.num); await w(1600);
+    const onlySelected = numsOnMap().join() === String(p.num);
+    document.querySelector('#flight-focus button.ff-ap').click(); await w(300);
+    const card = !!document.getElementById('ap-card'); closeAirportCard && closeAirportCard();
+    const from = p.destAirport.code, oldRoute = p.route, oldProf = { ...p, divert: null, _prof: null };
+    document.querySelector('#flight-focus .ff-divert').click(); await w(200);
+    const asked = !!document.querySelector('#flight-focus .acars-yes'); const to = acars[p.num] && acars[p.num].code;
+    document.querySelector('#flight-focus .acars-yes').click(); await w(3200);
+    // where the turn starts, the old and the new route must be at the same place and height
+    const atNm = p.divert ? p.divert.atNm : 0, a = routePosAt(oldRoute, atNm), b = routePosAt(p.route, atNm);
+    const out = { noneUnselected, onlySelected, card, asked, from, to, dest: p.destAirport.code, jumpNm: gHav(a[1], a[0], b[1], b[0]),
+      altJump: Math.abs(altAtNm(p, atNm) - altAtNm(oldProf, atNm)), row: document.querySelector('#log-entry-' + p.num + ' td:nth-child(4)').innerText };
+    clearFlightSelection(); await w(300); return out; });
+  check('Ruter', 'Ruter vises kun for det valgte fly', dv.noneUnselected && dv.onlySelected, JSON.stringify(dv));
+  check('Fly', 'Lufthavn i flypanelet åbner lufthavnskortet', dv.card, JSON.stringify(dv));
+  check('Fly', 'Omdirigering via ACARS: ny destination uden spring i position og højde', dv.asked && dv.dest === dv.to && dv.dest !== dv.from && dv.jumpNm < 1 && dv.altJump < 50 && dv.row.startsWith(dv.to), JSON.stringify(dv));
   check('Fly', 'Fravælg lukker og zoomer ud', fl.closed && fl.zoom === '4.5', fl.zoom);
   const planeBox = await pg.evaluate(() => { const p = Object.values(activePlaneMarkers)[0]; map.jumpTo({ center: [p.lon, p.lat], zoom: 4 }); return p.num; });
   await pg.evaluate(() => document.querySelectorAll('.content-wrapper > .window').forEach(w => w.style.display = 'none')); await sleep(800);

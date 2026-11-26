@@ -160,3 +160,45 @@ body.manual-open #start-overlay { visibility: hidden; }
 #news-lightbox figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 100%; max-height: 100%; }
 #news-lightbox img { max-width: min(1200px, 100%); max-height: calc(100vh - 90px); border-radius: var(--r-md); box-shadow: 0 20px 60px rgba(0,0,0,0.45); background: #fff; }
 #news-lightbox figcaption { color: #fff; font-size: 14px; font-weight: 500; }
+
+/* GADSS: a warning pulses as a red ring out from the circle round the aircraft (slower once acknowledged) */
+.radar-plane.gadss-warning .plane-rotator { animation: gadssRing 1.4s ease-out infinite; }
+.radar-plane.gadss-warning.gadss-ack .plane-rotator { animation-duration: 2.8s; }
+@keyframes gadssRing {
+    0%   { box-shadow: 0 0 0 0 rgba(var(--gc), 0.75), 0 0 0 0 rgba(var(--gc), 0.35); }
+    70%  { box-shadow: 0 0 0 11px rgba(var(--gc), 0), 0 0 0 20px rgba(var(--gc), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--gc), 0), 0 0 0 0 rgba(var(--gc), 0); }
+}
+@media (prefers-reduced-motion: reduce) { .radar-plane.gadss-warning .plane-rotator { animation: none; box-shadow: 0 0 0 4px rgba(var(--gc), 0.35); } }
+
+/* vertical profile: GADSS episodes that are over (yellow = report overdue, red = warning) */
+.pf-gh.caution { fill: rgba(245, 190, 40, 0.16); }
+.pf-gh.warning { fill: rgba(232, 60, 60, 0.18); }
+.pf-gh-edge { stroke-width: 1.2; stroke-dasharray: 3 3; }
+.pf-gh-edge.caution { stroke: rgb(214, 160, 20); }
+.pf-gh-edge.warning { stroke: rgb(232, 60, 60); }
+.pf-gh-label { font-size: 9.5px; font-weight: 600; font-family: 'Inter', sans-serif; }
+.pf-gh-label.caution { fill: rgb(180, 130, 10); }
+.pf-gh-label.warning { fill: rgb(200, 40, 40); }
+
+/* flight panel: airports are buttons (airport card); alternates can be diverted to via ACARS */
+button.ff-chip.ff-ap { font: inherit; cursor: pointer; border: 1px solid var(--hairline); background: var(--surface-2); color: inherit; padding: 2px 8px; border-radius: 999px; }
+button.ff-chip.ff-ap:hover { border-color: var(--accent); color: var(--accent); }
+.ff-alt { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ff-divert { display: inline-flex; align-items: center; gap: 3px; font: inherit; font-size: 11px; font-weight: 500; cursor: pointer; padding: 2px 8px 2px 5px;
+    border-radius: 999px; border: 1px solid var(--hairline); background: transparent; color: var(--text-muted); }
+.ff-divert .material-icons-outlined { font-size: 14px; }
+.ff-divert:hover { border-color: var(--accent); color: var(--accent); }
+.ff-diverted { font-style: normal; color: #b45309; font-weight: 500; }
+.divert-tag { margin-left: 3px; color: #b45309; font-weight: 700; }
+.ff-acars:empty { display: none; }
+.acars-box { margin: 8px 0; padding: 10px 12px; border-radius: var(--r-md); border: 1px solid rgba(var(--accent-rgb), 0.35); background: rgba(var(--accent-rgb), 0.06); }
+.acars-box.sent { border-style: dashed; }
+.acars-title { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; }
+.acars-title .material-icons-outlined { font-size: 18px; color: var(--accent); }
+.acars-msg { margin: 6px 0 2px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.02em; }
+.acars-sub { font-size: 11.5px; color: var(--text-muted); }
+.acars-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.acars-btns button { font: inherit; font-size: 12.5px; font-weight: 500; padding: 6px 12px; border-radius: var(--r-sm); cursor: pointer; border: 1px solid var(--hairline); background: transparent; color: inherit; }
+.acars-btns .acars-yes { background: var(--accent); color: #fff; border-color: transparent; }
+[data-theme="dark"] .acars-btns .acars-yes { background: #e9ecf1; color: #0c0d10; }

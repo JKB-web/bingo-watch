@@ -5,21 +5,42 @@
 // WHAT'S NEW
 // Newest first. Add a new entry at the top when you publish an update:
 //   id    'YYYY-MM-DD.n' – must sort after every older id (n = 1, 2 … for several on one day)
+//   date  optional date to show, if it differs from the id
 //   img   optional picture (made with `node tools/news-shots.js`, see that file)
 //   da/en title + a few short points, written for players, not developers
 // Returning visitors see the entries they have not seen yet at the top of the welcome card;
 // the manual chapter "Nyheder / What's new" lists them all.
 // =====================================================================
 const CHANGELOG = [
-    { id: '2026-11-27.1', img: 'img/news/2026-11-27-1.webp',
+    { id: '2026-11-27.3', date: '2026-11-26', img: 'img/news/2026-11-27-3.webp',
+      da: { t: 'Omdirigér fly med ACARS', p: [
+          'Tryk <b>Omdirigér</b> ved ALT1 eller ALT2 i flypanelet, og bekræft: flyet får en ACARS-besked, besætningen svarer WILCO, og flyet drejer mod den alternative lufthavn.',
+          'Tryk på en lufthavn i flypanelet for at se lufthavnskortet.',
+          'Ruter og spor vises nu kun for det valgte fly, så kortet er roligt – også med 90 fly i luften.'] },
+      en: { t: 'Divert aircraft via ACARS', p: [
+          'Tap <b>Divert</b> next to ALT1 or ALT2 in the flight panel and confirm: the aircraft gets an ACARS message, the crew answers WILCO and turns towards the alternate.',
+          'Tap an airport in the flight panel to see the airport card.',
+          'Routes and tracks are now only shown for the selected flight, so the map stays calm – even with 90 aircraft airborne.'] } },
+    { id: '2026-11-27.2', date: '2026-11-26', img: 'img/news/2026-11-27-2.webp',
+      da: { t: 'GADSS og landede fly', p: [
+          'En rød GADSS-advarsel får nu en tydelig puls fra cirklen om flyet.',
+          'Når en GADSS-hændelse er overstået, bliver den stående i højdeprofilen: gul, hvor positionsrapporten var forsinket, og rød, hvor det var en advarsel.',
+          'Landede fly fjerner deres spor fra kortet, så kortet ikke bliver rodet. Vælg flyet for at se det igen.'] },
+      en: { t: 'GADSS and landed flights', p: [
+          'A red GADSS warning now pulses clearly from the circle round the aircraft.',
+          'When a GADSS event is over it stays on the vertical profile: yellow where the position report was overdue, red where it was a warning.',
+          'Landed flights remove their track from the map, so it does not get cluttered. Select the flight to see it again.'] } },
+    { id: '2026-11-27.1', date: '2026-11-26', img: 'img/news/2026-11-27-1.webp',
       da: { t: 'Realistiske ruter uden om konfliktzoner', p: [
           'Flyene følger ruten i lige stykker med bløde sving – ingen slingren.',
           'Som rigtige fly får de indimellem en genvej eller flyver en kort omvej uden om vejr.',
+          'Følger du et fly på det flade kort, glider kortet nu jævnt under flyet i stedet for at hoppe.',
           'Ruterne går uden om lukket luftrum efter EU-luftfartsmyndigheden EASA’s konfliktzone-advarsler – fx Rusland, Belarus, Ukraine, Iran, Irak, Syrien, Sudan og Den Persiske Bugt. Europa–Asien går via Kaukasus eller syd om.',
           'Nyt vejrlag: <b>Lukkede luftrum (EASA)</b> under Advarsler. Rød = lukket, gul = advarsel (fx kun lukket i lav højde). Klik på en zone for EASA’s advarsel. Zonerne opdateres, når EASA ændrer dem.'] },
       en: { t: 'Realistic routes around conflict zones', p: [
           'Aircraft follow the route in straight legs with smooth turns – no weaving.',
           'Like real flights they sometimes get a shortcut or fly a short detour round weather.',
+          'When you follow an aircraft on the flat map, the map now glides smoothly under it instead of jumping.',
           'Routes avoid closed airspace according to the conflict zone bulletins of the EU aviation agency EASA – e.g. Russia, Belarus, Ukraine, Iran, Iraq, Syria, Sudan and the Persian Gulf. Europe–Asia goes via the Caucasus or further south.',
           'New weather layer: <b>Closed airspace (EASA)</b> under Warnings. Red = closed, amber = caution (e.g. closed only at low level). Click a zone for EASA’s bulletin. The zones are updated when EASA changes them.'] } },
     { id: '2026-11-26.2', img: 'img/news/2026-11-26-2.webp',
@@ -99,15 +120,15 @@ function unseenChangelog() {
     if (seen) return CHANGELOG.filter(e => e.id > seen);
     return CHANGELOG_RETURNING ? CHANGELOG : [];
 }
-function changelogDate(id) {
-    const [y, m, d] = id.slice(0, 10).split('-').map(Number);
+function changelogDate(e) {
+    const [y, m, d] = (e.date || e.id).slice(0, 10).split('-').map(Number);
     return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(currentLang === 'da' ? 'da-DK' : 'en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
 }
 function changelogEntryHtml(e) {
     const L = e[currentLang === 'da' ? 'da' : 'en'], da = currentLang === 'da';
     const pic = e.img ? `<button type="button" class="news-thumb" onclick="openNewsImage('${e.id}')" aria-label="${da ? 'Vis billede' : 'Show picture'}: ${L.t}">` +
         `<img src="${e.img}" alt="${L.t}" loading="lazy" onerror="this.parentNode.remove()"></button>` : '';
-    return `<div class="news-entry${e.img ? ' has-pic' : ''}"><div class="news-text"><div class="news-head"><b>${L.t}</b><span class="news-date">${changelogDate(e.id)}</span></div>` +
+    return `<div class="news-entry${e.img ? ' has-pic' : ''}"><div class="news-text"><div class="news-head"><b>${L.t}</b><span class="news-date">${changelogDate(e)}</span></div>` +
         `<ul>${L.p.map(x => `<li>${x}</li>`).join('')}</ul></div>${pic}</div>`;
 }
 // Full-size picture on top of everything; click anywhere or press Esc to close.
@@ -117,7 +138,7 @@ function openNewsImage(id) {
     closeNewsImage();
     const box = document.createElement('div');
     box.id = 'news-lightbox'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', L.t);
-    box.innerHTML = `<figure><img src="${e.img}" alt="${L.t}"><figcaption>${L.t} · ${changelogDate(e.id)}</figcaption></figure>`;
+    box.innerHTML = `<figure><img src="${e.img}" alt="${L.t}"><figcaption>${L.t} · ${changelogDate(e)}</figcaption></figure>`;
     box.addEventListener('click', closeNewsImage);
     document.body.appendChild(box);
 }
