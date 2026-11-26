@@ -1,0 +1,50 @@
+# Daily check of EASA's Conflict Zone Information Bulletins (https://www.easa.europa.eu/en/domains/air-operations/czibs).
+# If the list has changed, js/airspace-data.js (and dist/) is rebuilt and a pull request is opened for review –
+# nothing is published until the pull request is merged.
+# Needs: Settings → Actions → General → Workflow permissions → "Allow GitHub Actions to create and approve pull requests".
+name: Update closed airspace (EASA)
+
+on:
+  schedule:
+    - cron: '17 5 * * *'      # every day at 05:17 UTC
+  workflow_dispatch:          # or run it by hand from the Actions tab
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install the build tool's dependency
+        run: npm install --no-save --no-package-lock --ignore-scripts polygon-clipping@0.15.7
+
+      - name: Check EASA and rebuild the airspace data
+        id: build
+        run: |
+          node tools/airspace-build.js --report "$RUNNER_TEMP/airspace-report.md" | tee "$RUNNER_TEMP/out.txt"
+          if grep -q 'CHANGED=yes' "$RUNNER_TEMP/out.txt"; then echo "changed=yes" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Rebuild the single-file version
+        if: steps.build.outputs.changed == 'yes'
+        run: node tools/build-single.js
+
+      - name: Open a pull request
+        if: steps.build.outputs.changed == 'yes'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: airspace-update
+          delete-branch: true
+          title: 'Lukkede luftrum: opdatering fra EASA'
+          body-path: ${{ runner.temp }}/airspace-report.md
+          commit-message: 'Update closed airspace from EASA conflict zone bulletins'
+          add-paths: |
+            js/airspace-data.js
+            dist/bingo-watch.html

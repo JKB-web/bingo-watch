@@ -44,6 +44,22 @@ const draw = (pg, n) => pg.evaluate(n => { for (let i = 0; i < n; i++) finalize(
 
 // one function per update id; each returns a PNG buffer
 const SCENES = {
+  '2026-11-27.1': async (b) => {
+    const { ctx, pg } = await open(b, DESK);
+    await start(pg);
+    await pg.evaluate(async () => {
+      document.querySelectorAll('.content-wrapper > .window').forEach(w => w.style.display = 'none');
+      ['#hud-stats', '.coord-pill', '.fab-container', '.ops-right-toolbar'].forEach(s => document.querySelectorAll(s).forEach(e => e.style.visibility = 'hidden'));
+      await toggleWxLayer('zones');
+      const A = c => AIRPORT_DB.find(a => a.code === c);
+      const pairs = [['EKCH', 'RJTT'], ['EGLL', 'VHHH'], ['EDDF', 'OMDB'], ['EFHK', 'ZBAA'], ['LFPG', 'VIDP'], ['EHAM', 'WSSS'], ['ESSA', 'VTBS']];
+      const feats = pairs.map(([d, e], i) => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: buildRealisticRoute(A(d), A(e), 100 + i).track } }));
+      map.addSource('news-routes', { type: 'geojson', data: { type: 'FeatureCollection', features: feats } });
+      map.addLayer({ id: 'news-routes', type: 'line', source: 'news-routes', paint: { 'line-color': '#2f8a4c', 'line-width': 2.2 } });
+      map.jumpTo({ center: [72, 40], zoom: 2.35 }); });
+    await sleep(4000);
+    const png = await pg.screenshot({ clip: { x: 60, y: 50, width: 1320, height: 800 } }); await ctx.close(); return png;
+  },
   '2026-11-26.2': async (b) => {
     const { ctx, pg } = await open(b, DESK, '2026-11-23.1');
     const png = await pg.locator('#start-overlay .briefing-card').screenshot(); await ctx.close(); return png;

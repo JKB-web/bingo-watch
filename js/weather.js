@@ -682,6 +682,17 @@ function renderSigmet() {
         layout: wxLabelLayout({ 'text-size': 10.5 }), paint: { 'text-color': T.color, 'text-halo-color': T.halo, 'text-halo-width': 1.6 } }, 'sigmet');
 }
 
+// Closed / high-risk airspace (js/airspace.js) – the routes already keep out of it
+function renderZones() {
+    wxPutSource('wx-zone-src', conflictZonesGeoJSON());
+    const T = wxText();
+    const col = ['case', ['==', ['get', 'level'], 'closed'], '#dc2626', '#d97706'];   // closed red, caution amber
+    wxPutLayer({ id: 'wx-zone-fill', type: 'fill', source: 'wx-zone-src', filter: ['==', ['get', 'kind'], 'area'], paint: { 'fill-color': col, 'fill-opacity': ['case', ['==', ['get', 'level'], 'closed'], 0.09, 0.07] } }, 'zones');
+    wxPutLayer({ id: 'wx-zone-line', type: 'line', source: 'wx-zone-src', filter: ['==', ['get', 'kind'], 'area'], paint: { 'line-color': col, 'line-width': 1.3, 'line-dasharray': [4, 3], 'line-opacity': 0.75 } }, 'zones');
+    wxPutLayer({ id: 'wx-zone-label', type: 'symbol', source: 'wx-zone-src', filter: ['==', ['get', 'kind'], 'label'],
+        layout: wxLabelLayout({ 'text-size': 10.5, 'text-max-width': 12 }), paint: { 'text-color': ['case', ['==', ['get', 'level'], 'closed'], '#b91c1c', '#b45309'], 'text-halo-color': T.halo, 'text-halo-width': 1.6 } }, 'zones');
+}
+
 // =====================================================================
 // FIELD LAYERS (v30): smooth colour fields drawn from the global grid
 // Each field is rendered into a Web-Mercator image (so it lines up exactly on the map)
@@ -939,7 +950,7 @@ async function renderWxLayer(id, force) {
         if (id === 'dust') fetchDust();
         if (FIELD_LAYERS.includes(id)) renderFieldLayer(id);
         else ({ jet: renderJet, barbs: renderBarbs, cat: renderCat, trop: renderTrop, icing: renderIcing, mslp: renderMslp, sat: renderSatellite,
-           cyclone: renderCyclone, volcano: renderVolcano, sigmet: renderSigmet })[id]();
+           cyclone: renderCyclone, volcano: renderVolcano, sigmet: renderSigmet, zones: renderZones })[id]();
         wxBuilt[id] = atmoDep ? ATMO.version : 1;
     } catch (e) { console.warn('Weather layer failed: ' + id, e); }
 }
@@ -988,6 +999,7 @@ function bindWxPopups() {
     };
     pop('wx-volc', p => '<b>' + p.name + '</b><br>' + p.country + '<br>VAAC ' + p.vaac + '<br><small>Reference list – check VAAC advisories for current status</small>');
     pop('wx-sigmet-fill', p => '<b>' + (p.hazard || 'SIGMET') + '</b><br>FIR ' + (p.fir || ''));
+    pop('wx-zone-fill', p => zonePopupHtml(p));
 }
 // ---- MENU UI ----
 function initWxMenu() {

@@ -22,6 +22,8 @@ js/                 almindelige scripts, indlæst i denne rækkefølge fra index
   app.js              opstart, kortet og synkronisering af lag
   map.js              rækkeviddecirkler og lufthavne (hover/klik)
   routes.js           realistiske ruter, flyvede spor og rutelag
+  airspace-data.js    lukkede luftrum fra EASA (GENERERET af tools/airspace-build.js)
+  airspace.js         lukkede luftrum og ruteplanlægning uden om dem
   weather.js          vejrmotor, alle vejrlag, animerede vinde, forklaring, vejrmenu
   map-controls.js     sol/dag-nat, 3D-globus, ringe/radar, centrering
   layout.js           startlayout, mobil-faneblade
@@ -41,8 +43,11 @@ js/                 almindelige scripts, indlæst i denne rækkefølge fra index
   startup.js          blød scroll og velkomstvindue
 tools/build-single.js   samler alt til dist/bingo-watch.html
 tools/news-shots.js     tager billederne til nyhederne (img/news/)
+tools/airspace-build.js bygger js/airspace-data.js fra EASA's konfliktzone-advarsler
+tools/airspace-sources.json  hvilken EASA-advarsel der dækker hvilket luftrum (lukket/advarsel)
+.github/workflows/airspace.yml  tjekker EASA hver dag og laver en pull request ved ændringer
 img/news/               billeder til nyhederne
-tests/run.js            73 automatiske tests i en rigtig browser
+tests/run.js            81 automatiske tests i en rigtig browser
 tests/net.js            styrer netværket i testene (gemte svar / live / offline)
 tests/record.js         henter rigtige svar fra vejrtjenesterne og gemmer dem
 tests/fixtures/         de gemte svar (network.json)
@@ -68,16 +73,33 @@ Ny opdatering? Tilføj en post **øverst** i `CHANGELOG` i `js/changelog.js`:
 
 Kør derefter `npm run build` – billederne bygges også ind i `dist/bingo-watch.html`.
 
+## Lukkede luftrum (EASA)
+
+Ruterne går uden om lukket luftrum efter EU-luftfartsmyndigheden **EASA's konfliktzone-advarsler** (CZIB, <https://www.easa.europa.eu/en/domains/air-operations/czibs>) plus forbuddene i Rusland og Belarus. Spillets fly opfører sig som et europæisk flyselskab.
+
+- **Rød (lukket):** EASA anbefaler ikke at flyve der i nogen højde – ruterne går uden om.
+- **Gul (advarsel):** forsigtighed, eller kun lukket under en vis højde – vises på kortet, men fly må krydse i marchhøjde.
+- Undtagelser: Den Persiske Bugt er lukket undtagen for at lande og lette, så Dubai, Abu Dhabi og Doha kan stadig bruges.
+
+**Automatisk opdatering:** `.github/workflows/airspace.yml` kører hver dag kl. 05:17 UTC. Hvis EASA's liste har ændret sig, laver den en pull request med de opdaterede zoner og en dansk beskrivelse af ændringerne. Intet kommer ud på siden, før pull requesten er godkendt (merged). Den kan også startes i hånden under fanen **Actions**.
+
+Kræver én indstilling på GitHub: **Settings → Actions → General → Workflow permissions →** sæt flueben i **"Allow GitHub Actions to create and approve pull requests"**.
+
+Ny EASA-advarsel om et område, der ikke er kendt endnu? Pull requesten markerer den som **"NY – kræver handling"**. Tilføj den i `tools/airspace-sources.json` (hvilke FIR'er eller et omrids, og om den er lukket eller advarsel), og kør `npm run airspace`.
+
+Luftrumsgrænserne (FIR) kommer fra [VATSIM vatspy-data-project](https://github.com/vatsimnetwork/vatspy-data-project) under licensen **CC BY-SA 4.0**; de afledte zonedata i `js/airspace-data.js` deles på samme vilkår. Det er et spil – ikke et værktøj til rigtig ruteplanlægning.
+
 ## Udvikling
 
 ```bash
 npm install
 npx playwright install chromium   # første gang
-npm test                          # kører de 73 tests mod index.html – uden internet
+npm test                          # kører de 81 tests mod index.html – uden internet
 npm run build                     # laver dist/bingo-watch.html
 npm run test:single               # bygger og tester den samlede fil
 npm run record                    # henter manglende svar fra vejrtjenesterne (sjældent)
 npm run test:live                 # tester mod det rigtige internet
+npm run airspace                  # henter EASA's liste og bygger js/airspace-data.js
 ```
 
 ### Testene og de gratis vejrtjenester

@@ -62,73 +62,131 @@ function chaikin(pts, iters) {                           // rounds every corner,
 }
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function buildRealisticRoute(dep, dest, seed) {
+    // exceptions such as 'arrivals and departures in the Gulf' apply to the whole route of this flight
+    return typeof withAirspaceContext === 'function' ? withAirspaceContext(dep, dest, () => buildRouteInner(dep, dest, seed)) : buildRouteInner(dep, dest, seed);
+}
+function buildRouteInner(dep, dest, seed) {
     const rand = mulberry32(seed == null ? Math.floor(Math.random() * 2 ** 31) : seed);
     const rnd = (a, b) => a + rand() * (b - a);
-    const D = gHav(dep.lat, dep.lon, dest.lat, dest.lon);
-    const crsOut = gBearing(dep.lat, dep.lon, dest.lat, dest.lon);
-    const nearEnd = gInterp(dep.lat, dep.lon, dest.lat, dest.lon, Math.max(0, 1 - 40 / Math.max(D, 41)));
+    // The route follows a corridor that stays out of closed / high-risk airspace (js/airspace.js).
+    const corr = typeof safeCorridor === 'function' ? safeCorridor(dep, dest) : [[dep.lat, dep.lon], [dest.lat, dest.lon]];
+    const D = corridorLength(corr);
+    const clear = (a, b) => typeof legBlocked !== 'function' || !legBlocked(a[0], a[1], b[0], b[1]);
+    const crsOut = corridorAt(corr, 0).crs;
+    const nearEnd = corridorAt(corr, Math.max(0, D - 40)).pt;
     const crsIn = gBearing(nearEnd[0], nearEnd[1], dest.lat, dest.lon);
-    const rwyDep = (Math.round((crsOut + rnd(-80, 80)) / 10) * 10 + 360) % 360;
-    const rwyArr = (Math.round((crsIn + rnd(-130, 130)) / 10) * 10 + 360) % 360;
-    const wp = [[dep.lat, dep.lon]];
-    // --- departure: climb out on runway heading, turn towards the route
-    const co = gDest(dep.lat, dep.lon, rwyDep, Math.min(7, D * 0.08)); wp.push(co);
-    const dTurn = angDiff(crsOut, rwyDep);
-    if (Math.abs(dTurn) > 75 && D > 60) wp.push(gDest(co[0], co[1], rwyDep + Math.sign(dTurn) * 80, 6));
-    // --- en route: airway-like dog-legs off the great circle (correlated, larger mid-route)
-    const n = Math.max(0, Math.min(18, Math.round(D / 200)));
+    const legsClear = pts => pts.every((q, i) => i === 0 || clear(pts[i - 1], q));
+    // --- departure: climb out on runway heading, turn towards the route (a runway whose climb-out stays clear)
+    let rwyDep, depPts;
+    for (let t = 0; t < 8; t++) {
+        rwyDep = (Math.round((crsOut + rnd(-80, 80) * (t < 4 ? 1 : 2)) / 10) * 10 + 360) % 360;
+        const co = gDest(dep.lat, dep.lon, rwyDep, Math.min(7, D * 0.08));
+        depPts = [co];
+        const dTurn = angDiff(crsOut, rwyDep);
+        if (Math.abs(dTurn) > 75 && D > 60) depPts.push(gDest(co[0], co[1], rwyDep + Math.sign(dTurn) * 80, 6));
+        if (legsClear([[dep.lat, dep.lon], ...depPts])) break;
+    }
+    const wp = [[dep.lat, dep.lon], ...depPts];
+    const e0 = wp.length;                                   // first en-route waypoint
+    // --- en route: airway-like dog-legs off the corridor (correlated, larger mid-route); the corridor's
+    //     corners (detours around closed airspace) are fixed waypoints
+    const en = [];
+    let acc = 0;
+    for (let i = 1; i < corr.length - 1; i++) { acc += gHav(corr[i - 1][0], corr[i - 1][1], corr[i][0], corr[i][1]); en.push({ nm: acc, pt: corr[i], base: corr[i] }); }
+    const n = Math.max(0, Math.min(24, Math.round(D / 200)));
     let off = 0;
-    const maxOff = Math.min(D * 0.04, 80);
+    const maxOff = Math.min(D * 0.03, 60);
     for (let i = 1; i <= n; i++) {
-        const f = (i + rnd(-0.3, 0.3)) / (n + 1);
-        if (f * D < 35 || (1 - f) * D < 45) continue;
-        const base = gInterp(dep.lat, dep.lon, dest.lat, dest.lon, f);
-        const ahead = gInterp(dep.lat, dep.lon, dest.lat, dest.lon, Math.min(1, f + 0.01));
-        const crs = gBearing(base[0], base[1], ahead[0], ahead[1]);
+        const f = (i + rnd(-0.3, 0.3)) / (n + 1), nm = f * D;
+        if (nm < 35 || D - nm < 45) continue;
+        const { pt, crs } = corridorAt(corr, nm);
         off = 0.55 * off + 0.45 * rnd(-1, 1) * maxOff;
-        wp.push(gDest(base[0], base[1], crs + 90, off * Math.sqrt(Math.sin(Math.PI * f))));
+        en.push({ nm, base: pt, pt: gDest(pt[0], pt[1], crs + 90, off * Math.sqrt(Math.sin(Math.PI * f))) });
+    }
+    en.sort((a, b) => a.nm - b.nm);
+    // a dog-leg that would touch closed airspace is pulled back onto the corridor
+    for (let pass = 0; pass < 3; pass++) {
+        const seq = [wp[wp.length - 1], ...en.map(e => e.pt), [dest.lat, dest.lon]];
+        let bad = false;
+        for (let i = 0; i < seq.length - 1; i++) if (!clear(seq[i], seq[i + 1])) {
+            if (en[i - 1]) en[i - 1].pt = en[i - 1].base; if (en[i]) en[i].pt = en[i].base; bad = true;
+        }
+        if (!bad) break;
     }
     // --- arrival: approach fixes; downwind + base when the runway points the "wrong" way
-    const last = wp[wp.length - 1];
-    const inbound = gBearing(last[0], last[1], dest.lat, dest.lon);
-    const fromSide = Math.sign(angDiff(gBearing(dest.lat, dest.lon, last[0], last[1]), rwyArr + 180)) || 1;
-    const faf = gDest(dest.lat, dest.lon, rwyArr + 180, 9);
-    const itp = gDest(dest.lat, dest.lon, rwyArr + 180, 15);              // intercept on the extended centre line
-    if (D > 40) {
-        if (Math.abs(angDiff(inbound, rwyArr)) > 100) {
-            const abeam = gDest(dest.lat, dest.lon, rwyArr + 90 * fromSide, 7);
-            wp.push(gDest(abeam[0], abeam[1], rwyArr, 7));              // join downwind
-            wp.push(gDest(abeam[0], abeam[1], rwyArr + 180, 12));       // end of downwind
-            wp.push(gDest(itp[0], itp[1], rwyArr + 90 * fromSide, 4));  // base turn
-        } else {
-            wp.push(gDest(itp[0], itp[1], rwyArr + 180 + 30 * fromSide, 12)); // IAF, 30° intercept
+    function arrival(rwyArr, last) {
+        const pts = [];
+        const inbound = gBearing(last[0], last[1], dest.lat, dest.lon);
+        const fromSide = Math.sign(angDiff(gBearing(dest.lat, dest.lon, last[0], last[1]), rwyArr + 180)) || 1;
+        const faf = gDest(dest.lat, dest.lon, rwyArr + 180, 9);
+        const itp = gDest(dest.lat, dest.lon, rwyArr + 180, 15);              // intercept on the extended centre line
+        if (D > 40) {
+            if (Math.abs(angDiff(inbound, rwyArr)) > 100) {
+                const abeam = gDest(dest.lat, dest.lon, rwyArr + 90 * fromSide, 7);
+                pts.push(gDest(abeam[0], abeam[1], rwyArr, 7));              // join downwind
+                pts.push(gDest(abeam[0], abeam[1], rwyArr + 180, 12));       // end of downwind
+                pts.push(gDest(itp[0], itp[1], rwyArr + 90 * fromSide, 4));  // base turn
+            } else {
+                pts.push(gDest(itp[0], itp[1], rwyArr + 180 + 30 * fromSide, 12)); // IAF, 30° intercept
+            }
+            pts.push(itp);
         }
-        wp.push(itp);
+        pts.push(faf, gDest(dest.lat, dest.lon, rwyArr + 180, 3.5), [dest.lat, dest.lon]);
+        return pts;
     }
-    wp.push(faf);
-    wp.push(gDest(dest.lat, dest.lon, rwyArr + 180, 3.5));
-    wp.push([dest.lat, dest.lon]);
+    // pick an approach that stays clear of closed airspace; if the dog-legs are the problem, fly the corridor
+    let rwyArr, arr;
+    for (let pass = 0; pass < 2; pass++) {
+        const last = en.length ? en[en.length - 1].pt : wp[wp.length - 1];
+        for (let t = 0; t < 10; t++) {
+            rwyArr = (Math.round((crsIn + rnd(-130, 130) * (t < 5 ? 1 : 1.4)) / 10) * 10 + 360) % 360;
+            arr = arrival(rwyArr, last);
+            if (legsClear([last, ...arr])) break;
+        }
+        if (legsClear([wp[wp.length - 1], ...en.map(e => e.pt), ...arr])) break;
+        en.forEach(e => { e.pt = e.base; });
+    }
+    en.forEach(e => wp.push(e.pt));
+    const e1 = wp.length;                                   // first arrival waypoint
+    wp.push(...arr);
     const planned = densifyGC(wp, 30);                    // the flight plan (drawn as the dashed line)
-    // The aircraft flies CLOSE to the plan, not exactly on it: corners are cut (direct-to's), and it drifts a few NM
-    // to either side (wind, ATC). Back on the plan for departure and for the approach.
-    const base = chaikin(densifyGC(wp, 10), 3);
-    const bc = [0];
-    for (let i = 1; i < base.length; i++) bc.push(bc[i - 1] + gHav(base[i - 1][1], base[i - 1][0], base[i][1], base[i][0]));
-    const L = bc[bc.length - 1];
-    const amp = D < 120 ? 1.5 : Math.min(3 + D * 0.0025, 12);       // max sideways drift in NM
-    const waves = [[0.55, 160 + rnd(0, 120)], [0.35, 420 + rnd(0, 300)], [0.25, 900 + rnd(0, 600)]].map(([a, l]) => [a, l, rnd(0, Math.PI * 2)]);
-    const depTaper = Math.min(30, L * 0.15), arrTaper = Math.min(45, L * 0.2);
-    const smooth = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
-    const track = base.map((pt, i) => {
-        const d = bc[i];
-        const taper = smooth(d / depTaper) * smooth((L - d) / arrTaper);
-        if (taper <= 0.001) return pt;
-        const off = amp * taper * waves.reduce((sum, [a, l, ph]) => sum + a * Math.sin(2 * Math.PI * d / l + ph), 0);
-        const a = base[Math.max(0, i - 1)], b = base[Math.min(base.length - 1, i + 1)];
-        const brg = gBearing(a[1], a[0], b[1], b[0]);
-        const q = gDest(pt[1], pt[0], brg + 90, off);
-        return [q[1], q[0]];
-    });
+
+    // --- what the aircraft actually flies: the plan in straight legs with smooth turns, plus the few
+    //     deliberate changes real flights get – a "direct to" a fix further ahead from ATC (skipping some
+    //     waypoints), and now and then a detour round weather. Never into closed airspace.
+    const tw = wp.slice(0, e0);
+    const fixes = wp.slice(e0, e1), target = fixes.concat([wp[e1] || wp[wp.length - 1]]);
+    let i = 0;
+    while (i < fixes.length) {
+        tw.push(fixes[i]);
+        let jumped = false;
+        if (rand() < 0.3 && i + 2 < target.length) {
+            for (let s = Math.min(3, target.length - i - 2); s >= 1; s--) {          // skip up to 3 fixes
+                if (clear(fixes[i], target[i + s + 1])) { i += s + 1; jumped = true; break; }
+            }
+        }
+        if (!jumped) i++;
+    }
+    // weather: on longer flights, sometimes a smooth detour of 10–25 NM to one side and back
+    if (D > 250 && rand() < 0.45) {
+        const legs = [];
+        for (let k = e0 - 1; k < tw.length - 1; k++) { const L = gHav(tw[k][0], tw[k][1], tw[k + 1][0], tw[k + 1][1]); if (L > 150 && k >= 0) legs.push([k, L]); }
+        if (legs.length) {
+            const [k, L] = legs[Math.floor(rand() * legs.length)];
+            const a = tw[k], b = tw[k + 1], crs = gBearing(a[0], a[1], b[0], b[1]);
+            const side = rand() < 0.5 ? -1 : 1, dev = rnd(10, 25), len = rnd(40, Math.min(110, L - 90)), d0 = rnd(30, L - len - 60);
+            const at = d => gInterp(a[0], a[1], b[0], b[1], d / L);
+            const p0 = at(d0), p1 = at(d0 + 25), p2 = at(d0 + 25 + len), p3 = at(d0 + 50 + len);
+            const q1 = gDest(p1[0], p1[1], crs + 90 * side, dev), q2 = gDest(p2[0], p2[1], crs + 90 * side, dev);
+            if (clear(p0, q1) && clear(q1, q2) && clear(q2, p3)) tw.splice(k + 1, 0, p0, q1, q2, p3);
+        }
+    }
+    tw.push(...wp.slice(e1));
+    let track = chaikin(densifyGC(tw, 8), 2);              // fly-by turns: corners rounded, legs stay straight
+    if (typeof zoneAt === 'function') {                    // rounding a corner must not cut into closed airspace
+        const far = ([lo, la]) => gHav(la, lo, dep.lat, dep.lon) > 30 && gHav(la, lo, dest.lat, dest.lon) > 30;
+        if (track.some(q => far(q) && zoneAt(q[1], q[0]))) track = densifyGC(tw, 8);
+    }
     unwrapLons(track);
     const cum = [0];
     for (let i = 1; i < track.length; i++) cum.push(cum[i - 1] + gHav(track[i - 1][1], track[i - 1][0], track[i][1], track[i][0]));
@@ -309,7 +367,8 @@ const WX_LAYER_DEFS = [
     { id: 't2m',     grp: 'surface', icon: 'thermostat',   en: 'Temperature (2 m)',       da: 'Temperatur (2 m)' },
     { id: 'cyclone', grp: 'warn', icon: 'cyclone',         en: 'Tropical cyclones',       da: 'Tropiske cykloner' },
     { id: 'volcano', grp: 'warn', icon: 'volcano',         en: 'Active volcanoes',        da: 'Aktive vulkaner' },
-    { id: 'sigmet',  grp: 'warn', icon: 'warning_amber',   en: 'SIGMET',                  da: 'SIGMET' }
+    { id: 'sigmet',  grp: 'warn', icon: 'warning_amber',   en: 'SIGMET',                  da: 'SIGMET' },
+    { id: 'zones',   grp: 'warn', icon: 'block',           en: 'Closed airspace (EASA)', da: 'Lukkede luftrum (EASA)' }
 ];
 const WX_GROUP_NAMES = { wind: ['Vind og højde', 'Wind and altitude'], cloud: ['Skyer og konvektion', 'Cloud and convection'], hazard: ['Farer', 'Hazards'],
                          surface: ['Jordoverflade', 'Surface'], warn: ['Advarsler', 'Warnings'] };
@@ -326,7 +385,8 @@ const WX_LAYER_GROUPS = {
     icing:   ['wx-ice-fill', 'wx-ice-line', 'wx-ice-label'],
     cyclone: ['wx-tc-cone', 'wx-tc-radius-fill', 'wx-tc-radius-line', 'wx-tc-track', 'wx-tc-label'],
     volcano: ['wx-volc'],
-    sigmet:  ['wx-sigmet-fill', 'wx-sigmet-line', 'wx-sigmet-label']
+    sigmet:  ['wx-sigmet-fill', 'wx-sigmet-line', 'wx-sigmet-label'],
+    zones:   ['wx-zone-fill', 'wx-zone-line', 'wx-zone-label']
 };
 const WX_FONT = ['Open Sans Semibold'];
 const D2R = Math.PI / 180;

@@ -268,6 +268,42 @@ let browser;
   }
   await ctx.close();
 
+  // ---------- routes: realistic tracks, no closed airspace ----------
+  ({ ctx, pg } = await setup(undefined, 'routes'));
+  await pg.goto(FILE); await sleep(2500);
+  const rt = await pg.evaluate(() => { const A = AIRPORT_DB, out = { n: 0, inZone: [], wobbly: [], slow: 0, asia: null };
+    for (let i = 0; i < A.length; i += 3) for (let j = 1; j < A.length; j += 7) { if (i === j) continue;
+      const t0 = performance.now(), r = buildRealisticRoute(A[i], A[j], i * 131 + j); if (performance.now() - t0 > 1500) out.slow++; out.n++;
+      const far = ([lo, la]) => gHav(la, lo, A[i].lat, A[i].lon) > 40 && gHav(la, lo, A[j].lat, A[j].lon) > 40;
+      if (withAirspaceContext(A[i], A[j], () => r.track.some(q => far(q) && zoneAt(q[1], q[0])))) out.inZone.push(A[i].code + '-' + A[j].code);
+      // en route the aircraft should fly straight legs, not weave: count left/right reversals between 50 NM chords
+      // (the old weaving track had ~8 per 1000 NM, the new one ~1–2; allowed: 3 + 4 per 1000 NM)
+      const pts = []; for (let nm = 60; nm < r.total - 60; nm += 50) pts.push(routePosAt(r, nm));
+      let flips = 0, lastSign = 0;
+      for (let k = 2; k < pts.length; k++) { const a = pts[k - 2], b = pts[k - 1], c = pts[k];
+        const t = angDiff(gBearing(b[1], b[0], c[1], c[0]), gBearing(a[1], a[0], b[1], b[0]));
+        if (Math.abs(t) > 1.5) { const sg = Math.sign(t); if (lastSign && sg !== lastSign) flips++; lastSign = sg; } }
+      const allowed = 3 + 4 * Math.max(0, r.total - 120) / 1000;   // a weather detour alone gives ~2 reversals
+      if (flips > allowed) out.wobbly.push(A[i].code + '-' + A[j].code + ':' + flips + '>' + allowed.toFixed(1)); }
+    const c = safeCorridor(AIRPORT_DB.find(a => a.code === 'EKCH'), AIRPORT_DB.find(a => a.code === 'RJTT'));
+    out.asia = c.length > 2; return out; });
+  check('Ruter', `Ingen af ${rt.n} ruter flyver gennem lukket luftrum`, rt.inZone.length === 0, rt.inZone.slice(0, 5).join(', '));
+  check('Ruter', 'Flyvede spor er lige med få sving (ingen slingren)', rt.wobbly.length === 0, rt.wobbly.slice(0, 5).join(', '));
+  check('Ruter', 'København–Tokyo går uden om Rusland', rt.asia);
+  check('Ruter', 'Ruteberegning er hurtig nok', rt.slow === 0, rt.slow + ' langsomme');
+  await pg.click('.start-btn'); await sleep(300);
+  const zl = await pg.evaluate(async () => { await toggleWxLayer('zones'); const on = !!map.getLayer('wx-zone-fill'); await toggleWxLayer('zones'); return on; });
+  check('Ruter', 'Laget "Lukkede luftrum" kan vises', zl);
+  const ea = await pg.evaluate(() => { const A = c => AIRPORT_DB.find(a => a.code === c);
+    const closed = CONFLICT_ZONES.filter(z => z.level === 'closed'), caution = CONFLICT_ZONES.filter(z => z.level === 'caution');
+    return { fromEasa: typeof AIRSPACE_DATA !== 'undefined', closed: closed.length, caution: caution.length,
+      sourced: closed.filter(z => z.source && z.source.url).length, cautionRouting: ROUTE_ZONES.some(z => z.level !== 'closed'),
+      gulfOk: safeCorridor(A('OTHH'), A('OMDB')).length === 2, warm: airspaceWarm }; });
+  check('Ruter', 'Zonerne kommer fra EASA-data (røde og gule, med kilde)', ea.fromEasa && ea.closed >= 6 && ea.caution >= 1 && ea.sourced === ea.closed, JSON.stringify(ea));
+  check('Ruter', 'Gule zoner ændrer ikke ruterne; Doha–Dubai må krydse Bugten', !ea.cautionRouting && ea.gulfOk, JSON.stringify(ea));
+  check('Ruter', 'Ruteplanlægningen er forudberegnet ved start', ea.warm);
+  await ctx.close();
+
   // ---------- what's new on the welcome card ----------
   ({ ctx, pg } = await setup(undefined, 'news'));
   await pg.goto(FILE); await sleep(2500);

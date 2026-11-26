@@ -122,7 +122,8 @@ const MANUAL = [
       da: { t: 'Kortet', h: `
         <h4>Fly og ruter</h4>
         <ul>
-          <li>Den <b>stiplede linje</b> er flyets planlagte rute. Flyet flyver tæt på den, men ikke præcist – som et rigtigt fly, der får genveje og påvirkes af vind.</li>
+          <li>Den <b>stiplede linje</b> er flyets planlagte rute. Flyet følger den i lige stykker med bløde sving. Indimellem får det en genvej direkte til et punkt længere fremme, eller det flyver en kort omvej uden om vejr – som et rigtigt fly.</li>
+          <li>Ruterne går <b>uden om lukket luftrum</b> efter EU-luftfartsmyndigheden EASA’s konfliktzone-advarsler (CZIB) og forbuddene i Rusland og Belarus. Spillets fly opfører sig som et europæisk flyselskab, så fly mellem Europa og Asien flyver via Kaukasus og Centralasien eller syd om. Slå zonerne til under ${I('layers')} Vejrlag → Advarsler → <i>Lukkede luftrum (EASA)</i>: <b>rød</b> er lukket (ruterne går uden om), <b>gul</b> er en advarsel, fx når et område kun er lukket under en vis højde – der må flyene krydse i marchhøjde. Klik på en zone for EASA’s advarsel, nummer og dato. Zonerne opdateres automatisk, når EASA ændrer deres liste.</li>
           <li>Det <b>farvede spor</b> bag flyet viser, hvor det har fløjet. Farven viser højden: lyseblå tæt ved jorden, mørkegrøn i marchhøjde.</li>
           <li><b>Klik på et fly</b> for at vælge det (se “Flypanel og højdeprofil”). Klik et tomt sted på kortet for at fravælge det igen.</li>
         </ul>
@@ -147,7 +148,8 @@ const MANUAL = [
       en: { t: 'The map', h: `
         <h4>Aircraft and routes</h4>
         <ul>
-          <li>The <b>dashed line</b> is the planned route. The aircraft flies close to it but not exactly on it – like a real aircraft getting shortcuts and pushed by the wind.</li>
+          <li>The <b>dashed line</b> is the planned route. The aircraft follows it in straight legs with smooth turns. Now and then it gets a shortcut direct to a fix further ahead, or flies a short detour round weather – like a real aircraft.</li>
+          <li>Routes keep <b>out of closed airspace</b> according to the conflict zone bulletins (CZIB) of the EU aviation agency EASA and the Russian and Belarusian bans. The game’s aircraft behave like a European airline, so flights between Europe and Asia go via the Caucasus and Central Asia or further south. Show the zones under ${I('layers')} Weather layers → Warnings → <i>Closed airspace (EASA)</i>: <b>red</b> is closed (routes go round it), <b>amber</b> is caution, e.g. when an area is only closed below a certain level – aircraft may cross it at cruise level. Click a zone for EASA’s bulletin, number and date. The zones are updated automatically when EASA changes its list.</li>
           <li>The <b>coloured track</b> behind the aircraft shows where it has flown. The colour shows altitude: light blue near the ground, dark green at cruise.</li>
           <li><b>Click an aircraft</b> to select it (see “Flight panel and profile”). Click an empty spot on the map to deselect.</li>
         </ul>
@@ -224,7 +226,7 @@ const MANUAL = [
           <li><b>Skyer og konvektion</b>: nedbørsradar fra RainViewer (jordbaserede radarer – dækker ikke hele verden, fx næsten ikke Afrika), samlet skydække, CAPE og lifted index (hvor tordenvejr kan opstå), konvektive skytoppe (anslået højde) og satellitbillede (dagens sidste hele mosaik).</li>
           <li><b>Farer</b>: isdannelse under flyvning, isslag-sandsynlighed, tåge-sandsynlighed, sigtbarhed og støv.</li>
           <li><b>Jordoverflade</b>: lufttryk som isobarer med høj- og lavtryk (H/L), trykændring over 3 timer og temperatur 2 m over jorden.</li>
-          <li><b>Advarsler</b>: tropiske cykloner, vulkaner og SIGMET.</li>
+          <li><b>Advarsler</b>: tropiske cykloner, vulkaner, SIGMET og lukkede luftrum fra EASA (rød = lukket, gul = advarsel).</li>
         </ul>
         <p class="note">Data kommer fra et groft globalt net (Open-Meteo, NASA GIBS for satellit, Open-Meteo luftkvalitet for støv). Tåge, isslag og skytoppe er beregnet ud fra disse data og er kun vejledende. Kan data ikke hentes, bruges en indbygget model; statuslinjen nederst i menuen fortæller hvilken.</p>` },
       en: { t: 'Weather', h: `
@@ -237,7 +239,7 @@ const MANUAL = [
           <li><b>Cloud and convection</b>: precipitation radar from RainViewer (ground radars – does not cover the whole world, e.g. hardly any of Africa), total cloud cover, CAPE and lifted index (where thunderstorms can develop), convective cloud tops (estimated height) and satellite imagery (latest complete daily mosaic).</li>
           <li><b>Hazards</b>: in-flight icing, freezing rain probability, fog probability, visibility and dust.</li>
           <li><b>Surface</b>: mean sea level pressure as isobars with highs and lows (H/L), 3-hour pressure tendency and temperature 2 m above ground.</li>
-          <li><b>Warnings</b>: tropical cyclones, volcanoes and SIGMET.</li>
+          <li><b>Warnings</b>: tropical cyclones, volcanoes, SIGMET and closed airspace from EASA (red = closed, amber = caution).</li>
         </ul>
         <p class="note">Data comes from a coarse global grid (Open-Meteo, NASA GIBS for satellite, Open-Meteo air quality for dust). Fog, freezing rain and cloud tops are derived from that data and are guidance only. If data cannot be fetched a built-in model is used; the status line at the bottom of the menu says which.</p>` } },
     { id: 'cards', icon: 'grid_view',

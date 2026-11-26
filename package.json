@@ -8,10 +8,12 @@
     "test:single": "node tools/build-single.js && node tests/run.js dist/bingo-watch.html",
     "test:live": "NET=live node tests/run.js",
     "record": "node tests/record.js",
-    "news-shots": "node tools/news-shots.js"
+    "news-shots": "node tools/news-shots.js",
+    "airspace": "node tools/airspace-build.js"
   },
   "devDependencies": {
     "maplibre-gl": "5.0.0",
-    "playwright": "1.63.0"
+    "playwright": "1.63.0",
+    "polygon-clipping": "0.15.7"
   }
 }

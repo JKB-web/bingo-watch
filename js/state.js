@@ -72,7 +72,7 @@ let liveWeatherState = {
     radar: true,
     jet: false, barbs: false, cloud: false, cat: false, trop: false,
     flow: false, cape: false, conv: false, dust: false, fog: false, frz: false, mslp: false, ptend: false, t2m: false, vis: false, sat: false,
-    icing: false, cyclone: false, volcano: false, sigmet: false,
+    icing: false, cyclone: false, volcano: false, sigmet: false, zones: false,
     sun: false
 };
 let trackedFlightNum = null; // camera follows this aircraft until the user clicks away

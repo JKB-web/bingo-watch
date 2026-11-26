@@ -11,6 +11,17 @@
 // the manual chapter "Nyheder / What's new" lists them all.
 // =====================================================================
 const CHANGELOG = [
+    { id: '2026-11-27.1', img: 'img/news/2026-11-27-1.webp',
+      da: { t: 'Realistiske ruter uden om konfliktzoner', p: [
+          'Flyene følger ruten i lige stykker med bløde sving – ingen slingren.',
+          'Som rigtige fly får de indimellem en genvej eller flyver en kort omvej uden om vejr.',
+          'Ruterne går uden om lukket luftrum efter EU-luftfartsmyndigheden EASA’s konfliktzone-advarsler – fx Rusland, Belarus, Ukraine, Iran, Irak, Syrien, Sudan og Den Persiske Bugt. Europa–Asien går via Kaukasus eller syd om.',
+          'Nyt vejrlag: <b>Lukkede luftrum (EASA)</b> under Advarsler. Rød = lukket, gul = advarsel (fx kun lukket i lav højde). Klik på en zone for EASA’s advarsel. Zonerne opdateres, når EASA ændrer dem.'] },
+      en: { t: 'Realistic routes around conflict zones', p: [
+          'Aircraft follow the route in straight legs with smooth turns – no weaving.',
+          'Like real flights they sometimes get a shortcut or fly a short detour round weather.',
+          'Routes avoid closed airspace according to the conflict zone bulletins of the EU aviation agency EASA – e.g. Russia, Belarus, Ukraine, Iran, Iraq, Syria, Sudan and the Persian Gulf. Europe–Asia goes via the Caucasus or further south.',
+          'New weather layer: <b>Closed airspace (EASA)</b> under Warnings. Red = closed, amber = caution (e.g. closed only at low level). Click a zone for EASA’s bulletin. The zones are updated when EASA changes them.'] } },
     { id: '2026-11-26.2', img: 'img/news/2026-11-26-2.webp',
       da: { t: 'Nyheder på velkomstkortet', p: [
           'Når du kommer tilbage, kan du nu se her på velkomstkortet, hvad der er nyt siden sidst.',

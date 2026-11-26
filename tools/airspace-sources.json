@@ -1,0 +1,543 @@
+{
+  "_about": "Which EASA Conflict Zone Information Bulletin (CZIB) maps to which airspace in the game. 'match' is text from the bulletin's subject on https://www.easa.europa.eu/en/domains/air-operations/czibs. level: closed = EASA recommends not to operate at all levels (routes go round it); caution = caution, or closed only below a flight level (shown in yellow, routes may cross it at cruise level). Geometry: 'firs' = FIR ids in the VATSIM boundaries data (CC BY-SA 4.0), 'polys' = hand-drawn [lon, lat] outlines for areas that do not follow FIR lines. 'except' = airports that may still be used (arrivals and departures). Zones without 'match' come from another source (see 'source'). 'clip': {maxLat} cuts the zone off at that latitude.",
+  "zones": [
+    {
+      "id": "ru",
+      "match": "Russian Federation",
+      "level": "closed",
+      "da": "Rusland",
+      "en": "Russia",
+      "note_da": "EASA: flyv ikke vest for 60° Ø. Rusland har desuden lukket sit luftrum for EU-flyselskaber. (Forenklet: polarruten nord for 84° N er åben, som i virkeligheden.)",
+      "note_en": "EASA: do not operate west of 60°E. Russia has also closed its airspace to EU airlines. (Simplified: the polar route north of 84°N is open, as in reality.)",
+      "firs": [
+        "UEEE",
+        "UHHH",
+        "UHMM",
+        "UIII",
+        "ULLL",
+        "UNKL",
+        "UNNT",
+        "URRV",
+        "USSV",
+        "USTV",
+        "UUWV",
+        "UWWW",
+        "UMKK"
+      ],
+      "clip": {
+        "maxLat": 84
+      }
+    },
+    {
+      "id": "ua",
+      "match": "Ukraine",
+      "level": "closed",
+      "da": "Ukraine",
+      "en": "Ukraine",
+      "note_da": "EASA: flyv ikke i ukrainsk luftrum, heller ikke til eller fra lufthavne der.",
+      "note_en": "EASA: do not operate in Ukrainian airspace, including to and from its airports.",
+      "firs": [
+        "UKBV",
+        "UKDV",
+        "UKFV",
+        "UKLV",
+        "UKOV"
+      ]
+    },
+    {
+      "id": "by",
+      "source": {
+        "da": "EASA sikkerhedsdirektiv SD-2021-02/03",
+        "en": "EASA Safety Directive SD-2021-02/03",
+        "url": "https://www.easa.europa.eu/en/domains/air-operations/czibs"
+      },
+      "level": "closed",
+      "da": "Belarus",
+      "en": "Belarus",
+      "note_da": "Forbudt for EU-flyselskaber (FIR Minsk) efter EASA's sikkerhedsdirektiv.",
+      "note_en": "Prohibited for EU airlines (FIR Minsk) by EASA safety directive.",
+      "firs": [
+        "UMMV"
+      ]
+    },
+    {
+      "id": "ir",
+      "match": "Airspace of Iran",
+      "level": "closed",
+      "da": "Iran",
+      "en": "Iran",
+      "note_da": "EASA: flyv ikke i FIR Teheran i nogen højde.",
+      "note_en": "EASA: do not operate in FIR Tehran at any level.",
+      "firs": [
+        "OIIX"
+      ]
+    },
+    {
+      "id": "iq",
+      "match": "Airspace of Iraq",
+      "level": "closed",
+      "da": "Irak",
+      "en": "Iraq",
+      "note_da": "EASA: flyv ikke i FIR Bagdad i nogen højde.",
+      "note_en": "EASA: do not operate in FIR Baghdad at any level.",
+      "firs": [
+        "ORBB"
+      ]
+    },
+    {
+      "id": "lb",
+      "match": "Airspace of Lebanon",
+      "level": "closed",
+      "da": "Libanon",
+      "en": "Lebanon",
+      "note_da": "EASA: flyv ikke over Libanon (undtagen til/fra Beirut fra havet).",
+      "note_en": "EASA: do not operate over Lebanon (except to/from Beirut via the sea).",
+      "firs": [
+        "OLBB"
+      ]
+    },
+    {
+      "id": "sy",
+      "match": "Airspace of Syria",
+      "level": "closed",
+      "da": "Syrien",
+      "en": "Syria",
+      "note_da": "EASA: vestlige Syrien lukket i alle højder, resten under FL260 (forenklet: hele FIR Damaskus).",
+      "note_en": "EASA: western Syria closed at all levels, the rest below FL260 (simplified: all of FIR Damascus).",
+      "firs": [
+        "OSTT"
+      ]
+    },
+    {
+      "id": "sd",
+      "match": "Airspace of Sudan",
+      "level": "closed",
+      "da": "Sudan",
+      "en": "Sudan",
+      "note_da": "EASA: flyv ikke over Sudan i nogen højde.",
+      "note_en": "EASA: do not fly over Sudan at any level.",
+      "firs": [
+        "HSSS"
+      ]
+    },
+    {
+      "id": "ye",
+      "match": "Airspace of Yemen",
+      "level": "closed",
+      "da": "Yemen",
+      "en": "Yemen",
+      "note_da": "EASA: FIR Sana'a lukket, undtagen havruterne øst for B400 (forsigtighed).",
+      "note_en": "EASA: FIR Sana'a closed, except the sea routes east of B400 (caution).",
+      "polys": [
+        [
+          [
+            42.5,
+            16.4
+          ],
+          [
+            43.2,
+            13.0
+          ],
+          [
+            45.0,
+            12.6
+          ],
+          [
+            48.0,
+            13.8
+          ],
+          [
+            52.2,
+            15.6
+          ],
+          [
+            53.1,
+            16.6
+          ],
+          [
+            52.0,
+            19.0
+          ],
+          [
+            49.0,
+            18.6
+          ],
+          [
+            46.4,
+            17.3
+          ],
+          [
+            44.0,
+            17.4
+          ],
+          [
+            43.2,
+            16.7
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "gulf",
+      "match": "Persian Gulf and Gulf of Oman",
+      "level": "closed",
+      "da": "Den Persiske Bugt og Omanbugten",
+      "en": "Persian Gulf and Gulf of Oman",
+      "note_da": "EASA: farvandet lukket i alle højder, undtagen for at lande og lette i området. Forsigtighed over land.",
+      "note_en": "EASA: the waters are closed at all levels, except for arrivals and departures in the area. Caution over land.",
+      "except": [
+        "OMDB",
+        "OMAA",
+        "OTHH"
+      ],
+      "polys": [
+        [
+          [
+            48.5,
+            29.95
+          ],
+          [
+            48.15,
+            29.3
+          ],
+          [
+            48.9,
+            27.9
+          ],
+          [
+            49.6,
+            26.9
+          ],
+          [
+            50.15,
+            26.2
+          ],
+          [
+            50.75,
+            25.6
+          ],
+          [
+            51.25,
+            26.15
+          ],
+          [
+            51.6,
+            25.3
+          ],
+          [
+            51.6,
+            24.6
+          ],
+          [
+            52.5,
+            24.2
+          ],
+          [
+            53.7,
+            24.1
+          ],
+          [
+            54.5,
+            24.35
+          ],
+          [
+            55.3,
+            25.15
+          ],
+          [
+            56.05,
+            25.75
+          ],
+          [
+            56.3,
+            26.4
+          ],
+          [
+            56.3,
+            27.0
+          ],
+          [
+            54.5,
+            26.6
+          ],
+          [
+            52.0,
+            27.6
+          ],
+          [
+            50.5,
+            29.2
+          ],
+          [
+            49.0,
+            30.0
+          ]
+        ],
+        [
+          [
+            56.35,
+            26.3
+          ],
+          [
+            56.35,
+            24.9
+          ],
+          [
+            57.0,
+            24.2
+          ],
+          [
+            58.0,
+            23.65
+          ],
+          [
+            58.0,
+            25.6
+          ],
+          [
+            57.3,
+            25.8
+          ],
+          [
+            56.9,
+            26.6
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "sa",
+      "match": "Airspace of Saudi Arabia",
+      "level": "caution",
+      "da": "Saudi-Arabien",
+      "en": "Saudi Arabia",
+      "note_da": "EASA: to dele af FIR Jeddah er lukket (ikke tegnet), forsigtighed i resten.",
+      "note_en": "EASA: two portions of FIR Jeddah are closed (not drawn), caution in the rest.",
+      "firs": [
+        "OEJD"
+      ]
+    },
+    {
+      "id": "jo",
+      "match": "Airspace of Jordan",
+      "level": "caution",
+      "da": "Jordan",
+      "en": "Jordan",
+      "note_da": "EASA: tag højde for risici og vær klar til korte varsler.",
+      "note_en": "EASA: take potential risks into account and be ready for short-notice instructions.",
+      "firs": [
+        "OJAC"
+      ]
+    },
+    {
+      "id": "ly",
+      "match": "Airspace of Libya",
+      "level": "caution",
+      "da": "Libyen",
+      "en": "Libya",
+      "note_da": "EASA: lukket under FL320, forsigtighed over.",
+      "note_en": "EASA: closed below FL320, caution above.",
+      "firs": [
+        "HLLL"
+      ]
+    },
+    {
+      "id": "af",
+      "match": "Airspace of Afghanistan",
+      "level": "caution",
+      "da": "Afghanistan",
+      "en": "Afghanistan",
+      "note_da": "EASA: lukket under FL320.",
+      "note_en": "EASA: closed below FL320.",
+      "firs": [
+        "OAKX"
+      ]
+    },
+    {
+      "id": "pk",
+      "match": "Airspace of Pakistan",
+      "level": "caution",
+      "da": "Pakistan (Baluchistan og Khyber Pakhtunkhwa)",
+      "en": "Pakistan (Baluchistan and Khyber Pakhtunkhwa)",
+      "note_da": "EASA: lukket under FL260 over de to provinser.",
+      "note_en": "EASA: closed below FL260 over the two provinces.",
+      "polys": [
+        [
+          [
+            61.6,
+            25.1
+          ],
+          [
+            61.5,
+            29.6
+          ],
+          [
+            62.5,
+            29.4
+          ],
+          [
+            66.3,
+            29.9
+          ],
+          [
+            69.3,
+            31.9
+          ],
+          [
+            70.3,
+            33.3
+          ],
+          [
+            69.9,
+            34.0
+          ],
+          [
+            71.1,
+            34.7
+          ],
+          [
+            71.5,
+            36.4
+          ],
+          [
+            73.5,
+            36.0
+          ],
+          [
+            73.3,
+            34.5
+          ],
+          [
+            72.0,
+            33.5
+          ],
+          [
+            71.0,
+            32.0
+          ],
+          [
+            70.0,
+            31.5
+          ],
+          [
+            69.5,
+            30.5
+          ],
+          [
+            69.3,
+            29.0
+          ],
+          [
+            68.0,
+            28.0
+          ],
+          [
+            67.5,
+            27.0
+          ],
+          [
+            66.8,
+            25.4
+          ],
+          [
+            64.5,
+            25.2
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "so",
+      "match": "Airspace of Somalia",
+      "level": "caution",
+      "da": "Somalia",
+      "en": "Somalia",
+      "note_da": "EASA: lukket i og under FL260.",
+      "note_en": "EASA: closed at and below FL260.",
+      "firs": [
+        "HCSM"
+      ]
+    },
+    {
+      "id": "ml",
+      "match": "Airspace of Mali",
+      "level": "caution",
+      "da": "Mali",
+      "en": "Mali",
+      "note_da": "EASA: lukket under FL260, især i det nordøstlige Mali.",
+      "note_en": "EASA: closed below FL260, especially north-eastern Mali.",
+      "polys": [
+        [
+          [
+            -12.2,
+            14.8
+          ],
+          [
+            -11.4,
+            12.4
+          ],
+          [
+            -8.3,
+            11.3
+          ],
+          [
+            -5.5,
+            10.4
+          ],
+          [
+            -4.3,
+            11.1
+          ],
+          [
+            -2.9,
+            13.6
+          ],
+          [
+            0.2,
+            14.9
+          ],
+          [
+            1.3,
+            15.3
+          ],
+          [
+            3.9,
+            15.4
+          ],
+          [
+            4.2,
+            16.9
+          ],
+          [
+            4.2,
+            19.1
+          ],
+          [
+            1.1,
+            20.8
+          ],
+          [
+            -4.8,
+            25.0
+          ],
+          [
+            -6.6,
+            25.0
+          ],
+          [
+            -5.0,
+            16.5
+          ],
+          [
+            -5.4,
+            15.5
+          ],
+          [
+            -11.6,
+            15.4
+          ]
+        ]
+      ]
+    }
+  ]
+}
