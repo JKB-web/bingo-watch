@@ -105,6 +105,7 @@ function setLanguage(lang) {
     updateTrackPill();
     if (typeof updateVerifyEmptyState === 'function') updateVerifyEmptyState();
     if (typeof updateRecent === 'function') updateRecent();
+    if (typeof renderBriefingNews === 'function') renderBriefingNews();
     if (typeof updateWxLegend === 'function') updateWxLegend();
     if (document.body.classList.contains('manual-open') && typeof renderManual === 'function') renderManual();
     if (typeof saveGame === 'function') saveGame();

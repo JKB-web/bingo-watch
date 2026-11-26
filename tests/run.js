@@ -12,6 +12,9 @@ const net = require('./net');   // replay saved answers (default), or NET=live /
 const results = []; const errs = [];
 const check = (area, name, ok, info='') => results.push({ area, name, ok: !!ok, info: String(info).slice(0, 140) });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// A draw rolls for up to ~2 s and ignores new presses meanwhile (on purpose). Wait until it has really
+// finished instead of a fixed time – a busy test machine made the fixed waits flaky.
+const drawSettled = (pg, n) => pg.waitForFunction(n => !isSpinning && (n === undefined || drawnNumbers.length === n), n, { timeout: 15000 }).catch(() => {});
 async function setup(ctxOpts = { viewport: { width: 1440, height: 900 } }, label='desktop') {
   const ctx = await browser.newContext(ctxOpts);
   await net.attach(ctx);
@@ -39,11 +42,11 @@ let browser;
   check('Kort', 'MapLibre-kort oprettet', await pg.evaluate(() => !!map && map.loaded !== undefined));
 
   // ---------- drawing ----------
-  await pg.click('.btn-draw'); await sleep(1400);
+  await pg.click('.btn-draw'); await drawSettled(pg, 1);
   check('Træk', 'Træk-knap trækker 1 tal', await pg.evaluate(() => drawnNumbers.length === 1), await pg.evaluate(() => drawnNumbers));
-  await pg.keyboard.press('Space'); await sleep(1400);
+  await pg.keyboard.press('Space'); await drawSettled(pg, 2);
   check('Træk', 'Mellemrum trækker', await pg.evaluate(() => drawnNumbers.length === 2));
-  await pg.evaluate(() => { drawNumber(); drawNumber(); drawNumber(); }); await sleep(1400);
+  await pg.evaluate(() => { drawNumber(); drawNumber(); drawNumber(); }); await drawSettled(pg); await sleep(300);
   check('Træk', 'Dobbelttryk under animation giver kun ét tal', await pg.evaluate(() => drawnNumbers.length === 3));
   const ui = await pg.evaluate(() => ({ n: drawnNumbers.length, cells: document.querySelectorAll('.grid-cell.active').length, latest: document.querySelectorAll('.grid-cell.latest').length,
       drawn: document.getElementById('drawnCount').innerText, remain: document.getElementById('remainCount').innerText, rows: document.querySelectorAll('#flightLogTableBody tr.flight-row').length,
@@ -75,16 +78,20 @@ let browser;
   check('Manuel', 'Klik på trukket tal + annullér beholder det', await pg.evaluate(() => drawnNumbers.includes(7)));
   dialogAnswer = true; await pg.click('#cell-7'); await sleep(100);
   check('Manuel', 'Klik på trukket tal + bekræft fjerner det', await pg.evaluate(() => !drawnNumbers.includes(7) && drawnNumbers.length === 1));
-  await pg.evaluate(() => { drawNumber(); }); await pg.click('#cell-11'); await sleep(1400);
+  await pg.evaluate(() => { drawNumber(); document.getElementById('cell-11').click(); }); await drawSettled(pg);   // click while the number rolls
   check('Manuel', 'Klik under animation ignoreres', await pg.evaluate(() => !drawnNumbers.includes(11) || drawnNumbers.length === 2), await pg.evaluate(() => drawnNumbers));
   await pg.evaluate(() => toggleManualMode(false));
 
   // ---------- autopilot ----------
   await pg.evaluate(() => { document.getElementById('apSpeed').value = 1; });
   const before = await pg.evaluate(() => drawnNumbers.length);
-  await pg.keyboard.press('a'); await sleep(4300); await pg.keyboard.press('a'); await sleep(1500);   // 1 s interval: ≥ 3 draws
-  const after = await pg.evaluate(() => drawnNumbers.length);
-  check('Autopilot', 'Trækker automatisk og stopper', after - before >= 3 && await pg.evaluate(() => autopilotInterval === null), `${before}->${after}`);
+  // wait until it has drawn 3 numbers (not a fixed time), stop it, and check that nothing more is drawn
+  await pg.keyboard.press('a');
+  await pg.waitForFunction(b => drawnNumbers.length >= b + 3, before, { timeout: 20000 }).catch(() => {});
+  await pg.keyboard.press('a'); await drawSettled(pg);
+  const after = await pg.evaluate(() => drawnNumbers.length); await sleep(2500);
+  const later = await pg.evaluate(() => drawnNumbers.length);
+  check('Autopilot', 'Trækker automatisk og stopper', after - before >= 3 && later === after && await pg.evaluate(() => autopilotInterval === null), `${before}->${after}->${later}`);
 
   // ---------- persistence ----------
   const snap = await pg.evaluate(() => ({ d: drawnNumbers.slice(), r: Object.values(activePlaneMarkers).map(p => p.depAirport.code + p.destAirport.code).sort().join() }));
@@ -106,7 +113,9 @@ let browser;
     resetGame(); const g = generatedCards['1-1']; const out = {};
     const row = r => g.map(c => c[r]).filter(Boolean);
     toggleManualMode(true); row(0).forEach(n => finalize(n)); toggleManualMode(false);
-    const run = async (id) => { document.getElementById('verify-id').value = id; verifyWin(); await new Promise(r => setTimeout(r, 2600)); return document.getElementById('verify-status-text').innerText; };
+    const run = async (id) => { document.getElementById('verify-id').value = id; verifyWin(); await new Promise(r => setTimeout(r, 50));
+      for (let i = 0; i < 300 && verifyBusy; i++) await new Promise(r => setTimeout(r, 50));   // wait for the scan to finish, not a fixed time
+      return document.getElementById('verify-status-text').innerText; };
     if (document.getElementById('panel-verify').style.display === 'none') toggleWindow('panel-verify');
     setRound(1, true); out.r1 = await run('1-1');
     setRound(2, true); out.r2 = await run('1-1');
@@ -259,6 +268,31 @@ let browser;
   }
   await ctx.close();
 
+  // ---------- what's new on the welcome card ----------
+  ({ ctx, pg } = await setup(undefined, 'news'));
+  await pg.goto(FILE); await sleep(2500);
+  check('Nyheder', 'Ny bruger ser ikke "Nyt siden sidst"', !(await pg.isVisible('#briefingNews')));
+  await pg.click('.start-btn'); await sleep(300);
+  check('Nyheder', 'Start gemmer seneste nyhed som set', await pg.evaluate(() => localStorage.getItem('bingoSeenChangelog') === CHANGELOG[0].id));
+  await pg.evaluate(() => localStorage.setItem('bingoSeenChangelog', CHANGELOG[2].id)); await pg.reload(); await sleep(2500);
+  const nw = await pg.evaluate(() => ({ vis: !document.getElementById('briefingNews').hidden, n: document.querySelectorAll('#briefingNews .news-entry').length }));
+  check('Nyheder', 'Tilbagevendende bruger ser kun de nye opdateringer', nw.vis && nw.n === 2, JSON.stringify(nw));
+  await pg.click('.news-all'); await sleep(500);
+  check('Nyheder', '"Se alle nyheder" åbner manualen synligt over velkomsten', await pg.evaluate(() => manualSection === 'news' && document.querySelectorAll('#manualBody .news-entry').length === CHANGELOG.length && getComputedStyle(document.getElementById('start-overlay')).visibility === 'hidden'));
+  await pg.evaluate(() => closeManual()); await pg.click('.start-btn'); await pg.reload(); await sleep(2500);
+  check('Nyheder', 'Efter start vises nyhederne ikke igen', !(await pg.isVisible('#briefingNews')));
+  await pg.evaluate(() => { localStorage.removeItem('bingoSeenChangelog'); localStorage.setItem('bingoSeason', 'none'); }); await pg.reload(); await sleep(2500);
+  check('Nyheder', 'Tidligere besøgende (før nyhederne) ser nyhederne', await pg.evaluate(() => !document.getElementById('briefingNews').hidden && document.querySelectorAll('#briefingNews .news-entry').length > 0));
+  const pics = await pg.evaluate(async () => { const out = { n: 0, bad: [] };
+    for (const e of CHANGELOG.filter(e => e.img)) { out.n++; const ok = await new Promise(r => { const im = new Image(); im.onload = () => r(im.naturalWidth > 0); im.onerror = () => r(false); im.src = e.img; }); if (!ok) out.bad.push(e.id); }
+    return out; });
+  check('Nyheder', `Alle ${pics.n} nyhedsbilleder kan indlæses`, pics.n > 0 && !pics.bad.length, pics.bad.join(', '));
+  await pg.locator('#briefingNews .news-thumb').first().click(); await sleep(300);
+  const lbOpen = await pg.isVisible('#news-lightbox img'); await pg.keyboard.press('Escape'); await sleep(200);
+  check('Nyheder', 'Klik på billede viser det stort, Esc lukker (velkomsten bliver)', lbOpen && !(await pg.$('#news-lightbox')) && await pg.isVisible('#start-overlay'));
+  check('Nyheder', 'Nyheds-id er sorteret nyeste først', await pg.evaluate(() => CHANGELOG.every((e, i) => i === 0 || CHANGELOG[i - 1].id > e.id)));
+  await ctx.close();
+
   // ---------- mobile ----------
   ({ ctx, pg } = await setup({ ...devices['iPhone 13'] }, 'mobile'));
   pg.on('dialog', d => d.accept());
@@ -269,7 +303,7 @@ let browser;
   for (const t of ['draw', 'grid', 'flights', 'more', 'map']) { await pg.tap(`#m-nav button[data-tab="${t}"]`); await sleep(250);
     m[t] = await pg.evaluate(t => ({ open: [...document.querySelectorAll('.content-wrapper > .window')].filter(w => w.style.display !== 'none').map(w => w.id).join(), more: document.getElementById('m-more').classList.contains('open') }), t); }
   check('Mobil', 'Faneblade åbner ét vindue ad gangen', m.draw.open === 'panel-control' && m.grid.open === 'panel-grid' && m.flights.open === 'panel-log' && m.more.more && m.map.open === '', JSON.stringify(m));
-  await pg.tap('#m-nav button[data-tab="draw"]'); await sleep(200); await pg.tap('.btn-draw'); await sleep(1400);
+  await pg.tap('#m-nav button[data-tab="draw"]'); await sleep(200); await pg.tap('.btn-draw'); await drawSettled(pg, 1);
   check('Mobil', 'Træk virker på mobil', await pg.evaluate(() => drawnNumbers.length === 1));
   check('Mobil', 'Ingen vandret scroll', await pg.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
   await ctx.close();

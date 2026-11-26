@@ -122,3 +122,41 @@ body { letter-spacing: 0; }
 
 /* buttons inherit the interface family (mobile fell back to Arial) */
 button, .btn-draw, .tool-btn, .start-btn { font-family: inherit; }
+
+/* ---------- What's new (welcome card + manual chapter) ---------- */
+.briefing-news { background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: 14px 16px 10px; }
+.briefing-news .news-title { display: flex; align-items: center; gap: 6px; color: var(--text-main) !important; font-weight: 600; font-size: 14px; }
+.briefing-news .news-title .material-icons-outlined { font-size: 18px; color: var(--accent); }
+.news-entry { padding: 8px 0; border-top: 1px solid var(--hairline); }
+.briefing-news .news-entry:first-of-type { border-top: none; padding-top: 2px; }
+.news-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13.5px; color: var(--text-main); }
+.news-date { font-size: 12px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.news-entry ul { margin: 4px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--text-2); }
+.news-entry li { margin: 1px 0; }
+.news-all { margin-top: 4px; padding: 4px 0; background: none; border: none; color: var(--accent); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.news-all:hover { text-decoration: underline; }
+.news-list .news-entry { padding: 12px 0; }
+.news-list .news-head { font-size: 15px; }
+.news-list .news-entry ul { font-size: 14px; }
+/* returning visitors with news: they know the introduction, so keep the card short */
+.has-news #start-overlay .briefing-more, .has-news #start-overlay .briefing-instr-sec { display: none; }
+/* the manual opened from "See all updates" must not end up behind the welcome card */
+body.manual-open #start-overlay { visibility: hidden; }
+
+/* pictures with the updates */
+.news-entry.has-pic { display: grid; grid-template-columns: minmax(0, 1fr) 128px; gap: 14px; align-items: start; }
+.news-thumb { padding: 0; border: 1px solid var(--hairline); border-radius: var(--r-sm); overflow: hidden; background: var(--surface-2); cursor: zoom-in; margin-top: 2px; }
+.news-thumb img { display: block; width: 128px; height: 84px; object-fit: cover; object-position: top center; }
+.news-thumb:hover { border-color: var(--accent); }
+.news-list .news-entry.has-pic { grid-template-columns: 1fr; }
+.news-list .news-thumb { justify-self: start; }
+.news-list .news-thumb img { width: auto; max-width: min(100%, 560px); height: auto; max-height: 340px; object-fit: contain; }
+@media (max-width: 899px) {
+    .news-entry.has-pic { grid-template-columns: minmax(0, 1fr) 84px; gap: 10px; }
+    .news-thumb img { width: 84px; height: 64px; }
+}
+#news-lightbox { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 24px;
+    background: rgba(10,12,16,0.72); backdrop-filter: blur(4px); cursor: zoom-out; animation: fadeIn 0.15s; }
+#news-lightbox figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 100%; max-height: 100%; }
+#news-lightbox img { max-width: min(1200px, 100%); max-height: calc(100vh - 90px); border-radius: var(--r-md); box-shadow: 0 20px 60px rgba(0,0,0,0.45); background: #fff; }
+#news-lightbox figcaption { color: #fff; font-size: 14px; font-weight: 500; }

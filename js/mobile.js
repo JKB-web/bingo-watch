@@ -50,6 +50,7 @@ function renderMobileMore() {
             `<label class="mm-row"><span class="material-icons-outlined">celebration</span><span class="mm-label">${T('Sæson', 'Season')}</span><select class="mm-select" onchange="setSeasonChoice(this.value); setTimeout(renderMobileMore, 250);">${seasonOpts}</select></label>`,
             `<label class="mm-row"><span class="material-icons-outlined">translate</span><span class="mm-label">${T('Sprog', 'Language')}</span><select class="mm-select" onchange="setLanguage(this.value); renderMobileMore();"><option value="da"${da ? ' selected' : ''}>Dansk</option><option value="en"${!da ? ' selected' : ''}>English</option></select></label>`])}
         ${sec(T('Mere', 'More'), [
+            go(T('Nyheder', 'What\u2019s new'), 'new_releases', "mobileSetTab('map'); openManual('news')"),
             go('Manual', 'menu_book', "mobileSetTab('map'); openManual()"),
             go(T('Alle indstillinger', 'All settings'), 'settings', "mobileSetTab('panel-settings')")])}
     </div>`;

@@ -140,6 +140,7 @@ function startMission() {
         audioCtx.resume();
     }
     document.getElementById('start-overlay').style.display = 'none';
+    markChangelogSeen();   // the news on the welcome card has now been seen
     playSound('chime');
 }
 

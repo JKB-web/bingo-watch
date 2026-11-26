@@ -34,12 +34,15 @@ js/                 almindelige scripts, indlæst i denne rækkefølge fra index
   seasons.js          sæsontilstande og julemanden
   attract.js          attract mode
   caller.js           opråber-skærm
+  changelog.js        nyheder: "Nyt siden sidst" på velkomstkortet og kapitlet Nyheder i manualen
   manual.js           manualen (dansk + engelsk)
   mobile.js           mobilens "Mere"-liste
   gadss.js            simulerede GADSS-advarsler
   startup.js          blød scroll og velkomstvindue
 tools/build-single.js   samler alt til dist/bingo-watch.html
-tests/run.js            64 automatiske tests i en rigtig browser
+tools/news-shots.js     tager billederne til nyhederne (img/news/)
+img/news/               billeder til nyhederne
+tests/run.js            73 automatiske tests i en rigtig browser
 tests/net.js            styrer netværket i testene (gemte svar / live / offline)
 tests/record.js         henter rigtige svar fra vejrtjenesterne og gemmer dem
 tests/fixtures/         de gemte svar (network.json)
@@ -47,12 +50,30 @@ tests/fixtures/         de gemte svar (network.json)
 
 Filerne er bevidst **almindelige scripts uden build-trin**: de deler ét globalt navnerum og skal indlæses i den rækkefølge, de står i `index.html`.
 
+## Nyheder ("Nyt siden sidst")
+
+Når en bruger kommer tilbage, viser velkomstkortet de opdateringer, de ikke har set endnu (nye brugere ser dem ikke – for dem er alt nyt). Alle nyheder står også i manualen under **Nyheder**.
+
+Ny opdatering? Tilføj en post **øverst** i `CHANGELOG` i `js/changelog.js`:
+
+```js
+{ id: '2026-12-01.1',
+  da: { t: 'Kort overskrift', p: ['Hvad er nyt – skrevet til spillerne.', 'Højst 3–4 punkter.'] },
+  en: { t: 'Short title',     p: ['What is new – written for players.',  'At most 3–4 points.'] } },
+```
+
+`id` er datoen plus et løbenummer og skal være "større" end den forrige (testene tjekker det).
+
+**Billede:** tilføj `img: 'img/news/2026-12-01-1.webp'` og en "scene" med samme id i `tools/news-shots.js`, der viser det nye. `npm run news-shots` tager billederne (alle, eller kun ét: `npm run news-shots -- 2026-12-01.1`). Klik på billedet viser det i fuld størrelse.
+
+Kør derefter `npm run build` – billederne bygges også ind i `dist/bingo-watch.html`.
+
 ## Udvikling
 
 ```bash
 npm install
 npx playwright install chromium   # første gang
-npm test                          # kører de 64 tests mod index.html – uden internet
+npm test                          # kører de 73 tests mod index.html – uden internet
 npm run build                     # laver dist/bingo-watch.html
 npm run test:single               # bygger og tester den samlede fil
 npm run record                    # henter manglende svar fra vejrtjenesterne (sjældent)

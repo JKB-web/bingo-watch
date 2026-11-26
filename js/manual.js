@@ -48,6 +48,9 @@ const MANUAL = [
           <li><b>Round buttons</b> bottom right: fullscreen, sound, undo and autopilot.</li>
           <li><b>Stats</b> bottom centre: drawn, remaining and flight time.</li>
         </ul>` } },
+    { id: 'news', icon: 'new_releases',
+      da: { t: 'Nyheder', get h() { return changelogManualHtml('da'); } },
+      en: { t: 'What\u2019s new', get h() { return changelogManualHtml('en'); } } },
     { id: 'deck', icon: 'flight_takeoff',
       da: { t: 'Flight Deck – træk tal', h: `
         <ul>

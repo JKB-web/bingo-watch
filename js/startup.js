@@ -42,6 +42,7 @@ function fitBriefingCard() {
 window.addEventListener('resize', fitBriefingCard);
 window.addEventListener('load', fitBriefingCard);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBriefingCard);
+renderBriefingNews();
 fitBriefingCard();
 updateVerifyEmptyState();
 document.getElementById('verify-id').addEventListener('keydown', e => { if (e.key === 'Enter') verifyWin(); });

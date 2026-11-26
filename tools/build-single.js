@@ -24,7 +24,14 @@ html = html.replace(/<script src="(js\/[^"]+)"><\/script>/g, (_, file) => {
     return '<script>\n' + read(file).replace(/<\/script/gi, '<\\/script') + '</script>';
 });
 
+// 'img/news/x.webp' (pictures for "Nyt siden sidst")  ->  data: URL, so the single file needs no image folder
+let img = 0;
+html = html.replace(/'(img\/news\/[\w.-]+\.webp)'/g, (_, file) => {
+    img++;
+    return "'data:image/webp;base64," + fs.readFileSync(path.join(root, file)).toString('base64') + "'";
+});
+
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
 const out = path.join(root, 'dist', 'bingo-watch.html');
 fs.writeFileSync(out, html);
-console.log(`dist/bingo-watch.html  (${css} stylesheet, ${js} scripts, ${(html.length / 1024).toFixed(0)} KB)`);
+console.log(`dist/bingo-watch.html  (${css} stylesheet, ${js} scripts, ${img} pictures, ${(html.length / 1024).toFixed(0)} KB)`);

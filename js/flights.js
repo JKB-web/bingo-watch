@@ -729,21 +729,26 @@ function drawNumber() {
     const display = document.getElementById('currentNumber');
     display.classList.add('rolling');
     
-    let count = 0;
-    const interval = setInterval(() => {
+    // The roll lasts a fixed TIME (not a number of ticks): on a slow or busy device the ticks come late, and a
+    // tick count could outlast the safety timer below, which then unlocked drawing while a number was still rolling.
+    const t0 = performance.now();
+    clearInterval(drawRollTimer);
+    drawRollTimer = setInterval(() => {
         display.innerText = Math.floor(Math.random() * maxNumber) + 1;
-        playSound('tick'); count++;
-        if (count > 15) { 
-            clearInterval(interval); 
-            try { finalize(); } 
+        playSound('tick');
+        if (performance.now() - t0 >= 800) {
+            clearInterval(drawRollTimer); drawRollTimer = 0;
+            try { finalize(); }
             catch(e) { console.error(e); isSpinning = false; }
         }
     }, 50);
-    
+
+    // safety net if something went wrong: stop the roll itself too, so no number can land after unlocking
     setTimeout(() => {
-        if(isSpinning && myToken === drawToken) { isSpinning = false; display.classList.remove('rolling'); }
-    }, 2000);
+        if (isSpinning && myToken === drawToken) { clearInterval(drawRollTimer); drawRollTimer = 0; isSpinning = false; display.classList.remove('rolling'); }
+    }, 4000);
 }
+let drawRollTimer = 0;
 
 function finalize(presetNum) {
     try {
@@ -915,6 +920,7 @@ function resetGame() {
     drawnNumbers = [];
     startTime = null;
     clearInterval(statsInterval);
+    clearInterval(drawRollTimer); drawRollTimer = 0;   // a roll in progress must not land a number in the new game
     isSpinning = false;
 
     document.getElementById('currentNumber').innerText = "--";
