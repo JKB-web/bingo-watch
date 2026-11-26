@@ -2078,8 +2078,9 @@
 /* ---------- moment: the drawn number reads like a departure board ---------- */
 .display-container { border: 1px solid var(--hairline); }
 #currentNumber {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-weight: 400; letter-spacing: -0.02em;
+    /* Inter, not JetBrains Mono: the mono font draws a dot inside every 0, which looks odd on a bingo number */
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500; letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums; color: var(--accent);
 }
 .lingo-display { color: var(--text-2); font-weight: 500; }
