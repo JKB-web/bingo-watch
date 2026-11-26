@@ -1996,6 +1996,132 @@
         .ff-assist > span:nth-child(2) { flex: 1; }
         .ff-assist button { border: 1px solid rgba(217,119,6,0.55); background: transparent; color: inherit; font: inherit; font-size: 11.5px; font-weight: 600; padding: 4px 8px; border-radius: var(--r-sm); cursor: pointer; }
 </style>
+    <style>
+/* =====================================================================
+   UNSLOP LAYER — loaded after style.css
+   Direction: ops control room on night shift. Quiet chrome, one navy
+   accent, the drawn number and the map carry the moment.
+   Method: unslop by Damir Sokolovsky (@heydamir), CC BY 4.0
+   ===================================================================== */
+
+/* Kept from the original on request: glass edge, inset highlights, neutral ramp */
+:root {
+    --r-xs: 4px;
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --radius-btn: var(--r-sm);
+
+    --surface-2: rgba(127,127,127,0.06);
+    --hairline: var(--border-light);
+    --text-2: var(--text-muted);
+
+    /* the one accent: the existing navy */
+    --accent: #1e3a6e;
+    --accent-orange: var(--accent);
+    --accent-rgb: 30, 58, 110;
+
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+[data-theme="dark"] {
+    --accent: #7f9fd9;
+    --accent-rgb: 127, 159, 217;
+}
+
+/* ---------- 2. Color: buttons — flat, one accent ---------- */
+.btn-draw, .btn-action, .start-btn,
+:root:not([data-theme="dark"]) .btn-draw,
+:root:not([data-theme="dark"]) .btn-action,
+:root:not([data-theme="dark"]) .start-btn {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid transparent;
+    box-shadow: none;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.btn-draw:hover, .btn-action:hover, .start-btn:hover {
+    background: #17305c; opacity: 1; box-shadow: none; transform: none;
+}
+/* dark: a solid light button (the translucent --active-bg made the main buttons look disabled) */
+[data-theme="dark"] .btn-draw, [data-theme="dark"] .btn-action, [data-theme="dark"] .start-btn {
+    background: #e9ecf1; color: #0c0d10;
+}
+[data-theme="dark"] .btn-draw:hover, [data-theme="dark"] .btn-action:hover, [data-theme="dark"] .start-btn:hover { background: #ffffff; }
+.btn-draw:active, .btn-action:active, .start-btn:active, .tool-btn:active { transform: scale(0.98); }
+.btn-draw { height: 48px; padding: 0 16px; font-size: 15px; }
+
+.tool-btn { height: 28px; padding: 0 12px; font-weight: 500; background: transparent; border: 1px solid var(--hairline); box-shadow: none; }
+.tool-btn:hover { background: var(--card-hover); border-color: var(--hairline); }
+.banko-btn, .banko-btn:hover,
+[data-theme="dark"] .banko-btn, [data-theme="dark"] .banko-btn:hover {
+    background: var(--accent); color: #fff; border-color: transparent; box-shadow: none;
+}
+[data-theme="dark"] .banko-btn { background: #e9ecf1; color: #0c0d10; }
+[data-theme="dark"] .banko-btn:hover { background: #ffffff; }
+.new-game-btn, .new-game-btn:hover { color: var(--text-main); }   /* red is for errors and undo, not a normal action */
+
+.dock-btn.active, .right-tool-btn.active { background: var(--active-bg); color: var(--active-fg); box-shadow: none; }
+.lang-btn.active, .briefing-badge { background: var(--active-bg); color: var(--active-fg); }
+.lang-btn { font-weight: 500; border-radius: 6px; }
+.tab-btn { border-radius: 6px; }
+
+.fab-btn:hover { transform: none; }
+.status-live { color: var(--success-green); font-weight: 500; }
+
+/* ---------- 3. Grid: latest number is the one accent ---------- */
+.grid-cell { transition: background-color 0.15s var(--ease), color 0.15s var(--ease); font-variant-numeric: tabular-nums; }
+.grid-cell.latest, [data-theme="dark"] .grid-cell.latest { background: var(--accent); color: #fff; border-color: transparent; box-shadow: none; transform: none; animation: none; }
+[data-theme="dark"] .grid-cell.latest { color: #0f1114; }
+
+/* ---------- moment: the drawn number reads like a departure board ---------- */
+.display-container { border: 1px solid var(--hairline); }
+#currentNumber {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 400; letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums; color: var(--accent);
+}
+.lingo-display { color: var(--text-2); font-weight: 500; }
+
+/* ---------- 5. Type ---------- */
+body { letter-spacing: 0; }
+.brand { font-weight: 600; letter-spacing: 0.01em; }
+.briefing-title { font-weight: 600; font-size: 22px; letter-spacing: -0.01em; }
+.briefing-h3 { font-weight: 500; font-size: 13px; color: var(--text-muted) !important; border-bottom: none; padding-bottom: 0; margin-bottom: 8px; }
+.briefing-instr strong { font-weight: 500 !important; color: var(--text-main) !important; font-size: 13px !important; }
+.briefing-badge { font-weight: 500; font-size: 11px; background: transparent !important; color: var(--text-muted) !important; border: 1px solid var(--hairline); }
+.briefing-p strong { font-weight: 600; }
+.key-box { font-weight: 500; }
+.hud-val { font-weight: 500; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.window-title { font-weight: 500; letter-spacing: 0; }
+.flight-table td { font-variant-numeric: tabular-nums; }
+.flight-table td:first-child { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 500; }
+
+/* ---------- 7. Details: radius scale ---------- */
+.window, .wx-menu, .briefing-card { border-radius: var(--r-lg); }
+.window-header { border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.ops-right-toolbar, .coord-pill, #hud-stats, #track-pill, #toast, .carto-osm-badge, .fab-btn,
+.display-container, .flight-detail-card { border-radius: var(--r-md); }
+.right-tool-btn[data-tip]:hover::before { border-radius: var(--r-sm); }
+.flight-table tbody tr.flight-row.expanded td:first-child { border-left-color: var(--accent); }
+
+/* ---------- 9. Motion ---------- */
+.lang-btn { transition: background-color 0.15s var(--ease), color 0.15s var(--ease); }
+.banko-text {
+    font-weight: 600; letter-spacing: 0.02em; text-shadow: none;
+    animation: bankoIn 0.5s var(--ease) both;
+}
+@keyframes bankoIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+/* ---------- mobile ---------- */
+@media (max-width: 899px) {
+    .banko-btn { height: 36px; padding: 0 14px; font-size: 14px; }
+}
+
+/* buttons inherit the interface family (mobile fell back to Arial) */
+button, .btn-draw, .tool-btn, .start-btn { font-family: inherit; }
+</style>
 </head>
 <body>
     <!-- Liquid glass refraction map (used by backdrop-filter in Chromium) -->
@@ -2015,8 +2141,8 @@
                 <span class="briefing-title" data-lang="brTitle">FLIGHT DECK ORIENTATION</span>
                 <div class="briefing-header-right">
                     <div class="lang-switch" role="group" aria-label="Language">
-                        <button type="button" class="lang-btn active" data-set-lang="en" onclick="setLanguage('en')">English 🇬🇧</button>
-                        <button type="button" class="lang-btn" data-set-lang="da" onclick="setLanguage('da')">Dansk 🇩🇰</button>
+                        <button type="button" class="lang-btn active" data-set-lang="en" onclick="setLanguage('en')">English</button>
+                        <button type="button" class="lang-btn" data-set-lang="da" onclick="setLanguage('da')">Dansk</button>
                     </div>
                     <span class="briefing-badge">OPSCONTROL EDITION</span>
                 </div>
@@ -2051,7 +2177,7 @@
                 </div>
             </div>
             <div class="briefing-footer" style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="briefing-status" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;"><span data-lang="brStatus">Local Mode & Live Weather:</span> <strong style="color:var(--success-green);">ONLINE</strong></span>
+                <span class="briefing-status" style="font-size:11px; color:var(--text-muted); "><span data-lang="brStatus">Local Mode & Live Weather:</span> <strong class="status-live">Online</strong></span>
                 <button class="start-btn" onclick="startMission()" data-lang="brLaunch">CONFIRM & LAUNCH</button>
             </div>
         </div>
@@ -2115,8 +2241,8 @@
                     <div class="setting-row">
                         <span class="setting-label" data-lang="language">Sprog / Language</span>
                         <select class="select-input" onchange="setLanguage(this.value)">
-                            <option value="en" selected>English 🇬🇧</option>
-                            <option value="da">Dansk 🇩🇰</option>
+                            <option value="en" selected>English</option>
+                            <option value="da">Dansk</option>
                         </select>
                     </div>
                     <div class="setting-row">
@@ -2464,7 +2590,7 @@
         <div class="toolbar">
             <button class="tool-btn banko-btn" onclick="triggerConfetti()">
                 <span class="material-icons" style="font-size:15px;">celebration</span>
-                BANKO!
+                Banko
             </button>
             <button class="tool-btn new-game-btn" onclick="confirmNewGame()">
                 <span class="material-icons" style="font-size:15px;">refresh</span>
@@ -2758,7 +2884,7 @@ const AIRPORT_DB = [
 // --- TRANSLATION DATA ---
 const translations = {
     da: {
-        flightDeck: "Flight Deck-kontrol", systemReady: "System online. Klar.", drawBtn: "TRÆK NUMMER", settings: "Indstillinger",
+        flightDeck: "Flight Deck-kontrol", systemReady: "Klar til første træk", drawBtn: "Træk nummer", settings: "Indstillinger",
         tabGeneral: "Generelt", tabAudio: "Lyd", tabVisual: "Udseende", tabShortcuts: "Genveje",
         language: "Sprog", manualMode: "Manuel tilstand (klik på tal)", apInterval: "Autopilot-interval (sek.)", resetLayout: "Nulstil vindueslayout",
         volume: "Lydstyrke", soundClick: "Kliklyd", soundChime: "Ding-dong", soundFanfare: "Bankofanfare", soundTcas: "TCAS-alarm",
@@ -2772,19 +2898,19 @@ const translations = {
         tieTitle: "Konfliktløsning", tiePlayers: "Spillere i dødt løb", tieBtn: "AFGØR", btnCheck: "TJEK", btnClr: "RYD",
         lblOrigin: "Afgang", lblDest: "Destination", lblSpeed: "Hastighed / flyveniveau", lblHdg: "Kurs", lblRem: "Resterende distance", stInFlight: "I LUFTEN", stLanded: "LANDET",
         tracking: "FØLGER",
-        brTitle: "FLIGHT DECK-ORIENTERING", brWelcomeH: "Velkommen, controller",
+        brTitle: "Flight deck-orientering", brWelcomeH: "Velkommen, controller",
         brWelcomeP1: "Du har nu kommandoen over <strong>BINGO WATCH</strong>. Din mission er at guide passagererne sikkert gennem luftrummet (tallene 1-90) til landing (BANKO).",
         brWelcomeP2: "Baggrunden viser et monokromt <strong>OCC taktisk radarkort</strong> (2D / 3D globus, rækkeviddecirkler, flyruter og ni live vejrlag: <strong>jetstrømme, vindfaner, skyområder, CAT, tropopause, isdannelse, tropiske cykloner, vulkaner &amp; SIGMET</strong> samt RainViewer-radar).",
         brInstrH: "Instrumentoversigt",
-        brI1T: "TALGITTER & LOG", brI1P: "Visuel oversigt over alle trukne tal og den historiske flyvelog.",
-        brI2T: "PLADEGENERATOR", brI2P: "Print nye flyveplaner (bankoplader) til hele holdet.",
-        brI3T: "TJEK GEVINST (SCANNER)", brI3P: "Indtast plade-ID for automatisk at validere en bankomelding.",
-        brI4T: "GAVEFORDELING", brI4P: "Administrér gaver og træk tilfældige vindere til sidegevinster.",
-        brI5T: "LIVE VEJR & OCC", brI5P: "Skift 3D globus, sol / dag-nat, rækkeviddecirkler og menuen Vejrlag i højre værktøjslinje.",
-        brI6T: "KONFLIKTLØSNING", brI6P: "Afgør «dødt løb» mellem spillere med tilfældigt udtræk.",
+        brI1T: "Talgitter og log", brI1P: "Visuel oversigt over alle trukne tal og den historiske flyvelog.",
+        brI2T: "Pladegenerator", brI2P: "Print nye flyveplaner (bankoplader) til hele holdet.",
+        brI3T: "Tjek gevinst", brI3P: "Indtast plade-ID for automatisk at validere en bankomelding.",
+        brI4T: "Gavefordeling", brI4P: "Administrér gaver og træk tilfældige vindere til sidegevinster.",
+        brI5T: "Live vejr og OCC", brI5P: "Skift 3D globus, sol / dag-nat, rækkeviddecirkler og menuen Vejrlag i højre værktøjslinje.",
+        brI6T: "Konfliktløsning", brI6P: "Afgør «dødt løb» mellem spillere med tilfældigt udtræk.",
         brKeysH: "Cockpit-kontroller (genveje)",
-        brK1: "Træk næste nummer", brK2: "BANKO! (fejring)", brK3: "Autopilot (auto-træk)", brK4: "Lyd til / fra", brK5: "Nulstil system", brK6: "Fuldskærm",
-        brStatus: "Lokal tilstand og live-vejr:", brLaunch: "BEKRÆFT & START",
+        brK1: "Træk næste nummer", brK2: "Banko (fejring)", brK3: "Autopilot (auto-træk)", brK4: "Lyd til / fra", brK5: "Nulstil system", brK6: "Fuldskærm",
+        brStatus: "Live vejr", brLaunch: "Start spillet",
         thFlight: "Fly", thDep: "AFG", thDest: "DEST", tieShort: "Konfliktløsning", mMute: "Lyd fra/til", keyBanko: "Banko", keyReset: "Nulstil", ttAutoUpd: "Opdateres automatisk hvert 10. min", ttWxRefresh: "Opdatér vejrdata nu", ttSearch: "Søg", ttPrint: "Print flyvelog", ttRelease: "Slip kameraet", ttFull: "Fuldskærm (F)", ttMute: "Lyd fra/til (M)", ttUndo: "Fortryd", ttAuto: "Autopilot (A)", ttTheme: "Skift lys / mørk tilstand", ttSettings: "Indstillinger", thLight: "OCC Taktisk lys", thNight: "OCC Taktisk nat", thMatrix: "OCC Matrix-radar", roundLabel: "Der spilles om", round1: "1 række", round2: "2 rækker", round3: "Fuld plade", ttStage: "Storskærm (P)", ttStageClose: "Luk (Esc)", xmasMode: "Juletilstand", ttXmas: "Juletilstand (julemand, sne og julelyde)", seasonMode: "Sæson", seasonNone: "Fra", seasonAuto: "Automatisk (efter dato)", seasonXmas: "Jul", seasonNewyear: "Nytår", seasonEaster: "Påske", seasonHalloween: "Halloween", seasonParty: "Fest / fødselsdag", partyText: "Bannertekst", ttSeason: "Sæsontilstand", attractLabel: "Attract mode", attractOff: "Fra", attract2: "Efter 2 min", attract5: "Efter 5 min", attract10: "Efter 10 min", attractNow: "Start nu", ttCaller: "Opråber-skærm (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Storskærm", keyFull: "Fuldskærm", mUndo: "Fortryd", gadssLabel: "GADSS-simulering", mMap: "Kort", mDraw: "Træk", mGrid: "Tal", mFlights: "Fly", mMore: "Mere", flightLog: "Aktive fly", statsTitle: "Missionsstatistik", statDrawn: "Trukket", statRemain: "Tilbage", statTime: "Flyvetid", statPrev: "Forrige",
         newGame: "Nyt spil", bankoMsg: "BANKO!",
         prizeTitle: "Gavefordeling", prizeSmall: "Små gaver", prizeBig: "Store gaver", btnSet: "SÆT", btnDrawSmall: "TRÆK", btnDrawBig: "TRÆK",
@@ -2793,7 +2919,7 @@ const translations = {
         verifyTitle: "Tjek plade", verifyBtn: "Tjek"
     },
     en: {
-        flightDeck: "Flight Deck Control", systemReady: "System Online. Ready.", drawBtn: "DRAW NUMBER", settings: "Settings",
+        flightDeck: "Flight Deck Control", systemReady: "Ready for the first draw", drawBtn: "Draw number", settings: "Settings",
         tabGeneral: "General", tabAudio: "Audio", tabVisual: "Visuals", tabShortcuts: "Shortcuts",
         language: "Language", manualMode: "Manual Mode (Click #)", apInterval: "AP Interval (Sec)", resetLayout: "Reset Window Layout",
         volume: "Volume", soundClick: "Click Sound", soundChime: "Ding-Dong", soundFanfare: "Bingo Fanfare", soundTcas: "TCAS Alert",
@@ -2803,25 +2929,25 @@ const translations = {
         weatherTitle: "Weather", wxMenuTitle: "Weather Layers", wxRefresh: "Refresh live data",
         tipRadar: "Live Precipitation Radar (RainViewer)", tipWxMenu: "Weather Layers", tipSun: "Sun / Day-Night Terminator", tipZoomIn: "Zoom In (+)", tipZoomOut: "Zoom Out (-)",
         tipCenter: "Center on Airport", tipGlobe: "3D Globe / 2D Map", tipRings: "OCC Tactical Range Rings & Waypoints",
-        phFlights: "Search for flights...", phWx: "City or ICAO (e.g. Odense)", phCard: "Card ID",
+        phFlights: "Search flights", phWx: "City or ICAO (e.g. Odense)", phCard: "Card ID",
         tieTitle: "Conflict Resolution", tiePlayers: "Players in Dead Heat", tieBtn: "RESOLVE", btnCheck: "CHECK", btnClr: "CLR",
         lblOrigin: "Origin", lblDest: "Destination", lblSpeed: "Speed / Flight Level", lblHdg: "Track Heading", lblRem: "Remaining Distance", stInFlight: "IN FLIGHT", stLanded: "LANDED",
         tracking: "TRACKING",
-        brTitle: "FLIGHT DECK ORIENTATION", brWelcomeH: "Welcome Controller",
+        brTitle: "Flight deck briefing", brWelcomeH: "Welcome, controller",
         brWelcomeP1: "You are now in command of <strong>BINGO WATCH</strong>. Your mission is to guide passengers safely through the airspace (numbers 1-90) until landing (BINGO).",
         brWelcomeP2: "The background features a monochrome <strong>OCC Tactical Radar Map</strong> (2D / 3D Globe, range rings, flight tracks and nine live weather layers: <strong>Jetstreams, Wind barbs, Cloud areas, CAT, Tropopause, Icing, Tropical cyclones, Volcanoes &amp; SIGMET</strong>, plus RainViewer radar).",
-        brInstrH: "Instrument Overview",
-        brI1T: "NAV GRID & LOG", brI1P: "Visual tracking of all drawn numbers and historical flight log.",
-        brI2T: "CARD GENERATOR", brI2P: "Print new flight plans (bingo cards) for the entire crew.",
-        brI3T: "VERIFY WIN (SCANNER)", brI3P: "Enter Card ID to automatically validate a claimed Bingo.",
-        brI4T: "PRIZE DISTRIBUTION", brI4P: "Manage inventory and randomly draw winners for side prizes.",
-        brI5T: "LIVE WEATHER & OCC", brI5P: "Toggle 3D Globe, sun / day-night, range rings and the Weather Layers menu on the right toolbar.",
-        brI6T: "CONFLICT RES.", brI6P: "Resolve \"dead heat\" tie-breaker situations between players.",
-        brKeysH: "Cockpit Controls (Shortcuts)",
-        brK1: "Draw Next Number", brK2: "BINGO! (Celebration)", brK3: "Autopilot (Auto-draw)", brK4: "Mute / Unmute", brK5: "Reset System", brK6: "Fullscreen",
-        brStatus: "Local Mode & Live Weather:", brLaunch: "CONFIRM & LAUNCH",
+        brInstrH: "Instruments",
+        brI1T: "Number grid and log", brI1P: "Visual tracking of all drawn numbers and historical flight log.",
+        brI2T: "Card generator", brI2P: "Print new flight plans (bingo cards) for the entire crew.",
+        brI3T: "Verify win", brI3P: "Enter Card ID to automatically validate a claimed Bingo.",
+        brI4T: "Prize draw", brI4P: "Manage inventory and randomly draw winners for side prizes.",
+        brI5T: "Live weather and OCC", brI5P: "Toggle 3D Globe, sun / day-night, range rings and the Weather Layers menu on the right toolbar.",
+        brI6T: "Tie-breaker", brI6P: "Resolve \"dead heat\" tie-breaker situations between players.",
+        brKeysH: "Cockpit shortcuts",
+        brK1: "Draw next number", brK2: "Bingo celebration", brK3: "Autopilot (auto-draw)", brK4: "Mute", brK5: "Reset", brK6: "Fullscreen",
+        brStatus: "Live weather", brLaunch: "Start the game",
         thFlight: "Flight", thDep: "DEP", thDest: "DEST", tieShort: "Conflict Res.", mMute: "Mute", keyBanko: "Banko", keyReset: "Reset", ttAutoUpd: "Auto-updates every 10 min", ttWxRefresh: "Refresh weather data now", ttSearch: "Search", ttPrint: "Print flight log", ttRelease: "Release camera", ttFull: "Fullscreen (F)", ttMute: "Mute / unmute (M)", ttUndo: "Undo", ttAuto: "Autopilot (A)", ttTheme: "Switch light / dark mode", ttSettings: "Settings", thLight: "OCC Tactical Light", thNight: "OCC Tactical Night", thMatrix: "OCC Matrix Radar", roundLabel: "Playing for", round1: "1 row", round2: "2 rows", round3: "Full card", ttStage: "Big screen (P)", ttStageClose: "Close (Esc)", xmasMode: "Christmas mode", ttXmas: "Christmas mode (Santa, snow and sleigh bells)", seasonMode: "Season", seasonNone: "Off", seasonAuto: "Automatic (by date)", seasonXmas: "Christmas", seasonNewyear: "New Year", seasonEaster: "Easter", seasonHalloween: "Halloween", seasonParty: "Party / birthday", partyText: "Banner text", ttSeason: "Season mode", attractLabel: "Attract mode", attractOff: "Off", attract2: "After 2 min", attract5: "After 5 min", attract10: "After 10 min", attractNow: "Start now", ttCaller: "Caller screen (O)", manualLabel: "Manual", ttManual: "Manual (H)", tipStage: "Big screen", keyFull: "Fullscreen", mUndo: "Undo", gadssLabel: "GADSS simulation", mMap: "Map", mDraw: "Draw", mGrid: "Numbers", mFlights: "Flights", mMore: "More", flightLog: "Active Flights", statsTitle: "Mission Stats", statDrawn: "Drawn", statRemain: "Remain", statTime: "Flight Time", statPrev: "Previous",
-        newGame: "New Game", bankoMsg: "BINGO!",
+        newGame: "New game", bankoMsg: "BINGO!",
         prizeTitle: "Prize Distribution", prizeSmall: "Small Prizes", prizeBig: "Big Prizes", btnSet: "SET", btnDrawSmall: "DRAW", btnDrawBig: "DRAW",
         lingoDefault: "Waypoint confirmed",
         genTitle: "Card Generator", genPlayers: "Number of Players", genCards: "Cards per Player", genPrint: "GENERATE & PRINT PDF",

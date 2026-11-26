@@ -14,6 +14,7 @@
     <script src="https://unpkg.com/maplibre-gl@5.0.0/dist/maplibre-gl.js"></script>
     
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/unslop.css">
 </head>
 <body>
     <!-- Liquid glass refraction map (used by backdrop-filter in Chromium) -->
@@ -33,8 +34,8 @@
                 <span class="briefing-title" data-lang="brTitle">FLIGHT DECK ORIENTATION</span>
                 <div class="briefing-header-right">
                     <div class="lang-switch" role="group" aria-label="Language">
-                        <button type="button" class="lang-btn active" data-set-lang="en" onclick="setLanguage('en')">English 🇬🇧</button>
-                        <button type="button" class="lang-btn" data-set-lang="da" onclick="setLanguage('da')">Dansk 🇩🇰</button>
+                        <button type="button" class="lang-btn active" data-set-lang="en" onclick="setLanguage('en')">English</button>
+                        <button type="button" class="lang-btn" data-set-lang="da" onclick="setLanguage('da')">Dansk</button>
                     </div>
                     <span class="briefing-badge">OPSCONTROL EDITION</span>
                 </div>
@@ -69,7 +70,7 @@
                 </div>
             </div>
             <div class="briefing-footer" style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="briefing-status" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;"><span data-lang="brStatus">Local Mode & Live Weather:</span> <strong style="color:var(--success-green);">ONLINE</strong></span>
+                <span class="briefing-status" style="font-size:11px; color:var(--text-muted); "><span data-lang="brStatus">Local Mode & Live Weather:</span> <strong class="status-live">Online</strong></span>
                 <button class="start-btn" onclick="startMission()" data-lang="brLaunch">CONFIRM & LAUNCH</button>
             </div>
         </div>
@@ -133,8 +134,8 @@
                     <div class="setting-row">
                         <span class="setting-label" data-lang="language">Sprog / Language</span>
                         <select class="select-input" onchange="setLanguage(this.value)">
-                            <option value="en" selected>English 🇬🇧</option>
-                            <option value="da">Dansk 🇩🇰</option>
+                            <option value="en" selected>English</option>
+                            <option value="da">Dansk</option>
                         </select>
                     </div>
                     <div class="setting-row">
@@ -482,7 +483,7 @@
         <div class="toolbar">
             <button class="tool-btn banko-btn" onclick="triggerConfetti()">
                 <span class="material-icons" style="font-size:15px;">celebration</span>
-                BANKO!
+                Banko
             </button>
             <button class="tool-btn new-game-btn" onclick="confirmNewGame()">
                 <span class="material-icons" style="font-size:15px;">refresh</span>

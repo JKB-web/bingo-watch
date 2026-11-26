@@ -1,0 +1,124 @@
+/* =====================================================================
+   UNSLOP LAYER — loaded after style.css
+   Direction: ops control room on night shift. Quiet chrome, one navy
+   accent, the drawn number and the map carry the moment.
+   Method: unslop by Damir Sokolovsky (@heydamir), CC BY 4.0
+   ===================================================================== */
+
+/* Kept from the original on request: glass edge, inset highlights, neutral ramp */
+:root {
+    --r-xs: 4px;
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --radius-btn: var(--r-sm);
+
+    --surface-2: rgba(127,127,127,0.06);
+    --hairline: var(--border-light);
+    --text-2: var(--text-muted);
+
+    /* the one accent: the existing navy */
+    --accent: #1e3a6e;
+    --accent-orange: var(--accent);
+    --accent-rgb: 30, 58, 110;
+
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+[data-theme="dark"] {
+    --accent: #7f9fd9;
+    --accent-rgb: 127, 159, 217;
+}
+
+/* ---------- 2. Color: buttons — flat, one accent ---------- */
+.btn-draw, .btn-action, .start-btn,
+:root:not([data-theme="dark"]) .btn-draw,
+:root:not([data-theme="dark"]) .btn-action,
+:root:not([data-theme="dark"]) .start-btn {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid transparent;
+    box-shadow: none;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.btn-draw:hover, .btn-action:hover, .start-btn:hover {
+    background: #17305c; opacity: 1; box-shadow: none; transform: none;
+}
+/* dark: a solid light button (the translucent --active-bg made the main buttons look disabled) */
+[data-theme="dark"] .btn-draw, [data-theme="dark"] .btn-action, [data-theme="dark"] .start-btn {
+    background: #e9ecf1; color: #0c0d10;
+}
+[data-theme="dark"] .btn-draw:hover, [data-theme="dark"] .btn-action:hover, [data-theme="dark"] .start-btn:hover { background: #ffffff; }
+.btn-draw:active, .btn-action:active, .start-btn:active, .tool-btn:active { transform: scale(0.98); }
+.btn-draw { height: 48px; padding: 0 16px; font-size: 15px; }
+
+.tool-btn { height: 28px; padding: 0 12px; font-weight: 500; background: transparent; border: 1px solid var(--hairline); box-shadow: none; }
+.tool-btn:hover { background: var(--card-hover); border-color: var(--hairline); }
+.banko-btn, .banko-btn:hover,
+[data-theme="dark"] .banko-btn, [data-theme="dark"] .banko-btn:hover {
+    background: var(--accent); color: #fff; border-color: transparent; box-shadow: none;
+}
+[data-theme="dark"] .banko-btn { background: #e9ecf1; color: #0c0d10; }
+[data-theme="dark"] .banko-btn:hover { background: #ffffff; }
+.new-game-btn, .new-game-btn:hover { color: var(--text-main); }   /* red is for errors and undo, not a normal action */
+
+.dock-btn.active, .right-tool-btn.active { background: var(--active-bg); color: var(--active-fg); box-shadow: none; }
+.lang-btn.active, .briefing-badge { background: var(--active-bg); color: var(--active-fg); }
+.lang-btn { font-weight: 500; border-radius: 6px; }
+.tab-btn { border-radius: 6px; }
+
+.fab-btn:hover { transform: none; }
+.status-live { color: var(--success-green); font-weight: 500; }
+
+/* ---------- 3. Grid: latest number is the one accent ---------- */
+.grid-cell { transition: background-color 0.15s var(--ease), color 0.15s var(--ease); font-variant-numeric: tabular-nums; }
+.grid-cell.latest, [data-theme="dark"] .grid-cell.latest { background: var(--accent); color: #fff; border-color: transparent; box-shadow: none; transform: none; animation: none; }
+[data-theme="dark"] .grid-cell.latest { color: #0f1114; }
+
+/* ---------- moment: the drawn number reads like a departure board ---------- */
+.display-container { border: 1px solid var(--hairline); }
+#currentNumber {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 400; letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums; color: var(--accent);
+}
+.lingo-display { color: var(--text-2); font-weight: 500; }
+
+/* ---------- 5. Type ---------- */
+body { letter-spacing: 0; }
+.brand { font-weight: 600; letter-spacing: 0.01em; }
+.briefing-title { font-weight: 600; font-size: 22px; letter-spacing: -0.01em; }
+.briefing-h3 { font-weight: 500; font-size: 13px; color: var(--text-muted) !important; border-bottom: none; padding-bottom: 0; margin-bottom: 8px; }
+.briefing-instr strong { font-weight: 500 !important; color: var(--text-main) !important; font-size: 13px !important; }
+.briefing-badge { font-weight: 500; font-size: 11px; background: transparent !important; color: var(--text-muted) !important; border: 1px solid var(--hairline); }
+.briefing-p strong { font-weight: 600; }
+.key-box { font-weight: 500; }
+.hud-val { font-weight: 500; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.window-title { font-weight: 500; letter-spacing: 0; }
+.flight-table td { font-variant-numeric: tabular-nums; }
+.flight-table td:first-child { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 500; }
+
+/* ---------- 7. Details: radius scale ---------- */
+.window, .wx-menu, .briefing-card { border-radius: var(--r-lg); }
+.window-header { border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.ops-right-toolbar, .coord-pill, #hud-stats, #track-pill, #toast, .carto-osm-badge, .fab-btn,
+.display-container, .flight-detail-card { border-radius: var(--r-md); }
+.right-tool-btn[data-tip]:hover::before { border-radius: var(--r-sm); }
+.flight-table tbody tr.flight-row.expanded td:first-child { border-left-color: var(--accent); }
+
+/* ---------- 9. Motion ---------- */
+.lang-btn { transition: background-color 0.15s var(--ease), color 0.15s var(--ease); }
+.banko-text {
+    font-weight: 600; letter-spacing: 0.02em; text-shadow: none;
+    animation: bankoIn 0.5s var(--ease) both;
+}
+@keyframes bankoIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+/* ---------- mobile ---------- */
+@media (max-width: 899px) {
+    .banko-btn { height: 36px; padding: 0 14px; font-size: 14px; }
+}
+
+/* buttons inherit the interface family (mobile fell back to Arial) */
+button, .btn-draw, .tool-btn, .start-btn { font-family: inherit; }
