@@ -33,6 +33,7 @@ js/                 almindelige scripts, indlæst i denne rækkefølge fra index
   flights.js          flytyper, flydata, flypanel, højdeprofil, animation, træk/fortryd
   airport-card.js     lufthavnskortet: trafik, assistance ved landing, egne kontakter
   divert.js           omdirigering til ALT1/ALT2 via ACARS (ny rute, ETA og nedstigning)
+  payload.js          kabine (sæder, klasser, passagerer) og last for fragtfly (paller, vægt, tyngdepunkt)
   game.js             gem/gendan, runder, seneste tal, storskærm
   seasons.js          sæsontilstande og julemanden
   attract.js          attract mode
@@ -48,7 +49,7 @@ tools/airspace-build.js bygger js/airspace-data.js fra EASA's konfliktzone-advar
 tools/airspace-sources.json  hvilken EASA-advarsel der dækker hvilket luftrum (lukket/advarsel)
 .github/workflows/airspace.yml  tjekker EASA hver dag og laver en pull request ved ændringer
 img/news/               billeder til nyhederne
-tests/run.js            88 automatiske tests i en rigtig browser
+tests/run.js            91 automatiske tests i en rigtig browser
 tests/net.js            styrer netværket i testene (gemte svar / live / offline)
 tests/record.js         henter rigtige svar fra vejrtjenesterne og gemmer dem
 tests/fixtures/         de gemte svar (network.json)
@@ -95,7 +96,7 @@ Luftrumsgrænserne (FIR) kommer fra [VATSIM vatspy-data-project](https://github.
 ```bash
 npm install
 npx playwright install chromium   # første gang
-npm test                          # kører de 88 tests mod index.html – uden internet
+npm test                          # kører de 91 tests mod index.html – uden internet
 npm run build                     # laver dist/bingo-watch.html
 npm run test:single               # bygger og tester den samlede fil
 npm run record                    # henter manglende svar fra vejrtjenesterne (sjældent)

@@ -44,6 +44,18 @@ const draw = (pg, n) => pg.evaluate(n => { for (let i = 0; i < n; i++) finalize(
 
 // one function per update id; each returns a PNG buffer
 const SCENES = {
+  '2026-11-27.4': async (b) => {
+    const { ctx, pg } = await open(b, DESK);
+    await start(pg); await draw(pg, 40); await sleep(1500);
+    // two large views side by side: a passenger wide-body and a freighter
+    const shots = [];
+    for (const want of ['pax', 'cargo']) {
+      await pg.evaluate(w => { closePayloadBig(); const ps = Object.values(activePlaneMarkers);
+        const p = w === 'cargo' ? ps.find(q => q.ac.cargo) : ps.find(q => !q.ac.cargo && q.ac.cat === 'wide') || ps[0]; openPayloadBig(p.num); }, want);
+      await sleep(600); shots.push(await pg.locator('#payload-big .pb-card').screenshot());
+    }
+    await ctx.close(); return shots;
+  },
   '2026-11-27.3': async (b) => {
     const { ctx, pg } = await open(b, DESK);
     await start(pg); await draw(pg, 10); await sleep(1500);

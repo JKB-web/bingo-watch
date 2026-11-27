@@ -203,3 +203,38 @@ button.ff-chip.ff-ap:hover { border-color: var(--accent); color: var(--accent); 
 .acars-btns button { font: inherit; font-size: 12.5px; font-weight: 500; padding: 6px 12px; border-radius: var(--r-sm); cursor: pointer; border: 1px solid var(--hairline); background: transparent; color: inherit; }
 .acars-btns .acars-yes { background: var(--accent); color: #fff; border-color: transparent; }
 [data-theme="dark"] .acars-btns .acars-yes { background: #e9ecf1; color: #0c0d10; }
+
+/* cabin / cargo card in the flight panel */
+.pl-card .ff-title { display: flex; align-items: center; justify-content: space-between; }
+.pl-sim { font-size: 10.5px; font-weight: 500; color: var(--text-muted); }
+.pl-draw { display: block; width: 100%; padding: 0; margin: 6px 0 8px; border: none; background: none; cursor: zoom-in; overflow: hidden; }
+.pl-draw .pl-svg { width: 100%; height: auto; display: block; }
+.pl-body { fill: var(--surface-2); stroke: var(--hairline); stroke-width: 1; }
+.pl-seat { fill: none; stroke: rgba(120, 130, 145, 0.55); stroke-width: 0.6; }
+.pl-seat.on.cF { fill: #b8862b; stroke: none; } .pl-seat.on.cJ { fill: #1e3a6e; stroke: none; }
+.pl-seat.on.cW { fill: #4f7cc4; stroke: none; } .pl-seat.on.cY { fill: #8fb3e8; stroke: none; }
+[data-theme="dark"] .pl-seat.on.cJ { fill: #7f9fd9; } [data-theme="dark"] .pl-seat.on.cY { fill: #4d6a99; }
+.pl-uld { stroke: rgba(0,0,0,0.15); stroke-width: 0.5; } .pl-uld.empty { fill: none; stroke: rgba(120,130,145,0.55); stroke-dasharray: 2 2; }
+.pl-stats { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+.pl-stats div { display: flex; flex-direction: column; } .pl-stats b { font-size: 15px; font-variant-numeric: tabular-nums; } .pl-stats span { font-size: 11px; color: var(--text-muted); }
+.pl-list { display: grid; gap: 3px; font-size: 12px; margin-bottom: 6px; }
+.pl-list div { display: grid; grid-template-columns: 10px 1fr auto; gap: 7px; align-items: center; }
+.pl-list i { width: 10px; height: 10px; border-radius: 2px; display: block; }
+.pl-list i.cF { background: #b8862b; } .pl-list i.cJ { background: #1e3a6e; } .pl-list i.cW { background: #4f7cc4; } .pl-list i.cY { background: #8fb3e8; }
+.pl-list small { color: var(--text-muted); margin-left: 4px; } .pl-list b { font-variant-numeric: tabular-nums; font-weight: 600; }
+.pl-hold { font-size: 11.5px; color: var(--text-muted); }
+.pl-cg { font-size: 11.5px; } .pl-cg small { color: var(--text-muted); }
+.pl-cg-bar { position: relative; height: 8px; border-radius: 4px; background: rgba(229, 72, 77, 0.25); margin: 4px 0 2px; }
+.pl-cg-ok { position: absolute; inset: 0 8%; background: rgba(34, 160, 107, 0.35); border-radius: 4px; }
+.pl-cg-bar i { position: absolute; top: -3px; width: 3px; height: 14px; margin-left: -1.5px; background: var(--text-main); border-radius: 2px; }
+#payload-big { position: fixed; inset: 0; z-index: 99998; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(10,12,16,0.6); backdrop-filter: blur(3px); }
+#payload-big .pb-card { background: var(--solid-surface, #fff); border-radius: var(--r-lg); max-width: min(1100px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 14px 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+[data-theme="dark"] #payload-big .pb-card { background: #181a1f; }
+.pb-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; } .pb-head span { color: var(--text-muted); font-size: 12px; flex: 1; }
+.pb-head button { border: none; background: none; cursor: pointer; color: inherit; }
+.pb-draw { overflow-x: auto; margin-bottom: 8px; } .pb-draw .pl-svg { display: block; max-width: none; }
+#payload-big .pl-card { border: none; padding: 0; background: none; box-shadow: none; }
+@media (max-width: 699px) {
+    .pb-head { flex-wrap: wrap; } .pb-head span { order: 3; flex-basis: 100%; }
+    #payload-big .pb-card { padding: 12px; }
+}

@@ -183,6 +183,21 @@ let browser;
   check('Ruter', 'Ruter vises kun for det valgte fly', dv.noneUnselected && dv.onlySelected, JSON.stringify(dv));
   check('Fly', 'Lufthavn i flypanelet åbner lufthavnskortet', dv.card, JSON.stringify(dv));
   check('Fly', 'Omdirigering via ACARS: ny destination uden spring i position og højde', dv.asked && dv.dest === dv.to && dv.dest !== dv.from && dv.jumpNm < 1 && dv.altJump < 50 && dv.row.startsWith(dv.to), JSON.stringify(dv));
+  // cabin / cargo: freighters among the big aircraft, sensible numbers, a card in the flight panel, a large view
+  const pl = await pg.evaluate(async () => { const w = ms => new Promise(r => setTimeout(r, ms));
+    const fl = Array.from({ length: 300 }, (_, i) => createFlightData(1 + (i % 90), { dep: AIRPORT_DB[i % 40].code, dest: AIRPORT_DB[(i * 7 + 50) % AIRPORT_DB.length].code, seed: 1000 + i }));
+    const big = fl.filter(f => f.ac.cat === 'wide' || f.ac.cat === 'quad'), fr = big.filter(f => f.ac.cargo);
+    const bad = fl.filter(f => { const P = payloadFor(f); return P.cargo ? !(P.totalT > 0 && P.totalT <= P.maxT && P.cg >= P.cgLim[0] && P.cg <= P.cgLim[1])
+                                                                 : !(P.pax > 0 && P.pax <= P.cap && P.crew.pilots >= 2); }).length;
+    const smallFreighter = fl.some(f => f.ac.cargo && !(f.ac.cat === 'wide' || f.ac.cat === 'quad'));
+    const p = Object.values(activePlaneMarkers).find(q => !q.landed) || Object.values(activePlaneMarkers)[0];
+    selectFlightFromLog(p.num); await w(1200);
+    const card = !!document.querySelector('#flight-focus .pl-card .pl-svg'); document.querySelector('#flight-focus .pl-draw').click(); await w(300);
+    const bigView = !!document.querySelector('#payload-big .pl-svg'); closePayloadBig(); clearFlightSelection(); await w(300);
+    return { share: +(fr.length / big.length).toFixed(2), bad, smallFreighter, card, bigView }; });
+  check('Last', 'Ca. hvert femte store fly er et fragtfly, kun store fly', pl.share > 0.1 && pl.share < 0.32 && !pl.smallFreighter, JSON.stringify(pl));
+  check('Last', 'Passagerer, besætning, last og tyngdepunkt er fornuftige', pl.bad === 0, JSON.stringify(pl));
+  check('Last', 'Kabine/last vises i flypanelet og kan vises stort', pl.card && pl.bigView, JSON.stringify(pl));
   check('Fly', 'Fravælg lukker og zoomer ud', fl.closed && fl.zoom === '4.5', fl.zoom);
   const planeBox = await pg.evaluate(() => { const p = Object.values(activePlaneMarkers)[0]; map.jumpTo({ center: [p.lon, p.lat], zoom: 4 }); return p.num; });
   await pg.evaluate(() => document.querySelectorAll('.content-wrapper > .window').forEach(w => w.style.display = 'none')); await sleep(800);

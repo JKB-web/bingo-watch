@@ -177,6 +177,7 @@ const MANUAL = [
         <ul>
           <li><b>Flyvning</b>: ATC ID, registrering, dato, STD, afgang, destination, to alternative lufthavne (ALT1/ALT2) og ruten. Tryk på en lufthavn for at åbne lufthavnskortet.</li>
           <li><b>Omdirigér</b> ved ALT1/ALT2: bekræft, og der sendes en ACARS-besked til flyet (”DIVERT …”). Besætningen svarer WILCO efter et øjeblik, og flyet drejer mod den alternative lufthavn med ny rute (uden om lukket luftrum), ny ETA og nedstigning dertil. Den oprindelige destination står i panelet og i Aktive fly (↪).</li>
+          <li><b>Kabine</b> (passagerfly): kabinen set oppefra med klasserne First, Business, Premium og Economy – fyldte sæder er optaget. Antal passagerer pr. klasse, besætning og hvad der er i lastrummet (bagage, post, fragt). <b>Last</b> (fragtfly – ca. hvert femte store fly): pallerne på hoveddækket farvet efter indhold, vægt, samlet last mod flyets maksimum og tyngdepunktet inden for grænserne. Tryk på tegningen for at se den stort. Alt er simuleret.</li>
           <li><b>Live</b>: fase (stiger, marchhøjde, daler, landet), afgang, landing, højde, vertikal hastighed, kurs, hastighed, anslået brændstof, squawk, sim-tid, distance tilbage og position.</li>
           <li><b>Højdeprofilen</b>: den stiplede kurve er planen, den farvede er det fløjne. Hold musen over grafen for tid, højde og distance.</li>
           <li><b>Følg fly</b> får kameraet til at følge flyet. Træk i kortet for at slippe det.</li>
@@ -188,6 +189,7 @@ const MANUAL = [
         <ul>
           <li><b>Flight</b>: ATC ID, registration, date, STD, origin, destination, two alternates (ALT1/ALT2) and the route. Tap an airport to open the airport card.</li>
           <li><b>Divert</b> next to ALT1/ALT2: confirm, and an ACARS message is sent to the aircraft (“DIVERT …”). The crew answers WILCO after a moment, and the aircraft turns towards the alternate with a new route (round closed airspace), new ETA and descent there. The original destination is shown in the panel and in Active Flights (↪).</li>
+          <li><b>Cabin</b> (passenger flights): the cabin from above with First, Business, Premium and Economy – filled seats are taken. Passengers per class, crew and what is in the hold (bags, mail, freight). <b>Cargo</b> (freighters – about one in five big aircraft): the main-deck pallets coloured by contents, weights, total payload against the aircraft’s maximum and the centre of gravity within its limits. Tap the drawing to see it large. All simulated.</li>
           <li><b>Live</b>: phase (climbing, cruise, descending, landed), takeoff, landing, altitude, vertical speed, track, speed, estimated fuel, squawk, sim time, distance remaining and position.</li>
           <li><b>Vertical profile</b>: the dashed curve is the plan, the coloured one is what has been flown. Hover the chart for time, altitude and distance.</li>
           <li><b>Follow aircraft</b> makes the camera follow it. Drag the map to let go.</li>

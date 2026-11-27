@@ -12,6 +12,15 @@
 // the manual chapter "Nyheder / What's new" lists them all.
 // =====================================================================
 const CHANGELOG = [
+    { id: '2026-11-27.4', date: '2026-11-26', img: 'img/news/2026-11-27-4.webp',
+      da: { t: 'Kabine og last', p: [
+          'Vælg et fly: passagerfly viser kabinen set oppefra med klasser og optagne sæder, antal passagerer og besætning.',
+          'Ca. hvert femte store fly er nu et fragtfly (fx 777F og 747-8F). Det viser pallerne på lastdækket, hvad de indeholder, vægten og tyngdepunktet.',
+          'Tryk på tegningen for at se den stort. Det store tal bruger nu en skrifttype uden prik i nullet.'] },
+      en: { t: 'Cabin and cargo', p: [
+          'Select an aircraft: passenger flights show the cabin from above with classes and taken seats, passengers and crew.',
+          'About one in five big aircraft is now a freighter (e.g. 777F and 747-8F). It shows the pallets on the main deck, their contents, the weight and the centre of gravity.',
+          'Tap the drawing to see it large. The big number now uses a typeface without a dot in the zero.'] } },
     { id: '2026-11-27.3', date: '2026-11-26', img: 'img/news/2026-11-27-3.webp',
       da: { t: 'Omdirigér fly med ACARS', p: [
           'Tryk <b>Omdirigér</b> ved ALT1 eller ALT2 i flypanelet, og bekræft: flyet får en ACARS-besked, besætningen svarer WILCO, og flyet drejer mod den alternative lufthavn.',

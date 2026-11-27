@@ -92,7 +92,8 @@ function createFlightData(num, preset) {
 
     const route = buildRealisticRoute(depAirport, destAirport, routeSeed);
     const totalDistNm = Math.max(25, Math.round(route.total));
-    const ac = pickAircraft(gHav(depAirport.lat, depAirport.lon, destAirport.lat, destAirport.lon), routeSeed);
+    let ac = pickAircraft(gHav(depAirport.lat, depAirport.lon, destAirport.lat, destAirport.lon), routeSeed);
+    if (typeof maybeFreighter === 'function') ac = maybeFreighter(ac, routeSeed);   // some big aircraft are freighters
     const fl = Math.min(ac.fl, flightProfile({ totalDistNm, fl: ac.fl }).peak / 100 || ac.fl);   // short hops cruise lower
     const spd = AC_CATS[ac.cat].spd;                       // ground speed depends on the aircraft type
 
@@ -387,13 +388,14 @@ function openFlightFocus(num) {
                 <div class="ff-title">${L('Flyvning', 'Flight')}</div>
                 <div class="ff-grid">
                     ${item('ATC ID', p.flightNo)}${item(L('Registrering', 'Registration'), p.reg)}
-                    ${p.ac ? `<div class="ff-item ff-span"><span class="ff-label">${L('Flytype', 'Aircraft type')}</span><span class="ff-val ff-actype"><svg viewBox="0 0 24 24">${AC_CATS[p.ac.cat].svg}</svg>${p.ac.code} · ${p.ac.name}<small>${L(AC_CATS[p.ac.cat].da, AC_CATS[p.ac.cat].en)}</small></span></div>` : ''}
+                    ${p.ac ? `<div class="ff-item ff-span"><span class="ff-label">${L('Flytype', 'Aircraft type')}</span><span class="ff-val ff-actype"><svg viewBox="0 0 24 24">${AC_CATS[p.ac.cat].svg}</svg>${p.ac.code} · ${p.ac.name}<small>${L(AC_CATS[p.ac.cat].da, AC_CATS[p.ac.cat].en)}${p.ac.cargo ? L(' · fragtfly', ' · freighter') : ''}</small></span></div>` : ''}
                     ${item(L('Dato', 'Date'), new Date(p.stdMs).toISOString().slice(0, 10))}${item('STD', p.std)}
                     ${item('DEP', apBtn(p.depAirport.code))}${item('DEST' + (p.divert ? ' ↪' : ''), apBtn(p.destAirport.code))}
                     ${item('ALT1', alts[0] ? altBtn(alts[0]) : '–')}${item('ALT2', alts[1] ? altBtn(alts[1]) : '–')}
                     <div class="ff-item ff-span"><span class="ff-label">${L('Rute', 'Route')}</span><span class="ff-val">${p.depAirport.name} → ${p.destAirport.name} · ${p.totalDistNm} NM${p.divert ? ` <em class="ff-diverted">${L('omdirigeret fra', 'diverted from')} ${p.divert.from}</em>` : ''}</span></div>
                 </div>
             </div>
+            ${typeof payloadCardHtml === 'function' ? payloadCardHtml(p) : ''}
             <div class="ff-card">
                 <div class="ff-title">Live <span class="ff-status" data-ff="status"></span></div>
                 <div class="ff-grid">

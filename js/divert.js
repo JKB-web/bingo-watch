@@ -61,7 +61,7 @@ function acarsBox(p) {
     if (a.state === 'confirm') return `<div class="acars-box">
         <div class="acars-title"><span class="material-icons-outlined">mark_email_unread</span>${da ? 'Send ACARS til' : 'Send ACARS to'} ${p.flightNo}?</div>
         <div class="acars-msg">${msg}</div>
-        <div class="acars-sub">${da ? `Ca. ${nm} NM direkte · ${min} · ny destination ${alt.code}` : `About ${nm} NM direct · ${min} · new destination ${alt.code}`}</div>
+        <div class="acars-sub">${da ? `Ca. ${nm} NM direkte · ${min} · ny destination ${alt.code}` : `About ${nm} NM direct · ${min} · new destination ${alt.code}`}${typeof payloadFor === 'function' ? (payloadFor(p).cargo ? (da ? ` · ${Math.round(payloadFor(p).totalT)} t last om bord` : ` · ${Math.round(payloadFor(p).totalT)} t cargo on board`) : (da ? ` · ${payloadFor(p).pax} passagerer om bord` : ` · ${payloadFor(p).pax} passengers on board`)) : ''}</div>
         <div class="acars-btns"><button type="button" class="acars-no" onclick="event.stopPropagation(); cancelAcars(${p.num})">${da ? 'Annullér' : 'Cancel'}</button>
         <button type="button" class="acars-yes" onclick="event.stopPropagation(); sendAcarsDivert(${p.num})">${da ? 'Send ACARS' : 'Send ACARS'}</button></div></div>`;
     return `<div class="acars-box sent"><div class="acars-title"><span class="material-icons-outlined">send</span>ACARS ${da ? 'sendt' : 'sent'} · ${msg}</div>
